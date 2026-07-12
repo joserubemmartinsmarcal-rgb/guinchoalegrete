@@ -1,1 +1,888 @@
-
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <!-- SEO -->
+  <title>GuinchoJá — Guincho 24h em Alegrete e Região</title>
+  <meta name="description"
+    content="Frete, guincho, autossocorro e mudança em Alegrete e região. Direto com quem atende. Atendimento 24h."/>
+  <meta name="keywords"
+    content="guincho alegrete, guincho 24h, autossocorro alegrete, frete alegrete, guincho são gabriel, guincho bagé"/>
+  <!-- Open Graph -->
+  <meta property="og:title"       content="GuinchoJá — Guincho 24h em Alegrete"/>
+  <meta property="og:description" content="Frete, guincho e autossocorro em Alegrete e região. Direto com quem atende!"/>
+  <meta property="og:type"        content="website"/>
+  <!-- Schema.org -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "GuinchoJá Alegrete",
+    "telephone": "+55-55-99999-9999",
+    "openingHours": "Mo-Su 00:00-23:59",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Alegrete",
+      "addressRegion": "RS",
+      "addressCountry": "BR"
+    },
+    "areaServed": ["Alegrete","São Gabriel","Bagé"]
+  }
+  </script>
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --primary:  #F97316;
+      --dark:     #1A1A2E;
+      --dark2:    #16213E;
+      --card:     #0F3460;
+      --text:     #F1F1F1;
+      --muted:    #94A3B8;
+      --success:  #22C55E;
+      --whats:    #25D366;
+      --radius:   14px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    a { color: inherit; text-decoration: none; }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    /* ══ URGÊNCIA ══ */
+    .urgencia {
+      background: var(--primary);
+      text-align: center;
+      padding: 10px 20px;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+    .urgencia a {
+      color: #fff;
+      text-decoration: underline;
+      margin-left: 8px;
+    }
+    /* ══ HEADER ══ */
+    header {
+      background: var(--dark2);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+    .logo span { color: var(--text); }
+    .menu-btn {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    .menu-btn:hover { background: rgba(255,255,255,0.07); }
+    nav {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-link:hover { color: var(--text); }
+    .btn-chamar {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      padding: 10px 22px;
+      border-radius: 50px;
+      font-size: 0.9rem;
+      transition: opacity 0.2s;
+    }
+    .btn-chamar:hover { opacity: 0.9; }
+    /* ══ HERO ══ */
+    .hero {
+      background: linear-gradient(135deg, var(--dark2) 0%, #0F3460 100%);
+      padding: 80px 20px 60px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      width: 500px; height: 500px;
+      background: var(--primary);
+      opacity: 0.06;
+      border-radius: 50%;
+      top: -150px; right: -100px;
+      pointer-events: none;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      width: 300px; height: 300px;
+      background: var(--primary);
+      opacity: 0.04;
+      border-radius: 50%;
+      bottom: -100px; left: -80px;
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(249,115,22,0.15);
+      border: 1px solid rgba(249,115,22,0.3);
+      color: var(--primary);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 6px 18px;
+      border-radius: 50px;
+      margin-bottom: 24px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+    }
+    .hero h1 {
+      font-size: clamp(3rem, 8vw, 5rem);
+      font-weight: 900;
+      line-height: 1.05;
+      margin-bottom: 18px;
+      letter-spacing: -2px;
+    }
+    .hero h1 span { color: var(--primary); }
+    .hero-sub {
+      color: var(--muted);
+      font-size: clamp(1rem, 2vw, 1.15rem);
+      max-width: 540px;
+      margin: 0 auto 36px;
+      line-height: 1.7;
+    }
+    /* Botão pedir agora */
+    .btn-pedir {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.05rem;
+      padding: 16px 36px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      margin-bottom: 32px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 6px 28px rgba(249,115,22,0.4);
+    }
+    .btn-pedir:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 36px rgba(249,115,22,0.5);
+    }
+    /* Formulário */
+    .form-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 18px;
+      padding: 20px 24px;
+      max-width: 500px;
+      margin: 0 auto 48px;
+      text-align: left;
+      backdrop-filter: blur(10px);
+    }
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .input-icon { font-size: 1rem; opacity: 0.7; }
+    .form-card input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 0.95rem;
+      padding: 12px 4px;
+    }
+    .form-card input::placeholder { color: var(--muted); }
+    .form-divisor {
+      height: 1px;
+      background: rgba(255,255,255,0.1);
+      margin: 2px 0;
+    }
+    .btn-solicitar {
+      width: 100%;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.95rem;
+      padding: 14px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      margin-top: 14px;
+      transition: opacity 0.2s;
+    }
+    .btn-solicitar:hover { opacity: 0.9; }
+    /* Stats */
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 52px;
+      flex-wrap: wrap;
+    }
+    .stat { text-align: center; }
+    .stat-num {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--primary);
+      line-height: 1;
+    }
+    .stat-label {
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-top: 4px;
+    }
+    /* ══ SERVIÇOS ══ */
+    .servicos {
+      background: var(--dark2);
+      padding: 80px 20px;
+    }
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: clamp(1.8rem, 4vw, 2.4rem);
+      font-weight: 900;
+      line-height: 1.15;
+      margin-bottom: 14px;
+      letter-spacing: -0.5px;
+    }
+    .section-sub {
+      color: var(--muted);
+      font-size: 1rem;
+      max-width: 520px;
+      line-height: 1.7;
+      margin-bottom: 44px;
+    }
+    .servicos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+    }
+    .servico-card {
+      background: var(--card);
+      border-radius: 18px;
+      padding: 28px;
+      border: 1px solid rgba(255,255,255,0.06);
+      transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+      display: block;
+      cursor: pointer;
+    }
+    .servico-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+      border-color: rgba(249,115,22,0.3);
+    }
+    .servico-emoji { font-size: 2.4rem; margin-bottom: 14px; }
+    .servico-nome {
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .servico-sub {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+    .servico-cta {
+      color: var(--primary);
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+    /* ══ COMO FUNCIONA ══ */
+    .como { padding: 80px 20px; }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+    }
+    .step {
+      background: var(--dark2);
+      border-radius: 18px;
+      padding: 32px 24px;
+      border: 1px solid rgba(255,255,255,0.06);
+      text-align: center;
+    }
+    .step-num {
+      width: 52px; height: 52px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      font-weight: 900;
+      margin: 0 auto 20px;
+      box-shadow: 0 4px 20px rgba(249,115,22,0.4);
+    }
+    .step h3 {
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+    .step p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.65;
+    }
+    /* ══ PARCEIROS ══ */
+    .parceiros {
+      background: linear-gradient(135deg, #0F3460, var(--dark));
+      padding: 80px 20px;
+      text-align: center;
+    }
+    .parceiros-inner { max-width: 640px; margin: 0 auto; }
+    .parceiros-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin: 32px 0;
+      text-align: left;
+    }
+    .beneficio {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .beneficio-icon { font-size: 1.4rem; margin-bottom: 8px; }
+    .beneficio strong {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+    .beneficio span {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .btn-parceiro {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 2px solid var(--primary);
+      color: var(--primary);
+      background: transparent;
+      font-weight: 800;
+      font-size: 1rem;
+      padding: 14px 32px;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .btn-parceiro:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+    /* ══ STATS ══ */
+    .stats {
+      background: var(--dark2);
+      padding: 56px 20px;
+    }
+    .stats-inner {
+      display: flex;
+      justify-content: center;
+      gap: 64px;
+      flex-wrap: wrap;
+    }
+    .stats-item { text-align: center; }
+    .stats-num {
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: var(--primary);
+    }
+    .stats-label {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 4px;
+    }
+    /* ══ CTA FINAL ══ */
+    .cta {
+      padding: 80px 20px;
+      text-align: center;
+    }
+    .cta h2 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 900;
+      margin-bottom: 14px;
+      letter-spacing: -0.5px;
+    }
+    .cta p {
+      color: var(--muted);
+      font-size: 1.05rem;
+      margin-bottom: 32px;
+    }
+    .btn-whats {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--whats);
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.05rem;
+      padding: 16px 36px;
+      border-radius: 50px;
+      transition: transform 0.2s;
+      box-shadow: 0 6px 24px rgba(37,211,102,0.35);
+    }
+    .btn-whats:hover { transform: translateY(-2px); }
+    /* ══ FOOTER ══ */
+    footer {
+      background: #0D0D1A;
+      padding: 48px 20px 100px;
+    }
+    .footer-logo {
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .footer-logo span { color: var(--text); }
+    .footer-cidades {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+    }
+    .footer-horario {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    .footer-bottom {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-align: center;
+    }
+    /* ══ BOTTOM NAV ══ */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--dark2);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      z-index: 100;
+      padding: 10px 0 20px;
+    }
+    .bottom-nav-inner {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      padding: 4px 16px;
+      text-decoration: none;
+    }
+    .tab-icon  { font-size: 1.3rem; color: var(--muted); }
+    .tab-label { font-size: 0.68rem; color: var(--muted); font-weight: 500; }
+    .tab.ativo .tab-icon  { color: var(--primary); }
+    .tab.ativo .tab-label { color: var(--primary); font-weight: 700; }
+    /* Botão central + */
+    .tab-plus {
+      background: var(--primary);
+      width: 54px; height: 54px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(249,115,22,0.5);
+      margin-top: -22px;
+      text-decoration: none;
+      transition: transform 0.2s;
+    }
+    .tab-plus:hover { transform: scale(1.08); }
+    /* ══ WHATSAPP FLUTUANTE ══ */
+    .whats-float {
+      position: fixed;
+      bottom: 84px;
+      right: 20px;
+      background: var(--whats);
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      text-decoration: none;
+      box-shadow: 0 6px 24px rgba(37,211,102,0.5);
+      z-index: 999;
+      transition: transform 0.2s;
+      animation: entrar 0.5s ease 1s both;
+    }
+    @keyframes entrar {
+      from { opacity:0; transform: scale(0.5); }
+      to   { opacity:1; transform: scale(1);   }
+    }
+    .whats-float:hover { transform: scale(1.1); }
+    /* ══ RESPONSIVO DESKTOP ══ */
+    @media (min-width: 769px) {
+      .bottom-nav  { display: none; }
+      .whats-float { bottom: 28px; right: 28px; }
+      footer       { padding-bottom: 48px; }
+    }
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <!-- ══ URGÊNCIA ══ -->
+  <div class="urgencia">
+    🚨 Precisa de guincho AGORA?
+    <a href="https://wa.me/message/SOATKXV7YDYHJ1" target="_blank">
+      Chame pelo WhatsApp →
+    </a>
+  </div>
+  <!-- ══ HEADER ══ -->
+  <header>
+    <div class="header-inner">
+      <!-- Logo -->
+      <div class="logo">⚡ Guincho<span>Já</span></div>
+      <!-- Nav desktop -->
+      <nav class="nav-links" style="display:flex;">
+        <a href="#servicos"      class="nav-link">Serviços</a>
+        <a href="#como-funciona" class="nav-link">Como funciona</a>
+        <a href="#parceiros"     class="nav-link">Parceiros</a>
+        <a href="https://wa.me/message/SOATKXV7YDYHJ1"
+           class="btn-chamar" target="_blank">
+          💬 Chamar agora
+        </a>
+      </nav>
+      <!-- Hamburguer mobile -->
+      <button class="menu-btn"
+        onclick="window.open('https://wa.me/message/SOATKXV7YDYHJ1','_blank')">
+        ☰
+      </button>
+    </div>
+  </header>
+  <!-- ══ HERO ══ -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">🚛 Alegrete · São Gabriel · Bagé · 24h</div>
+      <h1>Pediu.<br/><span>Achou.</span></h1>
+      <p class="hero-sub">
+        Frete, guincho, autossocorro e mudança em Alegrete e região.
+        Direto com quem atende.
+      </p>
+      <!-- Botão pedir agora -->
+      <a href="https://wa.me/message/SOATKXV7YDYHJ1?text=Olá!%20Quero%20pedir%20atendimento!"
+         target="_blank">
+        <button class="btn-pedir">🚛 Pedir agora</button>
+      </a>
+      <!-- Formulário -->
+      <div class="form-card">
+        <div class="input-row">
+          <span class="input-icon">📍</span>
+          <input type="text" placeholder="Onde você está?" id="campo-origem"/>
+        </div>
+        <div class="form-divisor"></div>
+        <div class="input-row">
+          <span class="input-icon">🏁</span>
+          <input type="text" placeholder="Pra onde vai?" id="campo-destino"/>
+        </div>
+        <button class="btn-solicitar" onclick="solicitar()">
+          Solicitar atendimento →
+        </button>
+      </div>
+      <!-- Stats -->
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-num">24h</div>
+          <div class="stat-label">Atendimento</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">3</div>
+          <div class="stat-label">Cidades</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">10+</div>
+          <div class="stat-label">Veículos</div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- ══ SERVIÇOS ══ -->
+  <section class="servicos" id="servicos">
+    <div class="container">
+      <p class="section-label">O que você precisa</p>
+      <h2 class="section-title">Todos os serviços<br/>num lugar só</h2>
+      <p class="section-sub">
+        Do guincho de emergência ao transporte de máquinas agrícolas.
+        Atendemos você onde estiver.
+      </p>
+      <div class="servicos-grid">
+        <a href="https://wa.me/message/SOATKXV7YDYHJ1?text=Preciso%20de%20*Guincho%2024h*!"
+           target="_blank" class="servico-card">
+          <div class="servico-emoji">🚛</div>
+          <h3 class="servico-nome">Guincho 24h</h3>
+          <p class="servico-sub">Resposta em minutos</p>
+          <span class="servico-cta">Chamar agora →</span>
+        </a>
+        <a href="https://wa.me/message/SOATKXV7YDYHJ1?text=Preciso%20de%20*Frete*!"
+           target="_blank" class="servico-card">
+          <div class="servico-emoji">📦</div>
+          <h3 class="servico-nome">Frete</h3>
+          <p class="servico-sub">Cargas e mudanças</p>
+          <span class="servico-cta">Pedir orçamento →</span>
+        </a>
+        <a href="https://wa.me/message/SOATKXV7YDYHJ1?text=Preciso%20de%20*Autossocorro*%20urgente!"
+           target="_blank" class="servico-card">
+          <div class="servico-emoji">🔧</div>
+          <h3 class="servico-nome">Autossocorro</h3>
+          <p class="servico-sub">Pane, bateria, pneu</p>
+          <span class="servico-cta">Chamar agora →</span>
+        </a>
+        <a href="https://wa.me/message/SOATKXV7YDYHJ1?text=Preciso%20de%20*Transporte%20de%20Veículo*!"
+           target="_blank" class="servico-card">
+          <div class="servico-emoji">🚗</div>
+          <h3 class="servico-nome">Transp. veículo</h3>
+          <p class="servico-sub">Cegonha/prancha</p>
+          <span class="servico-cta">Solicitar →</span>
+        </a>
+        <a href="https://wa.me/message/SOATKXV7YDYHJ1?text=Preciso%20de%20*Transporte%20de%20Máquinas*!"
+           target="_blank" class="servico-card">
+          <div class="servico-emoji">🚜</div>
+          <h3 class="servico-nome">Máquinas</h3>
+          <p class="servico-sub">Agro e construção</p>
+          <span class="servico-cta">Consultar →</span>
+        </a>
+        <a href="https://wa.me/message/SOATKXV7YDYHJ1?text=Sou%20de%20uma%20*Seguradora*%20e%20preciso%20de%20atendimento!"
+           target="_blank" class="servico-card">
+          <div class="servico-emoji">🛡️</div>
+          <h3 class="servico-nome">Seguradoras</h3>
+          <p class="servico-sub">Atendimento B2B</p>
+          <span class="servico-cta">Falar conosco →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+  <!-- ══ COMO FUNCIONA ══ -->
+  <section class="como" id="como-funciona">
+    <div class="container">
+      <p class="section-label">Simples assim</p>
+      <h2 class="section-title">Como funciona</h2>
+      <p class="section-sub">
+        Sem cadastro chato, sem burocracia. Chame e pronto.
+      </p>
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h3>Você pede</h3>
+          <p>Pelo site, app ou WhatsApp. Sem cadastro chato.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <h3>A gente acha</h3>
+          <p>Nossa frota ou um parceiro verificado mais próximo.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <h3>Você acompanha</h3>
+          <p>Em tempo real, do pedido até a entrega.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- ══ PARCEIROS ══ -->
+  <section class="parceiros" id="parceiros">
+    <div class="parceiros-inner">
+      <p class="section-label">Para empresas</p>
+      <h2 class="section-title">Tem guincho ou caminhão?</h2>
+      <p class="section-sub" style="margin:0 auto 0; max-width:500px;">
+        Cadastre sua empresa e receba pedidos da região sem custo pra começar.
+        Você responde, fecha e atende.
+      </p>
+      <div class="parceiros-grid">
+        <div class="beneficio">
+          <div class="beneficio-icon">💰</div>
+          <strong>Sem mensalidade</strong>
+          <span>Comissão só quando fechar</span>
+        </div>
+        <div class="beneficio">
+          <div class="beneficio-icon">📱</div>
+          <strong>App exclusivo</strong>
+          <span>Receba pedidos no celular</span>
+        </div>
+        <div class="beneficio">
+          <div class="beneficio-icon">🗺️</div>
+          <strong>Pedidos da região</strong>
+          <span>Clientes próximos de você</span>
+        </div>
+        <div class="beneficio">
+          <div class="beneficio-icon">⭐</div>
+          <strong>Avaliações</strong>
+          <span>Construa sua reputação</span>
+        </div>
+      </div>
+      <a href="https://wa.me/message/SOATKXV7YDYHJ1?text=Quero%20ser%20*parceiro*%20GuinchoJá!"
+         target="_blank">
+        <button class="btn-parceiro">🚛 Quero ser parceiro →</button>
+      </a>
+    </div>
+  </section>
+  <!-- ══ STATS ══ -->
+  <section class="stats">
+    <div class="stats-inner">
+      <div class="stats-item">
+        <div class="stats-num">24h</div>
+        <div class="stats-label">Atendimento</div>
+      </div>
+      <div class="stats-item">
+        <div class="stats-num">3</div>
+        <div class="stats-label">Cidades</div>
+      </div>
+      <div class="stats-item">
+        <div class="stats-num">10+</div>
+        <div class="stats-label">Veículos</div>
+      </div>
+    </div>
+  </section>
+  <!-- ══ CTA FINAL ══ -->
+  <section class="cta">
+    <div class="container">
+      <h2>Precisando de guincho<br/>em Alegrete agora?</h2>
+      <p>Respondemos em menos de 2 minutos no WhatsApp.</p>
+      <a href="https://wa.me/message/SOATKXV7YDYHJ1"
+         class="btn-whats" target="_blank">
+        💬 Chamar no WhatsApp agora
+      </a>
+    </div>
+  </section>
+  <!-- ══ FOOTER ══ -->
+  <footer>
+    <div class="container" style="text-align:center;">
+      <div class="footer-logo">⚡ Guincho<span>Já</span></div>
+      <p class="footer-cidades">Alegrete · São Gabriel · Bagé</p>
+      <p class="footer-horario">Atendimento 24 horas · Rio Grande do Sul</p>
+      <div class="footer-bottom">
+        © 2026 GuinchoJá · Alegrete - RS ·
+        <a href="https://wa.me/message/SOATKXV7YDYHJ1"
+           style="color:var(--whats);">💬 WhatsApp</a>
+      </div>
+    </div>
+  </footer>
+  <!-- ══ BOTTOM NAV MOBILE ══ -->
+  <nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <a href="#" class="tab ativo" onclick="scrollTopo()">
+        <span class="tab-icon">⌂</span>
+        <span class="tab-label">Início</span>
+      </a>
+      <a href="https://wa.me/message/SOATKXV7YDYHJ1?text=Quero%20pedir%20agora!"
+         class="tab-plus" target="_blank">＋</a>
+      <a href="#servicos" class="tab">
+        <span class="tab-icon">⊙</span>
+        <span class="tab-label">Pedidos</span>
+      </a>
+      <a href="https://wa.me/message/SOATKXV7YDYHJ1"
+         class="tab" target="_blank">
+        <span class="tab-icon">☰</span>
+        <span class="tab-label">Conta</span>
+      </a>
+    </div>
+  </nav>
+  <!-- ══ WHATSAPP FLUTUANTE ══ -->
+  <a href="https://wa.me/message/SOATKXV7YDYHJ1"
+     class="whats-float" target="_blank"
+     title="Chamar no WhatsApp">
+    💬
+  </a>
+  <script>
+    // Solicitar via formulário
+    function solicitar() {
+      const origem  = document.getElementById('campo-origem').value.trim();
+      const destino = document.getElementById('campo-destino').value.trim();
+      let msg = 'Olá! Preciso de atendimento!';
+      if (origem && destino) {
+        msg = `Olá! Preciso de atendimento.%0A📍 Origem: ${origem}%0A🏁 Destino: ${destino}`;
+      } else if (origem) {
+        msg = `Olá! Estou em: ${origem} e preciso de atendimento!`;
+      }
+      window.open(
+        `https://wa.me/message/SOATKXV7YDYHJ1?text=${encodeURIComponent(msg)}`,
+        '_blank'
+      );
+    }
+    // Enter no formulário
+    document.querySelectorAll('.form-card input').forEach(input => {
+      input.addEventListener('keypress', e => {
+        if (e.key === 'Enter') solicitar();
+      });
+    });
+    // Scroll suave
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        const href = a.getAttribute('href');
+        if (href === '#') return;
+        e.preventDefault();
+        const alvo = document.querySelector(href);
+        if (alvo) alvo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+    // Volta ao topo
+    function scrollTopo() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    // Animação ao entrar na tela
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.style.opacity    = '1';
+          e.target.style.transform  = 'translateY(0)';
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll(
+      '.servico-card, .step, .beneficio, .stats-item'
+    ).forEach(el => {
+      el.style.opacity    = '0';
+      el.style.transform  = 'translateY(24px)';
+      el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+      observer.observe(el);
+    });
+  </script>
+</body>
+</html>
