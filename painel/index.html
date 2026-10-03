@@ -364,6 +364,9 @@ function duePill(iso, ok, okTxt){
 /* ---------- Estado ---------- */
 const S = { chamados:[], prestadores:[], clientes:[], view:"painel", fStatus:"ativos", fFil:"todas", q:"", fRede:"todos", per:"mes", iFil:"todas", mes: ymKey(Date.now()), openId:null, loaded:false };
 let DB = null, ASSETS = null, MODE = "connecting";
+const CFG_PADRAO = { imposto:0, tabSaida:152, tabKm:2.66, tabFranquia:0 };
+let CFG = Object.assign({}, CFG_PADRAO);
+function saveCfg(){ persistir(); }
 const LOCAL = { chamados:new Map(), prestadores:new Map(), clientes:new Map() };
 const byId = (col,id) => S[col].find(x=>x.id===id);
 
@@ -397,6 +400,20 @@ const statsPrest = p => metr(S.chamados.filter(c=>c.prestadorId===p.id));
 const docsOk = p => DOCS.filter(([k])=>p.docs && p.docs[k]).length;
 const apto = p => p.ativo!==false && (p.tipo!=="parceiro" || p.credenciamento==="aprovado");
 const custoParceiro = (p,c) => (num(p.saida)||num(p.valorKm)) ? num(p.saida) + num(c.km)*num(p.valorKm) : null;
+/* Tabela de preço: a do cliente (se tiver) ou a tabela padrão para particular */
+function tabela(clienteId){
+  const cl = clienteId && byId("clientes", clienteId);
+  if(cl && (num(cl.saida) || num(cl.valorKm))) return { saida:num(cl.saida), km:num(cl.valorKm), franquia:num(cl.franquia), nome:"Tabela "+cl.nome };
+  if(num(CFG.tabSaida) || num(CFG.tabKm)) return { saida:num(CFG.tabSaida), km:num(CFG.tabKm), franquia:num(CFG.tabFranquia), nome:"Tabela padrão" };
+  return null;
+}
+const valorTabela = (t, km) => Math.round((t.saida + Math.max(0, num(km) - t.franquia) * t.km) * 100) / 100;
+/* Recalcula o repasse quando muda o valor, desde que o repasse ainda seja o calculado pela comissão (não mexe em valor digitado à mão) */
+function ajustarRepasse(antes, n){
+  const p = n.prestadorId && byId("prestadores", n.prestadorId); if(!p) return;
+  const velho = comissao(antes, p), novo = comissao(n, p);
+  if(novo != null && (!num(n.valorPrestador) || Math.abs(num(n.valorPrestador) - (velho ?? -1)) < 0.01)) n.valorPrestador = novo;
+}
 /* Comissão do parceiro: % sobre o valor do km (valor ao cliente menos a saída); a saída fica com a JM, entra na divisão ou vai para o parceiro */
 const SAIDA_FICA = {empresa:"saída fica com a JM", divide:"saída entra na divisão", parceiro:"saída fica com o parceiro"};
 function comissao(c, p){
@@ -564,7 +581,7 @@ function vClientes(){
       const af = cs.filter(x=>x.status==="concluido" && !x.faturado).reduce((a,x)=>a+num(x.valorCliente),0);
       return `<tr><td><div class="t1">${esc(c.nome)}</div><div class="t2 mono">${esc(c.cnpj||"")}</div></td>
       <td class="hide-sm"><div>${esc(c.contato||"—")}</div><div class="t2 mono">${esc(c.telefone||"")}</div></td>
-      <td class="r"><div class="num">${brl(c.saida)} saída</div><div class="t2 num">${brl(c.valorKm)}/km</div></td>
+      <td class="r"><div class="num">${brl(c.saida)} saída</div><div class="t2 num">${brl(c.valorKm)}/km${num(c.franquia)?" · "+num(c.franquia)+" km inclusos":""}</div></td>
       <td class="r num">${c.slaMin?c.slaMin+" min":"padrão"}</td><td class="r num">${nm}</td><td class="r num">${brl(af)}</td>
       <td class="r"><button class="btn sm" data-act="edit-cli" data-id="${esc(c.id)}">Editar</button></td></tr>`;}).join("")}</tbody></table></div>`
     : emptyBox("Nenhum cliente cadastrado","Cadastre os clientes com a tabela (saída + km) e o prazo de chegada contratado. O valor e o prazo do chamado são preenchidos automaticamente.",`<button class="btn primary" data-act="novo-cli">${ICON.plus}Novo cliente</button>`))}</section>`;
@@ -661,6 +678,14 @@ function vFinanceiro(){
       ${apagar.length? grp(apagar,"prestadorId").map(([pid,arr])=>{const p=byId("prestadores",pid); const tot=arr.reduce((a,c)=>a+num(c.valorPrestador),0); const wa = p ? waLink(p.telefone, msgRepasse(pid)) : ""; return `<div class="group"><div class="group-h"><div><b>${esc(p?p.nome:"Sem prestador")}</b><div class="t2 muted">${[p&&num(p.comissaoPct)?num(p.comissaoPct)+"% do km, "+SAIDA_FICA[p.saidaFica||"empresa"]:"", p&&p.prazoPag!=null?"paga em "+p.prazoPag+" dias":"", p&&p.pix?"PIX: "+esc(p.pix):"PIX não cadastrado"].filter(Boolean).join(" · ")}</div></div><div class="row"><b class="num">${brl(tot)}</b>${wa?`<a class="btn sm gold" href="${esc(wa)}" target="_blank" rel="noopener">${ICON.wa}Fechamento</a>`:""}<button class="btn sm" data-act="copy-rep" data-id="${esc(pid)}">${ICON.copy}Copiar</button></div></div><div class="tbl-wrap"><table><tbody>${arr.map(lPagar).join("")}</tbody></table></div></div>`;}).join("") : emptyBox("Nenhum repasse pendente","Os chamados concluídos aparecem aqui até serem marcados como pagos.")}
     </section>
   </div>
+  <section class="panel" style="margin-top:18px"><div class="panel-h"><h2>Tabela padrão</h2><span class="sub">Usada quando o chamado é particular ou o cliente não tem tabela</span></div>
+    <div class="panel-b"><div class="row" style="align-items:flex-end;gap:12px">
+      <div class="f" style="width:150px"><label for="cfg-ts">Saída (R$)</label><input class="input num" id="cfg-ts" inputmode="decimal" value="${num(CFG.tabSaida)||""}"></div>
+      <div class="f" style="width:150px"><label for="cfg-tk">Valor por km (R$)</label><input class="input num" id="cfg-tk" inputmode="decimal" value="${num(CFG.tabKm)||""}"></div>
+      <div class="f" style="width:150px"><label for="cfg-tf">KM incluso na saída</label><input class="input num" id="cfg-tf" inputmode="decimal" value="${num(CFG.tabFranquia)||""}" placeholder="0"></div>
+      <span class="hint">Ex.: 295 km = ${brl(valorTabela({saida:num(CFG.tabSaida),km:num(CFG.tabKm),franquia:num(CFG.tabFranquia)},295))}</span>
+    </div></div>
+  </section>
   <div class="grid2 even" style="margin-top:18px">
     <section class="panel"><div class="panel-h"><h2>Imposto</h2><span class="sub">Desconta da parte da JM</span></div>
       <div class="panel-b"><div class="row"><div class="f" style="max-width:220px"><label for="cfg-imp">Imposto sobre a nota (%)</label><input class="input num" id="cfg-imp" inputmode="decimal" value="${num(CFG.imposto)||""}" placeholder="0"></div></div></div>
@@ -824,7 +849,7 @@ function formChamado(id){
       <div class="f full"><label for="m-ori">Local do atendimento (origem)</label><input class="input" id="m-ori" value="${esc(c.origem||"")}" placeholder="Endereço, rodovia + km, cidade" required></div>
       <div class="f full"><label for="m-des">Destino</label><input class="input" id="m-des" value="${esc(c.destino||"")}" placeholder="Oficina, residência, pátio… (opcional)"></div>
       <div class="f"><label for="m-fil">Filial responsável</label><select class="input" id="m-fil">${FILIAIS.map(f=>`<option ${c.filial===f?"selected":""}>${f}</option>`).join("")}</select></div>
-      <div class="f"><label for="m-km">Distância estimada (km)</label><input class="input num" id="m-km" inputmode="decimal" value="${esc(c.km||"")}"></div>
+      <div class="f"><label for="m-km">KM do serviço</label><input class="input num" id="m-km" inputmode="decimal" value="${esc(c.km||"")}"></div>
       <div class="f"><label for="m-pri">Prioridade</label><select class="input" id="m-pri"><option value="normal">Normal</option><option value="urgente" ${c.prioridade==="urgente"?"selected":""}>Urgente (rodovia, risco, criança, idoso)</option></select></div>
       <div class="f"><label for="m-prazo">Prazo de chegada (min)</label><input class="input num" id="m-prazo" inputmode="numeric" value="${esc(c.prazoMin||"")}"><span class="hint" id="m-prazo-h"></span></div>
       <div class="f"><label for="m-vc">Valor ao cliente (R$)</label><input class="input num" id="m-vc" inputmode="decimal" value="${esc(c.valorCliente||"")}"><span class="hint" id="m-sug"></span></div>
@@ -832,12 +857,25 @@ function formChamado(id){
       <div class="f"><label for="m-vp">Valor ao prestador (R$)</label><input class="input num" id="m-vp" inputmode="decimal" value="${esc(c.valorPrestador||"")}"></div>
       <div class="f full"><label for="m-obs">Observações</label><textarea class="input" id="m-obs" placeholder="Condição do veículo, chave, acesso, pessoas no local…">${esc(c.obs||"")}</textarea></div>
     </div>`, `<button type="button" class="btn" data-act="${id?"voltar":"close"}">Cancelar</button><button type="submit" class="btn primary">${id?"Salvar alterações":"Registrar chamado"}</button>`);
+  // Valor que já bate com a tabela continua automático ao mudar os KM
+  const t0 = tabela(c.clienteId);
+  if(!id || (t0 && c.km && Math.abs(num(c.valorCliente) - valorTabela(t0, c.km)) < 0.01)){ $("#m-vc").dataset.auto = "1"; $("#m-sai").dataset.auto = "1"; }
   sugestao();
 }
 function sugestao(){
   const el = $("#m-sug"); if(!el) return; const cl = byId("clientes",$("#m-cli").value); const km = numIn($("#m-km").value);
-  if(cl && (cl.saida||cl.valorKm)){ const v = num(cl.saida) + km*num(cl.valorKm); el.innerHTML = `Tabela: ${brl(v)} <button type="button" class="btn sm ghost" data-act="usar-sug" data-v="${v.toFixed(2)}" data-s="${num(cl.saida).toFixed(2)}">Usar</button>`; }
-  else el.textContent = "";
+  const t = tabela($("#m-cli").value), vc = $("#m-vc"), sai = $("#m-sai");
+  if(t && km){
+    const v = valorTabela(t, km);
+    // Preenche sozinho enquanto o valor não for digitado à mão
+    if(vc.dataset.auto==="1" || !vc.value.trim()){ vc.value = v.toFixed(2).replace(".",","); vc.dataset.auto = "1"; }
+    if(sai.dataset.auto==="1" || !sai.value.trim()){ sai.value = t.saida.toFixed(2).replace(".",","); sai.dataset.auto = "1"; }
+    const kmCob = Math.max(0, km - t.franquia);
+    el.innerHTML = vc.dataset.auto==="1"
+      ? `${esc(t.nome)}: saída ${brl(t.saida)} + ${kmCob.toLocaleString("pt-BR")} km × ${brl(t.km)} = <b>${brl(v)}</b> (automático)`
+      : `${esc(t.nome)} daria ${brl(v)} <button type="button" class="btn sm ghost" data-act="usar-sug" data-v="${v.toFixed(2)}" data-s="${t.saida.toFixed(2)}">Usar tabela</button>`;
+  }
+  else el.textContent = t ? `${t.nome}: digite os KM para calcular.` : "Sem tabela: cadastre a do cliente ou a tabela padrão no Financeiro.";
   const h = $("#m-prazo-h"); if(h){ const pri = $("#m-pri").value; h.textContent = "Em branco: " + ((cl && cl.slaMin) ? cl.slaMin+" min (contrato do cliente)" : SLA_PADRAO[pri]+" min (padrão "+(pri==="urgente"?"urgente":"normal")+")"); }
 }
 function formPrest(id){
@@ -873,6 +911,7 @@ function formCli(id){
     <div class="f"><label for="m-cv">Prazo de pagamento (dias)</label><input class="input num" id="m-cv" inputmode="numeric" value="${esc(c.prazo||"")}"></div>
     <div class="f"><label for="m-cs">Valor de saída (R$)</label><input class="input num" id="m-cs" inputmode="decimal" value="${esc(c.saida||"")}"></div>
     <div class="f"><label for="m-ck">Valor por km (R$)</label><input class="input num" id="m-ck" inputmode="decimal" value="${esc(c.valorKm||"")}"></div>
+    <div class="f"><label for="m-cfr">KM incluso na saída</label><input class="input num" id="m-cfr" inputmode="decimal" value="${esc(c.franquia||"")}" placeholder="0"></div>
     <div class="f"><label for="m-csla">Prazo de chegada contratado (min)</label><input class="input num" id="m-csla" inputmode="numeric" value="${esc(c.slaMin||"")}" placeholder="Em branco: 60 normal / 40 urgente"></div></div>`,
     `${id?`<button type="button" class="btn danger" data-act="del-cli" data-confirm style="margin-right:auto">Excluir</button>`:""}<button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn primary">Salvar</button>`);
 }
@@ -883,7 +922,7 @@ async function submitForm(){
       if(!v("m-seg")||!v("m-ori")){ toast("Preencha o segurado e o local do atendimento.","bad"); return; }
       const base = FORM.id ? clone(byId("chamados",FORM.id)) : { id:uid("c"), protocolo:protocolo(), status:"aberto", criadoEm:nowISO(), eventos:[{status:"aberto",em:nowISO()}] };
       Object.assign(base,{ vertical:"auto", servico:v("m-serv"), clienteId:v("m-cli")||null, segurado:v("m-seg"), telefone:v("m-tel"), placa:v("m-placa"), origem:v("m-ori"), destino:v("m-des"), filial:v("m-fil"), km:numIn(v("m-km"))||null, prioridade:v("m-pri"), prazoMin:numIn(v("m-prazo"))||null, valorCliente:numIn(v("m-vc")), saida:numIn(v("m-sai")), valorPrestador:numIn(v("m-vp")), obs:v("m-obs") });
-      const bp = base.prestadorId && byId("prestadores", base.prestadorId); if(bp && !base.valorPrestador){ const vc = comissao(base, bp); if(vc) base.valorPrestador = vc; }
+      ajustarRepasse(FORM.id ? byId("chamados", FORM.id) : base, base);
       lsSet("c24-filial", base.filial);
       const isNew = !FORM.id; await save("chamados", base); toast(isNew?"Chamado "+base.protocolo+" registrado":"Chamado atualizado"); openChamado(base.id);
     } else if(FORM.kind==="prest"){
@@ -896,7 +935,7 @@ async function submitForm(){
     } else if(FORM.kind==="cli"){
       if(!v("m-cn")){ toast("Informe o nome do cliente.","bad"); return; }
       const base = FORM.id ? clone(byId("clientes",FORM.id)) : {id:uid("k"), criadoEm:nowISO()};
-      Object.assign(base,{nome:v("m-cn"),cnpj:v("m-cc"),contato:v("m-ct"),telefone:v("m-cf"),prazo:numIn(v("m-cv"))||null,saida:numIn(v("m-cs")),valorKm:numIn(v("m-ck")),slaMin:numIn(v("m-csla"))||null});
+      Object.assign(base,{nome:v("m-cn"),cnpj:v("m-cc"),contato:v("m-ct"),telefone:v("m-cf"),prazo:numIn(v("m-cv"))||null,saida:numIn(v("m-cs")),valorKm:numIn(v("m-ck")),franquia:numIn(v("m-cfr"))||0,slaMin:numIn(v("m-csla"))||null});
       await save("clientes", base); toast("Cliente salvo"); closeOverlay();
     } else if(FORM.kind==="assinatura"){
       if(!SIG.dirty){ toast("Peça para a pessoa assinar no quadro.","bad"); return; }
@@ -938,7 +977,7 @@ document.addEventListener("click", async e => {
     else if(a==="edit-prest"){ formPrest(t.dataset.id); }
     else if(a==="novo-cli"){ formCli(null); }
     else if(a==="edit-cli"){ formCli(t.dataset.id); }
-    else if(a==="usar-sug"){ $("#m-vc").value = t.dataset.v; if(num(t.dataset.s)) $("#m-sai").value = t.dataset.s; }
+    else if(a==="usar-sug"){ $("#m-vc").value = t.dataset.v; $("#m-vc").dataset.auto = "1"; if(num(t.dataset.s)){ $("#m-sai").value = t.dataset.s; $("#m-sai").dataset.auto = "1"; } sugestao(); }
     else if(a==="usar-com"){ await patchChamado(id, n=>{ n.valorPrestador = num(t.dataset.v); }); toast("Comissão aplicada"); }
     else if(a==="copy-rep"){ copyText(msgRepasse(t.dataset.id), "Fechamento copiado. Cole no WhatsApp do prestador."); }
     else if(a==="assinar"){ modalAssinatura(); }
@@ -965,11 +1004,13 @@ document.addEventListener("submit", e => { if(e.target.id==="m-form"){ e.prevent
 document.addEventListener("input", e => {
   if(e.target.id==="f-q"){ S.q=e.target.value; render(); }
   if(e.target.id==="m-km") sugestao();
+  if(e.target.id==="m-vc" || e.target.id==="m-sai"){ delete e.target.dataset.auto; sugestao(); }
 });
 document.addEventListener("change", e => {
   const el = e.target, id = S.openId;
   if(el.id==="f-fil"){ S.fFil=el.value; render(); }
   else if(el.id==="i-fil"){ S.iFil=el.value; render(); }
+  else if(el.id==="cfg-ts" || el.id==="cfg-tk" || el.id==="cfg-tf"){ CFG[{"cfg-ts":"tabSaida","cfg-tk":"tabKm","cfg-tf":"tabFranquia"}[el.id]] = numIn(el.value); saveCfg(); render(); toast("Tabela padrão salva"); }
   else if(el.id==="cfg-imp"){ CFG.imposto = numIn(el.value); persistir(); render(); toast("Imposto salvo"); }
   else if(el.id==="f-mes"){ S.mes = el.value || ymKey(Date.now()); render(); }
   else if(el.id==="m-cli" || el.id==="m-pri") sugestao();
@@ -979,9 +1020,9 @@ document.addEventListener("change", e => {
   else if(el.id==="ck-km") patchChamado(id, n=>{ n.checklist=n.checklist||{}; n.checklist.kmVeiculo=el.value.trim(); }).catch(()=>{});
   else if(el.id==="ck-av") patchChamado(id, n=>{ n.checklist=n.checklist||{}; n.checklist.avarias=el.value; }).catch(()=>{});
   else if(el.id==="d-prest") setPrestador(id, el.value).catch(()=>{});
-  else if(el.id==="d-vc") patchChamado(id, n=>{ n.valorCliente = numIn(el.value); }).catch(()=>{});
+  else if(el.id==="d-vc") patchChamado(id, n=>{ const antes = clone(n); n.valorCliente = numIn(el.value); ajustarRepasse(antes, n); }).catch(()=>{});
   else if(el.id==="d-vp") patchChamado(id, n=>{ n.valorPrestador = numIn(el.value); }).catch(()=>{});
-  else if(el.id==="d-sai") patchChamado(id, n=>{ n.saida = numIn(el.value); }).catch(()=>{});
+  else if(el.id==="d-sai") patchChamado(id, n=>{ const antes = clone(n); n.saida = numIn(el.value); ajustarRepasse(antes, n); }).catch(()=>{});
   else if(el.id==="d-rec") patchChamado(id, n=>{ n.recebido = el.checked; }).catch(()=>{});
   else if(el.id==="d-vrec") patchChamado(id, n=>{ n.vencReceber = dataISO(el.value); }).catch(()=>{});
   else if(el.id==="d-vpag") patchChamado(id, n=>{ n.vencPagar = dataISO(el.value); }).catch(()=>{});
@@ -997,14 +1038,13 @@ setInterval(()=>{ if(!document.querySelector("#overlay .modal") && !(document.ac
 
 /* ---------- Armazenamento neste aparelho ---------- */
 const CHAVE = "central24h-jm-v1", CHAVE_ANTIGA = "guinchoja-painel-v1";
-let CFG = { imposto:0 };
 function persistir(){
   try{ localStorage.setItem(CHAVE, JSON.stringify({ chamados:S.chamados, prestadores:S.prestadores, clientes:S.clientes, config:CFG })); }
   catch(e){ toast("A memória do navegador encheu. Baixe um backup na aba Financeiro.","bad"); }
 }
 function aplicarDados(d){
   ["chamados","prestadores","clientes"].forEach(col => { LOCAL[col] = new Map((d[col]||[]).map(x=>[x.id,x])); S[col] = [...LOCAL[col].values()]; });
-  CFG = Object.assign({ imposto:0 }, d.config||{});
+  CFG = Object.assign({}, CFG_PADRAO, d.config||{});
 }
 /* Converte o que foi lançado no painel antigo (serviços e parceiros) em chamados concluídos e prestadores */
 function migrarAntigo(old){
