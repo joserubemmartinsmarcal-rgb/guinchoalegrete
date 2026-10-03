@@ -1,0 +1,71 @@
+name: Abertura Diaria - Controle Operacao Allianz
+
+on:
+  schedule:
+    # 07:00 Horário de Brasília (UTC-3) -> 10:00 UTC
+    - cron: '0 10 * * *'
+  workflow_dispatch:
+
+jobs:
+  create_daily_issue:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Obter data atual
+        id: date
+        run: echo "today=$(date +'%d/%m/%Y')" >> $GITHUB_OUTPUT
+
+      - name: Criar Issue de Controle Diario
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const today = '${{ steps.date.outputs.today }}';
+            const body = `### 📋 Dados do Plantão
+            - **Data:** ${today}
+            - **Operador/Despachante:** 
+            - **Guincho(s) e Motorista(s) Escalados:** 
+
+            ---
+
+            ### 🚨 Registro de Chamados do Dia
+            - **Número da OS / Acionamento Allianz:** 
+            - **Nome do Segurado:** 
+            - **Veículo / Placa:** 
+            - **Origem / Destino:** 
+
+            ### ⏱️ Horários do SLA
+            - **Acionamento:** 
+            - **Saída Base:** 
+            - **Previsão Informada:** 
+            - **Chegada Local:** 
+            - **Conclusão/Entrega:** 
+
+            ### 🛣️ Quilometragem (KM)
+            - **KM Saída / Chegada / Destino / Retorno:** 
+            - **KM Total:** 
+            - **KM Autorizada Allianz:** 
+            - **KM Excedente:** 
+
+            ### 💰 Pedágios e Despesas
+            - **Total Pedágios (R$):** 
+            - **Comprovantes:** (anexar fotos/recibos)
+
+            ### 📸 Vistoria e Fotos
+            - [ ] Fotos do veículo (frente, traseira, placa)
+            - [ ] Veículo embarcado
+            - [ ] Local de entrega
+            - [ ] Comprovante assinado
+
+            ---
+            ### 💼 Fechamento Financeiro
+            - [ ] Lançado no sistema
+            - [ ] Pronto para faturamento`;
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Controle Diário - Allianz [${today}]`,
+              body: body,
+              labels: ['allianz-sla', 'financeiro-km', 'operacao-urgente']
+            });
