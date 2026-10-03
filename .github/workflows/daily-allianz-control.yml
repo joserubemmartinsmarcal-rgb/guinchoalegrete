@@ -1,10 +1,14 @@
 name: Abertura Diaria - Controle Operacao Allianz
-
 on:
   schedule:
     # 07:00 Horário de Brasília (UTC-3) -> 10:00 UTC
     - cron: '0 10 * * *'
   workflow_dispatch:
+    inputs:
+      responsavel:
+        description: 'Responsável pelo plantão (usuário GitHub)'
+        required: false
+        default: 'joserubemmartinsmarcal-rgb'
 
 jobs:
   create_daily_issue:
@@ -21,9 +25,10 @@ jobs:
         with:
           script: |
             const today = '${{ steps.date.outputs.today }}';
+            const assignee = context.payload.inputs?.responsavel || context.repo.owner;
             const body = `### 📋 Dados do Plantão
             - **Data:** ${today}
-            - **Operador/Despachante:** 
+            - **Responsável pelo Plantão:** @${assignee}
             - **Guincho(s) e Motorista(s) Escalados:** 
 
             ---
@@ -47,18 +52,18 @@ jobs:
             - **KM Autorizada Allianz:** 
             - **KM Excedente:** 
 
-            ### 💰 Pedágios e Despesas
+            ### 💳 Pedágios e Despesas
             - **Total Pedágios (R$):** 
             - **Comprovantes:** (anexar fotos/recibos)
 
-            ### 📸 Vistoria e Fotos
+            ### 📷 Vistoria e Fotos
             - [ ] Fotos do veículo (frente, traseira, placa)
             - [ ] Veículo embarcado
             - [ ] Local de entrega
             - [ ] Comprovante assinado
 
             ---
-            ### 💼 Fechamento Financeiro
+            ### 💵 Fechamento Financeiro
             - [ ] Lançado no sistema
             - [ ] Pronto para faturamento`;
 
@@ -67,5 +72,6 @@ jobs:
               repo: context.repo.repo,
               title: `Controle Diário - Allianz [${today}]`,
               body: body,
-              labels: ['allianz-sla', 'financeiro-km', 'operacao-urgente']
+              assignees: [assignee],
+              labels: ['operacao-urgente', 'financeiro-km', 'allianz-sla']
             });
