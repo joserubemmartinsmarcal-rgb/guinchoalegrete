@@ -1,4 +1,3 @@
-
 const test = require('node:test');
 const assert = require('node:assert');
 const { validateLabels, findExistingIssue, runDailyControl } = require('../.github/scripts/daily-control.js');
@@ -188,3 +187,16 @@ test('Criação com sucesso: quando labels existem e não há issue anterior na 
   assert.deepStrictEqual(createdPayload.assignees, ['joserubemmartinsmarcal-rgb']);
   assert.deepStrictEqual(createdPayload.labels, required);
 });
+
+test('Proteção de regressão do workflow: mantém grupo de concorrência e cancel-in-progress desativado', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+
+  const workflowPath = path.resolve(__dirname, '../.github/workflows/daily-allianz-control.yml');
+  const content = fs.readFileSync(workflowPath, 'utf8');
+
+  assert.ok(content.includes('concurrency:'), 'O workflow deve declarar a chave concurrency');
+  assert.ok(content.includes('group: daily-allianz-control'), 'O grupo de concorrência deve ser daily-allianz-control');
+  assert.match(content, /cancel-in-progress:\s*false/, 'cancel-in-progress deve ser false para serializar as execuções');
+});
+
