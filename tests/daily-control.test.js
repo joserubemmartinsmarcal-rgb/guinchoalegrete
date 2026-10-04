@@ -1,10 +1,54 @@
 const test = require('node:test');
 const assert = require('node:assert');
+const fs = require('node:fs');
+const path = require('node:path');
 const { validateLabels, findExistingIssue, runDailyControl } = require('../.github/scripts/daily-control.js');
+
+function parseWorkflowYaml(content) {
+  const lines = content.split('
+');
+  const root = {};
+  const stack = [{ indent: -1, obj: root }];
+
+  for (let rawLine of lines) {
+    const lineWithoutComment = rawLine.replace(/#.*$/, '');
+    if (!lineWithoutComment.trim()) continue;
+
+    const indent = lineWithoutComment.search(/\S/);
+    const trimmed = lineWithoutComment.trim();
+
+    while (stack.length > 1 && stack[stack.length - 1].indent >= indent) {
+      stack.pop();
+    }
+    const current = stack[stack.length - 1].obj;
+
+    if (trimmed.includes(':')) {
+      const colonIndex = trimmed.indexOf(':');
+      const key = trimmed.slice(0, colonIndex).trim();
+      const valStr = trimmed.slice(colonIndex + 1).trim();
+
+      if (valStr === '') {
+        const newObj = {};
+        current[key] = newObj;
+        stack.push({ indent, obj: newObj });
+      } else {
+        let parsedVal = valStr;
+        if (valStr === 'true') parsedVal = true;
+        else if (valStr === 'false') parsedVal = false;
+        else if (!isNaN(Number(valStr)) && valStr !== '') parsedVal = Number(valStr);
+        else if ((valStr.startsWith("'") && valStr.endsWith("'")) || (valStr.startsWith('"') && valStr.endsWith('"'))) {
+          parsedVal = valStr.slice(1, -1);
+        }
+        current[key] = parsedVal;
+      }
+    }
+  }
+  return root;
+}
 
 test('Validação de labels: identifica labels faltantes e interrompe com erro claro', async () => {
   const required = ['operacao-urgente', 'financeiro-km', 'allianz-sla'];
-  const repoLabels = [{ name: 'allianz-sla' }]; // faltam operacao-urgente e financeiro-km
+  const repoLabels = [{ name: 'allianz-sla' }];
 
   const missing = validateLabels(required, repoLabels);
   assert.deepStrictEqual(missing, ['operacao-urgente', 'financeiro-km']);
@@ -188,15 +232,12 @@ test('Criação com sucesso: quando labels existem e não há issue anterior na 
   assert.deepStrictEqual(createdPayload.labels, required);
 });
 
-test('Proteção de regressão do workflow: mantém grupo de concorrência e cancel-in-progress desativado', () => {
-  const fs = require('node:fs');
-  const path = require('node:path');
-
+test('Proteção de regressão do workflow: interpreta YAML e valida campos concurrency.group e cancel-in-progress', () => {
   const workflowPath = path.resolve(__dirname, '../.github/workflows/daily-allianz-control.yml');
-  const content = fs.readFileSync(workflowPath, 'utf8');
+  const fileContent = fs.readFileSync(workflowPath, 'utf8');
+  const parsed = parseWorkflowYaml(fileContent);
 
-  assert.ok(content.includes('concurrency:'), 'O workflow deve declarar a chave concurrency');
-  assert.ok(content.includes('group: daily-allianz-control'), 'O grupo de concorrência deve ser daily-allianz-control');
-  assert.match(content, /cancel-in-progress:\s*false/, 'cancel-in-progress deve ser false para serializar as execuções');
+  assert.ok(parsed.concurrency, 'O workflow deve possuir o bloco estruturado de concorrência');
+  assert.strictEqual(parsed.concurrency.group, 'daily-allianz-control', 'O campo concurrency.group deve ser daily-allianz-control');
+  assert.strictEqual(parsed.concurrency['cancel-in-progress'], false, 'O campo concurrency.cancel-in-progress deve ser false para serializar execuções');
 });
-
