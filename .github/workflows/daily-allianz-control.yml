@@ -10,6 +10,10 @@ on:
         required: false
         default: 'joserubemmartinsmarcal-rgb'
 
+concurrency:
+  group: daily-allianz-control
+  cancel-in-progress: false
+
 jobs:
   create_daily_issue:
     runs-on: ubuntu-latest
