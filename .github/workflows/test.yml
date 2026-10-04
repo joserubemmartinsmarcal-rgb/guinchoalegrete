@@ -1,4 +1,5 @@
 name: CI - Testes Automatizados
+
 on:
   push:
   pull_request:
@@ -7,14 +8,17 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20]
     steps:
       - name: Checkout do codigo
         uses: actions/checkout@v4
 
-      - name: Configurar Node.js
+      - name: Configurar Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
 
       - name: Executar npm test
         run: npm test
