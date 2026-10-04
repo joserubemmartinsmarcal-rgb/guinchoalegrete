@@ -1,0 +1,9 @@
+{
+  "name": "guinchoalegrete",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Controle operacional e financeiro de guincho e acionamentos Allianz",
+  "scripts": {
+    "test": "node --test tests/daily-control.test.js"
+  }
+}
