@@ -5,8 +5,7 @@ const path = require('node:path');
 const { validateLabels, findExistingIssue, runDailyControl } = require('../.github/scripts/daily-control.js');
 
 function parseWorkflowYaml(content) {
-  const lines = content.split('
-');
+  const lines = content.split(/\r?\n/);
   const root = {};
   const stack = [{ indent: -1, obj: root }];
 
