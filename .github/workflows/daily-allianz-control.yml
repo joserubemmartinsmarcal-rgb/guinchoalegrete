@@ -25,7 +25,39 @@ jobs:
         with:
           script: |
             const today = '${{ steps.date.outputs.today }}';
+            const expectedTitle = `Controle Diário - Allianz [${today}]`;
+            const requiredLabels = ['operacao-urgente', 'financeiro-km', 'allianz-sla'];
             const assignee = context.payload.inputs?.responsavel || context.repo.owner;
+
+            // 1. Validação de labels existentes no repositório
+            const { data: repoLabels } = await github.rest.issues.listLabelsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            const existingLabelNames = new Set(repoLabels.map(l => l.name));
+            const missingLabels = requiredLabels.filter(name => !existingLabelNames.has(name));
+
+            if (missingLabels.length > 0) {
+              core.setFailed(`Erro de validação: As seguintes labels não existem no repositório: ${missingLabels.join(', ')}. Crie as labels antes de executar.`);
+              return;
+            }
+
+            // 2. Verificação de issue já existente para a mesma data (evita duplicidades)
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'all',
+              per_page: 100
+            });
+
+            const existingIssue = issues.find(issue => issue.title && issue.title.trim() === expectedTitle.trim());
+            if (existingIssue) {
+              core.notice(`A issue para a data ${today} já existe: #${existingIssue.number} (${existingIssue.html_url}). Nenhuma nova issue criada.`);
+              return;
+            }
+
+            // 3. Montagem do corpo e criação da issue
             const body = `### 📋 Dados do Plantão
             - **Data:** ${today}
             - **Responsável pelo Plantão:** @${assignee}
@@ -67,11 +99,13 @@ jobs:
             - [ ] Lançado no sistema
             - [ ] Pronto para faturamento`;
 
-            await github.rest.issues.create({
+            const created = await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `Controle Diário - Allianz [${today}]`,
+              title: expectedTitle,
               body: body,
               assignees: [assignee],
-              labels: ['operacao-urgente', 'financeiro-km', 'allianz-sla']
+              labels: requiredLabels
             });
+
+            core.info(`Issue criada com sucesso: #${created.data.number}`);
