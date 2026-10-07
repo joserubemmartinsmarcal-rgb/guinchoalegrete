@@ -34,7 +34,12 @@ function parseWorkflowYaml(content) {
         let parsedVal = valStr;
         if (valStr === 'true') parsedVal = true;
         else if (valStr === 'false') parsedVal = false;
-        else if (!isNaN(Number(valStr)) && valStr !== '') parsedVal = Number(valStr);
+        else if (valStr.startsWith('[') && valStr.endsWith(']')) {
+          parsedVal = valStr.slice(1, -1).split(',').map(s => {
+            const item = s.trim().replace(/^['"]|['"]$/g, '');
+            return !isNaN(Number(item)) && item !== '' ? Number(item) : item;
+          });
+        } else if (!isNaN(Number(valStr)) && valStr !== '') parsedVal = Number(valStr);
         else if ((valStr.startsWith("'") && valStr.endsWith("'")) || (valStr.startsWith('"') && valStr.endsWith('"'))) {
           parsedVal = valStr.slice(1, -1);
         }
@@ -239,4 +244,15 @@ test('Proteção de regressão do workflow: interpreta YAML e valida campos conc
   assert.ok(parsed.concurrency, 'O workflow deve possuir o bloco estruturado de concorrência');
   assert.strictEqual(parsed.concurrency.group, 'daily-allianz-control', 'O campo concurrency.group deve ser daily-allianz-control');
   assert.strictEqual(parsed.concurrency['cancel-in-progress'], false, 'O campo concurrency.cancel-in-progress deve ser false para serializar execuções');
+});
+
+test('Proteção de regressão do workflow de CI: interpreta YAML e valida fail-fast: false e versões do Node.js', () => {
+  const workflowPath = path.resolve(__dirname, '../.github/workflows/test.yml');
+  const fileContent = fs.readFileSync(workflowPath, 'utf8');
+  const parsed = parseWorkflowYaml(fileContent);
+
+  assert.ok(parsed.jobs?.test?.strategy, 'O job test deve possuir o bloco strategy');
+  assert.strictEqual(parsed.jobs.test.strategy['fail-fast'], false, 'O campo strategy.fail-fast deve ser false');
+  assert.ok(parsed.jobs.test.strategy.matrix, 'A strategy deve possuir o bloco matrix');
+  assert.deepStrictEqual(parsed.jobs.test.strategy.matrix['node-version'], [18, 20], 'A matriz deve conter Node.js 18 e 20');
 });
