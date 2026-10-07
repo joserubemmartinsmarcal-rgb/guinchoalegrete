@@ -257,18 +257,38 @@ test('Proteção de regressão do workflow de CI: interpreta YAML e valida fail-
   assert.deepStrictEqual(parsed.jobs.test.strategy.matrix['node-version'], [18, 20], 'A matriz deve conter Node.js 18 e 20');
 });
 
-test("Configuração do workflow de CI: confirma cache: 'npm' no setup-node", () => {
-  const workflowPath = path.resolve(__dirname, "../.github/workflows/test.yml");
-  const fileContent = fs.readFileSync(workflowPath, "utf8");
+test("Configuração do workflow de CI: confirma actions/setup-node@v4, cache npm e matriz Node.js 18 e 20", () => {
+  const workflowPath = path.resolve(__dirname, '../.github/workflows/test.yml');
+  const fileContent = fs.readFileSync(workflowPath, 'utf8');
+  const parsed = parseWorkflowYaml(fileContent);
 
-  assert.ok(fileContent.includes("actions/setup-node"), "O workflow deve usar actions/setup-node");
+  // Valida que actions/setup-node@v4 é utilizada
+  assert.ok(fileContent.includes('actions/setup-node@v4'), 'O workflow deve utilizar explicitamente a action actions/setup-node@v4');
 
-  // Localiza o bloco de configuração do setup-node
+  // Valida a matriz de versões
+  assert.deepStrictEqual(parsed.jobs.test.strategy.matrix['node-version'], [18, 20], 'A matriz deve conter Node.js 18 e 20');
+
+  // Valida que o step setup-node referencia a matriz e o cache npm
   const lines = fileContent.split(/\r?\n/);
-  const setupNodeIndex = lines.findIndex(l => l.includes("actions/setup-node"));
-  assert.ok(setupNodeIndex !== -1, "Deve encontrar a linha da action setup-node");
+  const setupNodeIndex = lines.findIndex(l => l.includes('actions/setup-node@v4'));
+  assert.ok(setupNodeIndex !== -1, 'Step do setup-node@v4 deve existir');
 
-  // Pega as linhas seguintes até o próximo step
-  const nextLines = lines.slice(setupNodeIndex, setupNodeIndex + 10).join("\n");
-  assert.ok(nextLines.includes("cache: \x27npm\x27") || nextLines.includes("cache: \"npm\"") || nextLines.includes("cache: npm"), "O step setup-node deve conter cache: \x27npm\x27");
+  const setupNodeBlock = lines.slice(setupNodeIndex, setupNodeIndex + 8).join('\n');
+  assert.ok(setupNodeBlock.includes('matrix.node-version'), 'O setup-node deve referenciar a matriz de versões Node.js');
+  assert.ok(/cache:\s*['"]?npm['"]?/.test(setupNodeBlock), "O step setup-node deve configurar cache: 'npm'");
+});
+
+test("Configuração do workflow de CI: confirma instalação de dependências com npm ci usando package-lock.json", () => {
+  const workflowPath = path.resolve(__dirname, '../.github/workflows/test.yml');
+  const fileContent = fs.readFileSync(workflowPath, 'utf8');
+
+  // Confirma existência do step executando npm ci
+  assert.ok(/run:\s*npm\s+ci/.test(fileContent), 'O workflow deve conter um passo executando npm ci');
+
+  // Confirma a existência do arquivo package-lock.json no repositório
+  const lockfilePath = path.resolve(__dirname, '../package-lock.json');
+  assert.ok(fs.existsSync(lockfilePath), 'O arquivo package-lock.json deve existir para execução do npm ci');
+
+  const lockContent = JSON.parse(fs.readFileSync(lockfilePath, 'utf8'));
+  assert.strictEqual(lockContent.name, 'guinchoalegrete', 'package-lock.json deve pertencer ao projeto');
 });
