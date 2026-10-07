@@ -256,3 +256,19 @@ test('Proteção de regressão do workflow de CI: interpreta YAML e valida fail-
   assert.ok(parsed.jobs.test.strategy.matrix, 'A strategy deve possuir o bloco matrix');
   assert.deepStrictEqual(parsed.jobs.test.strategy.matrix['node-version'], [18, 20], 'A matriz deve conter Node.js 18 e 20');
 });
+
+test("Configuração do workflow de CI: confirma cache: 'npm' no setup-node", () => {
+  const workflowPath = path.resolve(__dirname, "../.github/workflows/test.yml");
+  const fileContent = fs.readFileSync(workflowPath, "utf8");
+
+  assert.ok(fileContent.includes("actions/setup-node"), "O workflow deve usar actions/setup-node");
+
+  // Localiza o bloco de configuração do setup-node
+  const lines = fileContent.split(/\r?\n/);
+  const setupNodeIndex = lines.findIndex(l => l.includes("actions/setup-node"));
+  assert.ok(setupNodeIndex !== -1, "Deve encontrar a linha da action setup-node");
+
+  // Pega as linhas seguintes até o próximo step
+  const nextLines = lines.slice(setupNodeIndex, setupNodeIndex + 10).join("\n");
+  assert.ok(nextLines.includes("cache: \x27npm\x27") || nextLines.includes("cache: \"npm\"") || nextLines.includes("cache: npm"), "O step setup-node deve conter cache: \x27npm\x27");
+});
