@@ -1,0 +1,28 @@
+@import url('/tokens.css');
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--noite);color:var(--branco);font:400 17px/1.5 var(--txt);
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+h1,h2,h3{font-family:var(--disp);font-weight:800;line-height:1.02;letter-spacing:.2px;margin:0 0 .4em}
+a{color:var(--placa)}
+[hidden]{display:none!important}
+:focus-visible{outline:3px solid var(--placa);outline-offset:2px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:var(--gf-tap);padding:0 22px;border-radius:12px;
+  border:2px solid var(--placa);background:var(--placa);color:var(--gf-brand-ink);font:700 18px var(--txt);text-decoration:none;cursor:pointer;text-align:center}
+.btn.sec{background:transparent;color:var(--placa)}
+.btn.fant{background:transparent;border-color:var(--linha);color:var(--branco)}
+.btn.zap{background:var(--verde);border-color:var(--verde);color:#06240f}
+.btn.perigo{background:transparent;border-color:var(--verm);color:var(--verm)}
+.btn.full{width:100%}
+.btn.peq{min-height:44px;font-size:16px;padding:0 14px}
+.btn:disabled{opacity:.5;cursor:wait}
+input,select,textarea{width:100%;min-height:var(--gf-tap);padding:12px 14px;border-radius:var(--gf-radius-sm);border:1.5px solid var(--linha);
+  background:var(--asfalto);color:var(--branco);font:500 17px var(--txt)}
+input[aria-invalid=true]{border-color:var(--verm)}
+textarea{min-height:90px;resize:vertical}
+label{display:block;font-weight:600;font-size:15px;color:var(--cinza);margin:14px 0 6px}
+.chk{display:flex;gap:10px;align-items:flex-start;font-weight:500;color:var(--branco)}
+.chk input{width:22px;min-height:22px;margin-top:2px}
+.estrada{height:6px;background:repeating-linear-gradient(90deg,var(--placa) 0 26px,transparent 26px 46px)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

@@ -1,0 +1,42 @@
+/* Guincho Fácil — tokens de marca.
+   Fonte única de cores, tipos, raios e espaços do site e do app.
+   Quando o Design System do GF for publicado, só este arquivo muda. */
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap');
+
+:root {
+  /* superfícies */
+  --gf-bg: #0b1521;          /* noite: fundo da página */
+  --gf-surface: #132235;     /* asfalto: cartões */
+  --gf-surface-2: #1c3048;   /* faixa: chips, divisórias fortes */
+  --gf-line: #2a4260;        /* bordas de campos e cartões */
+  /* texto */
+  --gf-ink: #eef3f8;
+  --gf-ink-muted: #9db0c4;
+  /* marca */
+  --gf-brand: #F5B700;       /* amarelo placa: ação principal */
+  --gf-brand-strong: #c99600;
+  --gf-brand-ink: #0b1521;   /* texto sobre amarelo */
+  /* estados */
+  --gf-success: #2fbf71;
+  --gf-success-bg: #123a27;
+  --gf-success-ink: #c9f5dc;
+  --gf-danger: #ff6b5b;
+  --gf-danger-bg: #5c2420;
+  --gf-danger-ink: #ffd3cd;
+  --gf-info: #6db3ff;
+  /* tipografia */
+  --gf-font-display: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+  --gf-font-text: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* forma */
+  --gf-radius-sm: 10px;
+  --gf-radius-md: 14px;
+  --gf-radius-lg: 18px;
+  --gf-tap: 52px;            /* altura mínima de toque */
+  color-scheme: dark;
+
+  /* nomes antigos usados no código existente (compatibilidade) */
+  --noite: var(--gf-bg); --asfalto: var(--gf-surface); --faixa: var(--gf-surface-2); --linha: var(--gf-line);
+  --placa: var(--gf-brand); --placa-esc: var(--gf-brand-strong); --branco: var(--gf-ink); --cinza: var(--gf-ink-muted);
+  --verde: var(--gf-success); --verm: var(--gf-danger);
+  --disp: var(--gf-font-display); --txt: var(--gf-font-text);
+}
