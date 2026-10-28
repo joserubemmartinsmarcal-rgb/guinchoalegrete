@@ -1,42 +1,84 @@
-/* Guincho Fácil — tokens de marca.
-   Fonte única de cores, tipos, raios e espaços do site e do app.
-   Quando o Design System do GF for publicado, só este arquivo muda. */
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap');
+/* Guincho Fácil — tokens do Design System oficial (artefato "Guincho Fácil",
+   versão de 28/10/2026). Tema claro = app, aplicação web e admin (padrão).
+   Tema escuro = site, ativado com <html data-tema="escuro">.
+   Não usar aqui cores da JM Transportes. */
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* superfícies */
-  --gf-bg: #0b1521;          /* noite: fundo da página */
-  --gf-surface: #132235;     /* asfalto: cartões */
-  --gf-surface-2: #1c3048;   /* faixa: chips, divisórias fortes */
-  --gf-line: #2a4260;        /* bordas de campos e cartões */
-  /* texto */
-  --gf-ink: #eef3f8;
-  --gf-ink-muted: #9db0c4;
-  /* marca */
-  --gf-brand: #F5B700;       /* amarelo placa: ação principal */
-  --gf-brand-strong: #c99600;
-  --gf-brand-ink: #0b1521;   /* texto sobre amarelo */
-  /* estados */
-  --gf-success: #2fbf71;
-  --gf-success-bg: #123a27;
-  --gf-success-ink: #c9f5dc;
-  --gf-danger: #ff6b5b;
-  --gf-danger-bg: #5c2420;
-  --gf-danger-ink: #ffd3cd;
-  --gf-info: #6db3ff;
-  /* tipografia */
-  --gf-font-display: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
-  --gf-font-text: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  /* forma */
-  --gf-radius-sm: 10px;
-  --gf-radius-md: 14px;
-  --gf-radius-lg: 18px;
-  --gf-tap: 52px;            /* altura mínima de toque */
-  color-scheme: dark;
+  --gf-surface: #ffffff;
+  --gf-surface-alt: #f3f6f9;
+  --gf-card: #ffffff;
+  --gf-line: #e3e8ef;
+  --gf-line-strong: #7b8b9e;
+  --gf-ink: #0b1521;
+  --gf-ink-2: #33475b;
+  --gf-muted: #556679;
+  --gf-faint: #5d6d80;
+  --gf-accent: #1663d6;
+  --gf-accent-soft: #e9f2ff;
+  --gf-accent-line: #bcd5fb;
+  --gf-brand-blue: #2f8cff;
+  --gf-on-brand-blue: #ffffff;
+  --gf-primary: #0b1521;
+  --gf-primary-hover: #1d3047;
+  --gf-on-primary: #ffffff;
+  --gf-navy: #0a2450;
+  --gf-navy-deep: #081a3a;
+  --gf-on-navy: #ffffff;
+  --gf-success: #0e7448;
+  --gf-success-soft: #e5f4ec;
+  --gf-danger: #c2362b;
+  --gf-danger-soft: #fdecea;
+  --gf-warning: #955800;
+  --gf-warning-soft: #fcf1df;
+  --gf-field: var(--gf-surface-alt);
+  --gf-field-line: var(--gf-line-strong);
+  --gf-placeholder: #6b7a8c;
+  --gf-focus: var(--gf-accent);
+  --gf-overlay: rgba(11, 21, 33, 0.6);
+  --gf-halo-blue: 0 0 0 4px rgba(47, 140, 255, 0.18);
+  --gf-elev-sheet: 0 1px 2px rgba(11, 21, 33, 0.06), 0 12px 32px rgba(11, 21, 33, 0.10);
 
-  /* nomes antigos usados no código existente (compatibilidade) */
-  --noite: var(--gf-bg); --asfalto: var(--gf-surface); --faixa: var(--gf-surface-2); --linha: var(--gf-line);
-  --placa: var(--gf-brand); --placa-esc: var(--gf-brand-strong); --branco: var(--gf-ink); --cinza: var(--gf-ink-muted);
+  --gf-font: 'Inter Tight', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --gf-radius-sm: 10px;
+  --gf-radius-md: 12px;
+  --gf-radius-lg: 14px;
+  --gf-radius-xl: 22px;
+  --gf-radius-2xl: 24px;
+  --gf-control-h: 48px;
+  color-scheme: light;
+}
+
+[data-tema="escuro"] {
+  --gf-surface: #0b1521;
+  --gf-surface-alt: #0f1c2b;
+  --gf-card: #132233;
+  --gf-line: #22374d;
+  --gf-line-strong: #2f4d6c;
+  --gf-ink: #f2f6fb;
+  --gf-ink-2: #d9dee5;
+  --gf-muted: #93a7bc;
+  --gf-faint: #62778d;
+  --gf-accent: #6db3ff;
+  --gf-accent-soft: rgba(47, 140, 255, 0.08);
+  --gf-accent-line: rgba(47, 140, 255, 0.25);
+  --gf-primary: #2f8cff;
+  --gf-primary-hover: #4a9bff;
+  --gf-success: #3ccf8e;
+  --gf-success-soft: rgba(60, 207, 142, 0.12);
+  --gf-danger: #ff7a7a;
+  --gf-danger-soft: rgba(255, 122, 122, 0.12);
+  --gf-warning: #f5b452;
+  --gf-warning-soft: rgba(245, 180, 82, 0.12);
+  --gf-field: var(--gf-surface);
+  --gf-field-line: var(--gf-line);
+  --gf-placeholder: #4f647a;
+  --gf-elev-sheet: none;
+  color-scheme: dark;
+}
+
+/* nomes curtos usados em estilos inline do app */
+:root, [data-tema="escuro"] {
+  --cinza: var(--gf-muted); --branco: var(--gf-ink); --placa: var(--gf-brand-blue);
   --verde: var(--gf-success); --verm: var(--gf-danger);
-  --disp: var(--gf-font-display); --txt: var(--gf-font-text);
 }

@@ -1,8 +1,8 @@
 // Service worker do GF: abre offline a casca do app e do site.
 // Dados (Supabase) nunca são guardados em cache.
-const CACHE = 'gf-v2';
+const CACHE = 'gf-v3';
 const SHELL = ['/', '/app', '/privacidade', '/style.css', '/tokens.css', '/app.js', '/lib.js', '/cidades.js', '/config.js',
-  '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/offline.html'];
+  '/manifest.webmanifest', '/assets/gf-mark.png', '/icons/icon-192.png', '/icons/icon-512.png', '/offline.html'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });

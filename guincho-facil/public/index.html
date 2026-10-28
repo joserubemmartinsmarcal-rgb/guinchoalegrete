@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-tema="escuro">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>GF · Guincho Fácil — o seu caminhão nunca mais volta vazio</title>
 <meta name="description" content="O GF conecta quem precisa transportar um veículo a guincheiros que já estão na rota. Anuncie seu retorno, receba serviços no caminho e pare de voltar vazio. Fronteira Oeste e região central do RS.">
-<meta name="theme-color" content="#0b1521">
+<meta name="theme-color" content="#081a3a">
 <meta property="og:title" content="O seu caminhão nunca mais volta vazio · GF Guincho Fácil">
 <meta property="og:description" content="Pedidos de transporte de veículo no caminho de volta. Guincheiro ajuda guincheiro.">
-<meta property="og:image" content="/icons/icon-512.png">
+<meta property="og:image" content="/assets/gf-mark.png">
 <meta property="og:locale" content="pt_BR">
 <meta property="og:type" content="website">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -16,132 +16,157 @@
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="stylesheet" href="/style.css">
 <style>
-.top{position:sticky;top:0;z-index:20;background:var(--noite);border-bottom:1px solid var(--faixa)}
-.top .in{max-width:1080px;margin:auto;display:flex;align-items:center;justify-content:space-between;padding:10px 20px;gap:12px}
-.marca{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--branco);font:800 22px var(--disp)}
-.marca img{width:36px;height:36px;border-radius:8px}
-.top .btn{min-height:42px;font-size:16px;padding:0 16px}
-main{max-width:1080px;margin:auto;padding:0 20px}
-.hero{padding:44px 0 28px;display:grid;gap:32px}
-.hero h1{font-size:clamp(46px,11vw,92px);max-width:12ch}
-.hero p{font-size:20px;color:var(--cinza);max-width:36ch;margin:0 0 22px}
-.acoes-h{display:flex;flex-wrap:wrap;gap:12px}
-.rota{background:var(--asfalto);border:1px solid var(--linha);border-radius:18px;padding:22px 20px 18px}
-.rota .cab{display:flex;justify-content:space-between;font:700 15px var(--txt);color:var(--cinza)}
-.pista{height:120px;margin:12px 0 4px}
-.pista svg{width:100%;height:100%;overflow:visible}
-.pin{font:700 15px var(--txt)}
-.fala{background:var(--noite);border-left:4px solid var(--placa);padding:12px 14px;border-radius:8px;font-size:16px;margin-top:12px}
-.fala b{color:var(--placa)}
-section{padding:46px 0;border-top:1px solid var(--faixa)}
-section h2{font-size:clamp(34px,7vw,56px);max-width:18ch}
-.sub{color:var(--cinza);max-width:56ch}
-.custos{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:2px;background:var(--faixa);border-radius:14px;overflow:hidden;margin-top:18px}
-.custos div{background:var(--noite);padding:20px}
-.custos b{display:block;font:800 26px var(--disp);color:var(--placa)}
-.dois{display:grid;gap:18px;margin-top:22px}
-.lado{background:var(--asfalto);border-radius:18px;padding:24px}
-.lado h3{font-size:32px}
-.lado ol{padding-left:20px;margin:0 0 18px;color:var(--cinza)}
-.lado li{margin:6px 0}.lado li b{color:var(--branco)}
-.rede{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:14px}
-.rede li{padding:16px 18px;background:var(--asfalto);border-radius:12px}
-.rede b{color:var(--placa)}
-.faq details{border-bottom:1px solid var(--faixa);padding:14px 0}
+html{scroll-behavior:smooth}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+header.top{position:absolute;inset:0 0 auto;z-index:5}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;height:84px;gap:12px}
+header.top img{height:34px;display:block}
+.cta-s{font-size:14px;font-weight:600;text-decoration:none;color:var(--gf-ink);border:1px solid var(--gf-line-strong);border-radius:999px;padding:9px 16px;white-space:nowrap}
+.cta-s:hover{border-color:var(--gf-accent)}
+.hero{position:relative;overflow:hidden;display:flex;flex-direction:column;background:linear-gradient(180deg,var(--gf-navy-deep) 0%,var(--gf-navy) 380px,var(--gf-navy) 100%)}
+.hero .wrap{position:relative;z-index:1;width:100%;padding-top:112px;padding-bottom:8px}
+.eyebrow{font-size:12px;letter-spacing:.28em;color:var(--gf-accent);font-weight:600;text-transform:uppercase}
+.hero h1{font-size:clamp(42px,6.4vw,84px);line-height:.98;letter-spacing:-.045em;margin:18px 0 22px;max-width:15ch}
+.regua{width:120px;height:2px;background:linear-gradient(90deg,var(--gf-brand-blue),transparent);margin:0 0 22px}
+.hero p.lead{font-size:clamp(17px,2vw,20px);color:var(--gf-ink-2);max-width:520px;margin:0 0 30px}
+.acts{display:flex;flex-wrap:wrap;gap:12px}
+.foto{position:relative;height:clamp(260px,70vw,440px);margin-top:4px;background:url(/assets/hero-guincho.jpg) 62% 100%/cover no-repeat}
+.foto::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--gf-navy) 0%,var(--gf-navy) 4%,rgba(10,36,80,.6) 24%,rgba(10,36,80,0) 50%)}
+.foto::after{content:"";position:absolute;inset:auto 0 0 0;height:56px;background:linear-gradient(180deg,rgba(15,28,43,0),var(--gf-surface-alt))}
+@media (min-width:900px){
+  .hero{min-height:min(100svh,880px);justify-content:center}
+  .hero .wrap{padding-top:120px;padding-bottom:120px}
+  .hero h1{max-width:560px}.hero p.lead{max-width:430px}
+  .foto{position:absolute;inset:auto 0 0 38%;height:70%;margin:0;background-position:60% 100%}
+  .foto::before{background:linear-gradient(90deg,var(--gf-navy) 0%,rgba(10,36,80,.7) 16%,rgba(10,36,80,0) 42%),linear-gradient(180deg,var(--gf-navy) 0%,rgba(10,36,80,.4) 22%,rgba(10,36,80,0) 45%)}
+  .foto::after{height:110px}
+}
+section{padding:96px 0}
+section h2{font-size:clamp(32px,4.6vw,54px);line-height:1.02;margin:14px 0 16px}
+.sub{color:var(--gf-muted);max-width:560px;font-size:17px;margin:0}
+.dor{background:var(--gf-surface-alt);border-top:1px solid var(--gf-line)}
+.grade2{display:grid;gap:36px}
+.custos{border-top:1px solid var(--gf-line)}
+.custos div{display:flex;justify-content:space-between;gap:20px;padding:18px 0;border-bottom:1px solid var(--gf-line);font-size:17px}
+.custos span{color:var(--gf-muted)}.custos b{font-weight:600;text-align:right}
+.dois{display:grid;gap:22px;margin-top:40px}
+.lado{background:var(--gf-card);border:1px solid var(--gf-line);border-radius:var(--gf-radius-xl);padding:26px}
+.lado h3{font-size:26px;letter-spacing:-.02em;margin:10px 0 14px}
+.lado ol{padding-left:20px;margin:0 0 22px;color:var(--gf-muted)}
+.lado li{margin:8px 0}.lado li b{color:var(--gf-ink)}
+.ex{margin:0 0 20px;background:var(--gf-accent-soft);border:1px solid var(--gf-accent-line);border-radius:var(--gf-radius-md);padding:10px 12px;font-size:14px;color:var(--gf-ink-2)}
+.juntos{background:linear-gradient(180deg,var(--gf-surface),#0c1a2a)}
+.citacao{font-size:clamp(28px,3.6vw,44px);line-height:1.08;letter-spacing:-.03em;font-weight:800;margin:0}
+.citacao em{font-style:normal;color:var(--gf-accent)}
+.pontos{list-style:none;padding:0;margin:0;display:grid;gap:14px}
+.pontos li{display:grid;grid-template-columns:28px 1fr;gap:12px;color:var(--gf-ink-2)}
+.pontos li::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--gf-brand-blue);margin-top:8px;box-shadow:var(--gf-halo-blue)}
+.pontos b{color:var(--gf-ink)}
+.faq{border-top:1px solid var(--gf-line)}
+.faq details{border-bottom:1px solid var(--gf-line);padding:14px 0}
 .faq summary{cursor:pointer;font-weight:600;font-size:18px;min-height:32px}
-.faq p{color:var(--cinza);margin:10px 0 0}
-.form{background:var(--asfalto);border-radius:18px;padding:22px;max-width:560px}
-.perfis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.faq p{color:var(--gf-muted);margin:10px 0 0}
+.lista{border-top:1px solid var(--gf-line)}
+.form{background:var(--gf-card);border:1px solid var(--gf-line);border-radius:var(--gf-radius-2xl);padding:28px}
+.perfis{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:var(--gf-field);border-radius:var(--gf-radius-lg);padding:5px}
 .perfis input{position:absolute;opacity:0}
-.perfis span{display:grid;place-items:center;min-height:52px;border:1.5px solid var(--linha);border-radius:10px;font-weight:600;text-align:center;padding:4px;font-size:15px;cursor:pointer}
-.perfis input:checked+span{background:var(--placa);color:var(--gf-brand-ink);border-color:var(--placa)}
-.perfis input:focus-visible+span{outline:3px solid var(--placa)}
-.ok{padding:14px;border-radius:10px;background:var(--gf-success-bg);color:var(--gf-success-ink);margin-top:12px}
-.erro{color:var(--verm);margin-top:10px;min-height:1em}
-footer{border-top:1px solid var(--faixa);padding:30px 20px 110px;text-align:center;color:var(--cinza);font-size:15px}
-.fixo{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(11,21,33,.96);border-top:1px solid var(--faixa);display:flex;gap:10px}
-.fixo .btn{flex:1;padding:0 10px;font-size:16px}
-@media(min-width:860px){.hero{grid-template-columns:1.1fr 1fr;align-items:center;padding:70px 0 50px}.dois{grid-template-columns:1fr 1fr}.fixo{display:none}footer{padding-bottom:30px}}
+.perfis span{display:grid;place-items:center;min-height:44px;border-radius:var(--gf-radius-sm);font-weight:600;text-align:center;padding:4px;font-size:13px;cursor:pointer;color:var(--gf-muted)}
+.perfis input:checked+span{background:var(--gf-brand-blue);color:#fff}
+.perfis input:focus-visible+span{outline:2px solid var(--gf-focus)}
+.ok{padding:14px;border-radius:var(--gf-radius-md);background:var(--gf-success-soft);color:var(--gf-success);margin-top:12px}
+.erro{color:var(--gf-danger);margin-top:10px;min-height:1em;font-size:14px}
+footer{border-top:1px solid var(--gf-line);padding:40px 0 120px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+footer img{height:30px;display:block}
+footer p{margin:0;color:var(--gf-faint);font-size:13px}
+footer a{color:var(--gf-ink-2)}
+.tag{font-size:11px;letter-spacing:.32em;color:var(--gf-accent);margin-top:8px}
+.fixo{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(11,21,33,.96);border-top:1px solid var(--gf-line);display:flex;gap:10px}
+.fixo .btn{flex:1;padding:0 10px;font-size:15px}
+@media (min-width:860px){.grade2{grid-template-columns:1.1fr 1fr;gap:64px;align-items:end}.dois{grid-template-columns:1fr 1fr}.fixo{display:none}footer{padding-bottom:48px}}
+@media (max-width:860px){section{padding:72px 0}.wrap{padding:0 20px}header.top img{height:28px}.form{padding:22px 18px}}
 </style>
 </head>
 <body>
-<header class="top"><div class="in">
-  <a class="marca" href="/"><img src="/icons/icon-192.png" alt="">Guincho Fácil</a>
-  <a class="btn sec" href="/app">Entrar no app</a>
+<header class="top"><div class="wrap">
+  <a href="/"><img src="/assets/gf-mark.png" alt="GF · Guincho Fácil"></a>
+  <a class="cta-s" href="/app">Entrar no app</a>
 </div></header>
-<div class="estrada" aria-hidden="true"></div>
 <main>
-  <div class="hero">
-    <div>
-      <h1>O seu caminhão nunca mais volta vazio.</h1>
-      <p>O GF junta quem precisa transportar um veículo com o guincheiro que já está passando por ali. Menos viagem vazia, mais serviço no caminho.</p>
-      <div class="acoes-h">
-        <a class="btn" href="/app#pedido/novo">Preciso transportar um veículo</a>
-        <a class="btn fant" href="/app">Sou guincheiro</a>
-      </div>
-    </div>
-    <div class="rota" aria-label="Exemplo de retorno com serviço no caminho">
-      <div class="cab"><span>Seu retorno hoje</span><span>Plataforma livre</span></div>
-      <div class="pista">
-        <svg viewBox="0 0 400 120" role="img" aria-label="Rota Santa Maria até Alegrete passando por Cacequi">
-          <path d="M20 90 C 120 90, 140 30, 220 40 S 330 85, 380 60" fill="none" stroke="#2a4260" stroke-width="16" stroke-linecap="round"/>
-          <path d="M20 90 C 120 90, 140 30, 220 40 S 330 85, 380 60" fill="none" stroke="#F5B700" stroke-width="3" stroke-dasharray="14 10"/>
-          <circle cx="20" cy="90" r="9" fill="#eef3f8"/><circle cx="380" cy="60" r="9" fill="#eef3f8"/>
-          <circle cx="220" cy="40" r="13" fill="#F5B700"/><circle cx="220" cy="40" r="5" fill="#0b1521"/>
-          <text class="pin" x="20" y="118" fill="#9db0c4" text-anchor="middle">Santa Maria</text>
-          <text class="pin" x="380" y="96" fill="#9db0c4" text-anchor="middle">Alegrete</text>
-          <text class="pin" x="220" y="16" fill="#F5B700" text-anchor="middle">Cacequi · carro</text>
-        </svg>
-      </div>
-      <div class="fala"><b>Pedido no caminho:</b> Cacequi para Alegrete, carro que não anda. Desvio de poucos km. Mande sua proposta.</div>
+<section class="hero" aria-labelledby="t1" style="padding:0">
+  <div class="wrap">
+    <span class="eyebrow">Guincho Fácil</span>
+    <h1 id="t1">O seu caminhão nunca mais <em>volta vazio.</em></h1>
+    <div class="regua"></div>
+    <p class="lead">O GF junta quem precisa transportar um veículo com o guincheiro que já está passando por ali. Menos viagem vazia, mais serviço no caminho.</p>
+    <div class="acts">
+      <a class="btn" href="/app#pedido/novo">Preciso transportar um veículo</a>
+      <a class="btn fant" href="/app">Sou guincheiro</a>
     </div>
   </div>
+  <div class="foto" role="img" aria-label="Guincho plataforma levando um SUV pela rodovia"></div>
+</section>
 
-  <section>
-    <h2>Carga para ir tem. E para voltar?</h2>
-    <p class="sub">Entre um atendimento e outro, muito serviço se perde. Tem guincho passando perto, mas a informação não chega a quem precisa.</p>
-    <div class="custos">
-      <div><b>Combustível da volta</b>pago pelo guincheiro</div>
-      <div><b>Horas na estrada</b>sem faturar</div>
-      <div><b>Pneu, freio, manutenção</b>gastos do mesmo jeito</div>
-      <div><b>Cliente esperando</b>sem saber quem chama</div>
+<section class="dor" aria-labelledby="t2">
+  <div class="wrap grade2">
+    <div>
+      <span class="eyebrow">O problema</span>
+      <h2 id="t2">Carga para ir tem.<br><em>Mas e para voltar?</em></h2>
+      <p class="sub">Entre um atendimento e outro, muito serviço se perde. Tem guincho passando perto, mas a informação não chega a quem precisa.</p>
     </div>
-  </section>
+    <div class="custos" aria-label="O que a volta vazia custa">
+      <div><span>Combustível da volta</span><b>pago pelo guincheiro</b></div>
+      <div><span>Horas na estrada</span><b>sem faturar</b></div>
+      <div><span>Pneu, freio e manutenção</span><b>gastos do mesmo jeito</b></div>
+      <div><span>Cliente esperando</span><b>sem saber quem chamar</b></div>
+    </div>
+  </div>
+</section>
 
-  <section id="como">
-    <h2>Como funciona</h2>
+<section id="como" aria-labelledby="t3">
+  <div class="wrap">
+    <span class="eyebrow">Como funciona</span>
+    <h2 id="t3">Seu retorno vira <em>frete.</em></h2>
+    <p class="sub">Simples como mandar uma mensagem. Sem central no meio da conversa.</p>
     <div class="dois">
-      <div class="lado" id="clientes">
-        <h3>Para quem precisa transportar</h3>
+      <article class="lado" id="clientes">
+        <span class="eyebrow">Para quem precisa transportar</span>
+        <h3>Peça, compare e acompanhe</h3>
         <ol>
           <li><b>Diga de onde, para onde e qual veículo.</b> Leva menos de um minuto.</li>
-          <li><b>Receba propostas</b> de guincheiros da região e de quem está voltando pela sua rota, com nota de outros clientes.</li>
+          <li><b>Receba propostas</b> de guincheiros da região e de quem está voltando pela sua rota, com a nota de outros clientes.</li>
           <li><b>Escolha a melhor</b> e acompanhe cada etapa: a caminho, no local, em transporte, entregue.</li>
         </ol>
         <a class="btn full" href="/app#pedido/novo">Pedir transporte</a>
-      </div>
-      <div class="lado" id="parceiros">
-        <h3>Para guincheiros e transportadores</h3>
+      </article>
+      <article class="lado" id="parceiros">
+        <span class="eyebrow">Para guincheiros e transportadores</span>
+        <h3>Anuncie a volta, pegue serviço</h3>
         <ol>
           <li><b>Cadastre seu caminhão</b>, capacidade e área de atuação. A equipe GF confere e aprova.</li>
           <li><b>Anuncie sua rota de volta ou vaga de ida.</b> O GF mostra os pedidos que cabem no caminho e o desvio em km.</li>
-          <li><b>Mande seu preço.</b> Você decide o valor e aceita só o que quiser. O acerto é direto com o cliente.</li>
+          <li><b>Mande seu preço.</b> Você decide o valor e aceita só o que quiser.</li>
         </ol>
+        <p class="ex">“Saio de Santa Maria para Alegrete hoje às 14h. Plataforma livre.”</p>
         <a class="btn full" href="/app">Cadastrar meu caminhão</a>
-      </div>
+      </article>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section>
-    <h2>Guincheiro ajuda guincheiro</h2>
-    <ul class="rede">
-      <li><b>Chamado longe demais?</b> Repasse para um colega que está perto, em vez de perder o cliente.</li>
-      <li><b>Agenda cheia?</b> Ofereça o serviço para a rede e mantenha seu cliente atendido.</li>
-      <li><b>Voltando de uma entrega?</b> Pegue o serviço que um colega não consegue fazer.</li>
+<section class="juntos" aria-labelledby="t4">
+  <div class="wrap grade2" style="align-items:center">
+    <p class="citacao" id="t4">Guincheiro <em>ajuda guincheiro.</em></p>
+    <ul class="pontos">
+      <li><span><b>Chamado longe demais?</b> Repasse para um colega que está perto, em vez de perder o cliente.</span></li>
+      <li><span><b>Agenda cheia?</b> Ofereça o serviço para a rede e mantenha seu cliente atendido.</span></li>
+      <li><span><b>Voltando de uma entrega?</b> Pegue o serviço que um colega não consegue fazer.</span></li>
     </ul>
-  </section>
+  </div>
+</section>
 
-  <section class="faq">
+  <section class="faq"><div class="wrap">
+    <span class="eyebrow">Dúvidas</span>
     <h2>Dúvidas comuns</h2>
     <details><summary>Quanto custa?</summary><p>Nesta fase o uso é gratuito para clientes e guincheiros.</p></details>
     <details><summary>O GF fica com parte do valor?</summary><p>Não. O preço é do guincheiro e o pagamento é acertado direto entre cliente e guincheiro. O GF registra o valor combinado, mas não processa pagamentos.</p></details>
@@ -149,11 +174,12 @@ footer{border-top:1px solid var(--faixa);padding:30px 20px 110px;text-align:cent
     <details><summary>Preciso baixar na loja?</summary><p>Não. Abra o app pelo celular e toque em “Instalar” (Android) ou em Compartilhar › Adicionar à Tela de Início (iPhone). Ele fica com ícone e abre em tela cheia.</p></details>
     <details><summary>Onde funciona?</summary><p>Começamos pela Fronteira Oeste e região central do RS: Alegrete, Uruguaiana, Rosário do Sul, São Gabriel, Santa Maria, Bagé e arredores.</p></details>
     <details><summary>Meus dados ficam expostos?</summary><p>Não. Seu WhatsApp só aparece para a outra parte depois que uma proposta é aceita. Veja a <a href="/privacidade">política de privacidade</a>.</p></details>
-  </section>
+  </div></section>
 
-  <section id="lista">
-    <h2>Ainda não está na sua cidade?</h2>
-    <p class="sub">Deixe seu contato para ser avisado quando o GF chegar na sua região. Depois de salvar, abrimos o WhatsApp com seus dados para você confirmar.</p>
+  <section class="lista" id="lista"><div class="wrap grade2" style="align-items:start">
+    <div><span class="eyebrow">Em breve na sua cidade</span>
+    <h2>Mais conexão.<br><em>Mais movimento.</em></h2>
+    <p class="sub">Deixe seu contato para ser avisado quando o GF chegar na sua região. Depois de salvar, abrimos o WhatsApp com seus dados para você confirmar. Nada é enviado sem você tocar em enviar.</p></div>
     <form class="form" id="fLista" novalidate>
       <div class="perfis" role="radiogroup" aria-label="Você é">
         <label style="margin:0"><input type="radio" name="perfil" value="guincheiro" checked><span>Sou guincheiro</span></label>
@@ -168,17 +194,20 @@ footer{border-top:1px solid var(--faixa);padding:30px 20px 110px;text-align:cent
         <select id="lEquip" name="equipamento"><option>Plataforma</option><option>Asa-delta</option><option>Guincho pesado</option><option>Mais de um</option></select>
         <label for="lRota">Rota que você mais faz (opcional)</label><input id="lRota" name="rota" maxlength="120" placeholder="Ex.: Alegrete – Santa Maria">
       </div>
-      <label class="chk"><input type="checkbox" name="lgpd" required> Autorizo o uso destes dados para contato sobre o GF, conforme a <a href="/privacidade">política de privacidade</a>.</label>
+      <label class="chk"><input type="checkbox" name="lgpd" required><span>Autorizo o uso destes dados para contato sobre o GF, conforme a <a href="/privacidade">política de privacidade</a>.</span></label>
       <button class="btn full" style="margin-top:16px" type="submit">Salvar e continuar no WhatsApp</button>
       <div class="erro" id="lErro" role="alert"></div>
       <div class="ok" id="lOk" hidden>Cadastro salvo. Se o WhatsApp não abriu, <a id="lLink" href="#">toque aqui</a>.</div>
     </form>
-  </section>
+  </div></section>
 </main>
-<footer>
-  <p>GF · Guincho Fácil · Alegrete/RS · <a href="https://instagram.com/guinchofacil.app">@guinchofacil.app</a><br>
-  Uma iniciativa da <a href="https://instagram.com/jmtransportes.me">JM Transportes</a> · <a href="/privacidade">Privacidade</a></p>
-</footer>
+<footer><div class="wrap">
+  <div><img src="/assets/gf-mark.png" alt="GF"><div class="tag">CONEXÕES QUE MOVEM</div></div>
+  <div style="display:grid;gap:8px">
+    <p><a href="https://instagram.com/guinchofacil.app" target="_blank" rel="noopener">@guinchofacil.app</a> · <a href="/privacidade">Privacidade</a></p>
+    <p>GF · Guincho Fácil · Alegrete – RS</p>
+  </div>
+</div></footer>
 <div class="fixo"><a class="btn" href="/app#pedido/novo">Pedir transporte</a><a class="btn fant" href="/app">Sou guincheiro</a></div>
 <datalist id="dlCidades"></datalist>
 <script src="/cidades.js"></script>

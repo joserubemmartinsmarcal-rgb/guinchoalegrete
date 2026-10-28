@@ -47,7 +47,7 @@ const aprovado = () => S.perfil?.aprovacao === 'aprovado';
 const cidadeOk = c => !!GF_CIDADES[c];
 const kmTxt = n => n == null ? '' : `~${n} km`;
 function tagStatus(st) {
-  const cls = { aberto: 'am', concluido: 'vd', cancelado: 'vm' }[st] || '';
+  const cls = { aberto: 'am', concluido: 'vd', cancelado: 'vm' }[st] || (ATIVOS.includes(st) ? 'az' : '');
   return `<span class="tag ${cls}">${esc(STATUS[st] || st)}</span>`;
 }
 function chips(nome, opcoes, atual) {
@@ -75,9 +75,9 @@ function mapaRota(origem, destino) {
     const el = document.getElementById('mapa'); if (!el || !window.L) return;
     const m = L.map(el, { zoomControl: false, attributionControl: true, dragging: !L.Browser.mobile, scrollWheelZoom: false });
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 13, attribution: '© OpenStreetMap' }).addTo(m);
-    L.circleMarker(A, { radius: 8, color: '#eef3f8', fillOpacity: 1 }).addTo(m).bindTooltip(origem);
-    L.circleMarker(B, { radius: 8, color: '#F5B700', fillOpacity: 1 }).addTo(m).bindTooltip(destino);
-    L.polyline([A, B], { color: '#F5B700', weight: 3, dashArray: '8 8' }).addTo(m);
+    L.circleMarker(A, { radius: 8, color: '#0a2450', fillColor: '#ffffff', fillOpacity: 1 }).addTo(m).bindTooltip(origem);
+    L.circleMarker(B, { radius: 8, color: '#0a2450', fillColor: '#2f8cff', fillOpacity: 1 }).addTo(m).bindTooltip(destino);
+    L.polyline([A, B], { color: '#2f8cff', weight: 3, dashArray: '8 8' }).addTo(m);
     m.fitBounds([A, B], { padding: [30, 30] });
   };
   if (window.L) return desenha();
@@ -177,9 +177,9 @@ window.addEventListener('hashchange', () => rota());
 function telaLogin() {
   titulo('Entrar'); $('#nav').hidden = true; $('#btSair').hidden = true;
   V.innerHTML = `
-  <h2 style="font-size:40px;margin-top:10px">O seu caminhão nunca mais volta vazio.</h2>
-  <p style="color:var(--cinza)">Entre ou crie sua conta. Clientes pedem transporte; guincheiros recebem pedidos na rota.</p>
-  <div class="seg c2" style="margin-top:16px">
+  <div class="boas-vindas"><h2>O seu caminhão nunca mais <em>volta vazio.</em></h2>
+  <p>Entre ou crie sua conta. Quem precisa transportar pede; guincheiros recebem pedidos na rota.</p></div>
+  <div class="seg c2">
     <label><input type="radio" name="modo" value="entrar" checked><span>Entrar</span></label>
     <label><input type="radio" name="modo" value="criar"><span>Criar conta</span></label>
   </div>
@@ -279,7 +279,7 @@ function telaPerfil(novo) {
       <label for="pl">Placa do caminhão</label><input id="pl" name="placa" value="${esc(p.placa)}" maxlength="8" style="text-transform:uppercase" placeholder="ABC1D23">
       <label for="pr">Área de atuação</label><select id="pr" name="raio_km">${[20, 50, 100, 150, 300, 500].map(r => `<option value="${r}" ${Number(p.raio_km) === r ? 'selected' : ''}>Até ${r} km da cidade base</option>`).join('')}</select>
     </div>
-    ${novo ? '<label class="chk" style="margin-top:16px"><input type="checkbox" name="lgpd" required> Li e aceito a <a href="/privacidade" target="_blank">política de privacidade</a>. Meus dados servem só para operar o GF.</label>' : ''}
+    ${novo ? '<label class="chk" style="margin-top:16px"><input type="checkbox" name="lgpd" required><span>Li e aceito a <a href="/privacidade" target="_blank">política de privacidade</a>. Meus dados servem só para operar o GF.</span></label>' : ''}
     <p style="color:var(--cinza);font-size:14px">Seu WhatsApp só aparece para quem fecha serviço com você.</p>
     <button class="btn full">${novo ? 'Começar a usar' : 'Salvar perfil'}</button>
   </form>
