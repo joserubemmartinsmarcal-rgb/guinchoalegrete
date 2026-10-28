@@ -22,7 +22,8 @@ input[aria-invalid=true]{border-color:var(--verm)}
 textarea{min-height:90px;resize:vertical}
 label{display:block;font-weight:600;font-size:15px;color:var(--cinza);margin:14px 0 6px}
 .chk{display:flex;gap:10px;align-items:flex-start;font-weight:500;color:var(--branco)}
-.chk input{width:22px;min-height:22px;margin-top:2px}
+input[type=checkbox],input[type=radio]{width:auto;min-height:0;padding:0;accent-color:var(--placa)}
+.chk input{width:24px;height:24px;flex:none;margin-top:1px}
 .estrada{height:6px;background:repeating-linear-gradient(90deg,var(--placa) 0 26px,transparent 26px 46px)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
