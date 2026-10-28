@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>GF · Guincho Fácil — o seu caminhão nunca mais volta vazio</title>
 <meta name="description" content="O GF conecta quem precisa transportar um veículo a guincheiros que já estão na rota. Anuncie seu retorno, receba serviços no caminho e pare de voltar vazio. Fronteira Oeste e região central do RS.">
-<meta name="theme-color" content="#081a3a">
+<meta name="theme-color" content="#081f47">
 <meta property="og:title" content="O seu caminhão nunca mais volta vazio · GF Guincho Fácil">
 <meta property="og:description" content="Pedidos de transporte de veículo no caminho de volta. Guincheiro ajuda guincheiro.">
 <meta property="og:image" content="/assets/gf-mark.png">
@@ -23,7 +23,7 @@ header.top .wrap{display:flex;align-items:center;justify-content:space-between;h
 header.top img{height:34px;display:block}
 .cta-s{font-size:14px;font-weight:600;text-decoration:none;color:var(--gf-ink);border:1px solid var(--gf-line-strong);border-radius:999px;padding:9px 16px;white-space:nowrap}
 .cta-s:hover{border-color:var(--gf-accent)}
-.hero{position:relative;overflow:hidden;display:flex;flex-direction:column;background:linear-gradient(180deg,var(--gf-navy-deep) 0%,var(--gf-navy) 380px,var(--gf-navy) 100%)}
+.hero{position:relative;overflow:hidden;display:flex;flex-direction:column;background:linear-gradient(180deg,var(--gf-surface-deep) 0%,var(--gf-surface) 380px,var(--gf-surface) 100%)}
 .hero .wrap{position:relative;z-index:1;width:100%;padding-top:112px;padding-bottom:8px}
 .eyebrow{font-size:12px;letter-spacing:.28em;color:var(--gf-accent);font-weight:600;text-transform:uppercase}
 .hero h1{font-size:clamp(42px,6.4vw,84px);line-height:.98;letter-spacing:-.045em;margin:18px 0 22px;max-width:15ch}
@@ -31,14 +31,14 @@ header.top img{height:34px;display:block}
 .hero p.lead{font-size:clamp(17px,2vw,20px);color:var(--gf-ink-2);max-width:520px;margin:0 0 30px}
 .acts{display:flex;flex-wrap:wrap;gap:12px}
 .foto{position:relative;height:clamp(260px,70vw,440px);margin-top:4px;background:url(/assets/hero-guincho.jpg) 62% 100%/cover no-repeat}
-.foto::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--gf-navy) 0%,var(--gf-navy) 4%,rgba(10,36,80,.6) 24%,rgba(10,36,80,0) 50%)}
-.foto::after{content:"";position:absolute;inset:auto 0 0 0;height:56px;background:linear-gradient(180deg,rgba(15,28,43,0),var(--gf-surface-alt))}
+.foto::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--gf-surface) 0%,var(--gf-surface) 4%,rgba(11,42,91,.6) 24%,rgba(11,42,91,0) 50%)}
+.foto::after{content:"";position:absolute;inset:auto 0 0 0;height:56px;background:linear-gradient(180deg,rgba(15,52,112,0),var(--gf-surface-alt))}
 @media (min-width:900px){
   .hero{min-height:min(100svh,880px);justify-content:center}
   .hero .wrap{padding-top:120px;padding-bottom:120px}
   .hero h1{max-width:560px}.hero p.lead{max-width:430px}
   .foto{position:absolute;inset:auto 0 0 38%;height:70%;margin:0;background-position:60% 100%}
-  .foto::before{background:linear-gradient(90deg,var(--gf-navy) 0%,rgba(10,36,80,.7) 16%,rgba(10,36,80,0) 42%),linear-gradient(180deg,var(--gf-navy) 0%,rgba(10,36,80,.4) 22%,rgba(10,36,80,0) 45%)}
+  .foto::before{background:linear-gradient(90deg,var(--gf-surface) 0%,rgba(11,42,91,.7) 16%,rgba(11,42,91,0) 42%),linear-gradient(180deg,var(--gf-surface) 0%,rgba(11,42,91,.4) 22%,rgba(11,42,91,0) 45%)}
   .foto::after{height:110px}
 }
 section{padding:96px 0}
@@ -55,7 +55,7 @@ section h2{font-size:clamp(32px,4.6vw,54px);line-height:1.02;margin:14px 0 16px}
 .lado ol{padding-left:20px;margin:0 0 22px;color:var(--gf-muted)}
 .lado li{margin:8px 0}.lado li b{color:var(--gf-ink)}
 .ex{margin:0 0 20px;background:var(--gf-accent-soft);border:1px solid var(--gf-accent-line);border-radius:var(--gf-radius-md);padding:10px 12px;font-size:14px;color:var(--gf-ink-2)}
-.juntos{background:linear-gradient(180deg,var(--gf-surface),#0c1a2a)}
+.juntos{background:linear-gradient(180deg,var(--gf-surface),var(--gf-surface-deep))}
 .citacao{font-size:clamp(28px,3.6vw,44px);line-height:1.08;letter-spacing:-.03em;font-weight:800;margin:0}
 .citacao em{font-style:normal;color:var(--gf-accent)}
 .pontos{list-style:none;padding:0;margin:0;display:grid;gap:14px}
@@ -71,7 +71,7 @@ section h2{font-size:clamp(32px,4.6vw,54px);line-height:1.02;margin:14px 0 16px}
 .perfis{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:var(--gf-field);border-radius:var(--gf-radius-lg);padding:5px}
 .perfis input{position:absolute;opacity:0}
 .perfis span{display:grid;place-items:center;min-height:44px;border-radius:var(--gf-radius-sm);font-weight:600;text-align:center;padding:4px;font-size:13px;cursor:pointer;color:var(--gf-muted)}
-.perfis input:checked+span{background:var(--gf-brand-blue);color:#fff}
+.perfis input:checked+span{background:var(--gf-primary);color:var(--gf-on-primary)}
 .perfis input:focus-visible+span{outline:2px solid var(--gf-focus)}
 .ok{padding:14px;border-radius:var(--gf-radius-md);background:var(--gf-success-soft);color:var(--gf-success);margin-top:12px}
 .erro{color:var(--gf-danger);margin-top:10px;min-height:1em;font-size:14px}
@@ -81,7 +81,7 @@ footer img{height:30px;display:block}
 footer p{margin:0;color:var(--gf-faint);font-size:13px}
 footer a{color:var(--gf-ink-2)}
 .tag{font-size:11px;letter-spacing:.32em;color:var(--gf-accent);margin-top:8px}
-.fixo{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(11,21,33,.96);border-top:1px solid var(--gf-line);display:flex;gap:10px}
+.fixo{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(8,31,71,.96);border-top:1px solid var(--gf-line);display:flex;gap:10px}
 .fixo .btn{flex:1;padding:0 10px;font-size:15px}
 @media (min-width:860px){.grade2{grid-template-columns:1.1fr 1fr;gap:64px;align-items:end}.dois{grid-template-columns:1fr 1fr}.fixo{display:none}footer{padding-bottom:48px}}
 @media (max-width:860px){section{padding:72px 0}.wrap{padding:0 20px}header.top img{height:28px}.form{padding:22px 18px}}

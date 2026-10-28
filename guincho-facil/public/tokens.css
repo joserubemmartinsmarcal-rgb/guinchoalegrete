@@ -1,43 +1,47 @@
-/* Guincho Fácil — tokens do Design System oficial (artefato "Guincho Fácil",
-   versão de 28/10/2026). Tema claro = app, aplicação web e admin (padrão).
-   Tema escuro = site, ativado com <html data-tema="escuro">.
+/* Guincho Fácil — tokens de cor e forma.
+   Paleta aprovada pelo Zeca em 28/10/2026 a partir do protótipo "gf-prototipo":
+   fundo azul-royal/marinho, cartões azuis com borda azul e destaque azul-ciano.
+   Estrutura de nomes do Design System "Guincho Fácil"; a paleta clara dele
+   foi substituída por esta. Site, app e admin usam o mesmo tema.
    Não usar aqui cores da JM Transportes. */
 @import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&display=swap');
 
-:root {
-  --gf-surface: #ffffff;
-  --gf-surface-alt: #f3f6f9;
-  --gf-card: #ffffff;
-  --gf-line: #e3e8ef;
-  --gf-line-strong: #7b8b9e;
-  --gf-ink: #0b1521;
-  --gf-ink-2: #33475b;
-  --gf-muted: #556679;
-  --gf-faint: #5d6d80;
-  --gf-accent: #1663d6;
-  --gf-accent-soft: #e9f2ff;
-  --gf-accent-line: #bcd5fb;
-  --gf-brand-blue: #2f8cff;
-  --gf-on-brand-blue: #ffffff;
-  --gf-primary: #0b1521;
-  --gf-primary-hover: #1d3047;
-  --gf-on-primary: #ffffff;
-  --gf-navy: #0a2450;
-  --gf-navy-deep: #081a3a;
+:root, [data-tema="escuro"] {
+  --gf-surface: #0b2a5b;        /* fundo da página */
+  --gf-surface-deep: #081f47;   /* topo do degradê, barras fixas */
+  --gf-surface-alt: #0f3470;    /* faixas alternadas */
+  --gf-card: #163f81;           /* cartões e painéis */
+  --gf-card-2: #1d4b92;         /* cartão em destaque / hover */
+  --gf-line: rgba(120, 170, 235, 0.22);
+  --gf-line-strong: #3b6db5;
+  --gf-ink: #ffffff;
+  --gf-ink-2: #dbe7f7;
+  --gf-muted: #b4c8e6;
+  --gf-faint: #93add4;
+  --gf-accent: #3cc4f7;         /* texto de destaque: virada do título, links */
+  --gf-accent-soft: rgba(10, 200, 254, 0.12);
+  --gf-accent-line: rgba(10, 200, 254, 0.35);
+  --gf-brand-blue: #0ac8fe;     /* ciano da marca: preenchimentos */
+  --gf-on-brand-blue: #062048;
+  --gf-primary: #0ac8fe;        /* botão principal */
+  --gf-primary-hover: #4dd8ff;
+  --gf-on-primary: #062048;
+  --gf-navy: #0a2350;
+  --gf-navy-deep: #081f47;
   --gf-on-navy: #ffffff;
-  --gf-success: #0e7448;
-  --gf-success-soft: #e5f4ec;
-  --gf-danger: #c2362b;
-  --gf-danger-soft: #fdecea;
-  --gf-warning: #955800;
-  --gf-warning-soft: #fcf1df;
-  --gf-field: var(--gf-surface-alt);
-  --gf-field-line: var(--gf-line-strong);
-  --gf-placeholder: #6b7a8c;
-  --gf-focus: var(--gf-accent);
-  --gf-overlay: rgba(11, 21, 33, 0.6);
-  --gf-halo-blue: 0 0 0 4px rgba(47, 140, 255, 0.18);
-  --gf-elev-sheet: 0 1px 2px rgba(11, 21, 33, 0.06), 0 12px 32px rgba(11, 21, 33, 0.10);
+  --gf-success: #45d99a;
+  --gf-success-soft: rgba(69, 217, 154, 0.14);
+  --gf-danger: #ff8a80;
+  --gf-danger-soft: rgba(255, 138, 128, 0.14);
+  --gf-warning: #ffc561;
+  --gf-warning-soft: rgba(255, 197, 97, 0.14);
+  --gf-field: #0a2455;
+  --gf-field-line: #2d5a9a;
+  --gf-placeholder: #7f9cc6;
+  --gf-focus: #0ac8fe;
+  --gf-overlay: rgba(4, 16, 38, 0.7);
+  --gf-halo-blue: 0 0 0 4px rgba(10, 200, 254, 0.22);
+  --gf-elev-sheet: 0 12px 32px rgba(3, 12, 30, 0.45);
 
   --gf-font: 'Inter Tight', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --gf-radius-sm: 10px;
@@ -46,39 +50,9 @@
   --gf-radius-xl: 22px;
   --gf-radius-2xl: 24px;
   --gf-control-h: 48px;
-  color-scheme: light;
-}
-
-[data-tema="escuro"] {
-  --gf-surface: #0b1521;
-  --gf-surface-alt: #0f1c2b;
-  --gf-card: #132233;
-  --gf-line: #22374d;
-  --gf-line-strong: #2f4d6c;
-  --gf-ink: #f2f6fb;
-  --gf-ink-2: #d9dee5;
-  --gf-muted: #93a7bc;
-  --gf-faint: #62778d;
-  --gf-accent: #6db3ff;
-  --gf-accent-soft: rgba(47, 140, 255, 0.08);
-  --gf-accent-line: rgba(47, 140, 255, 0.25);
-  --gf-primary: #2f8cff;
-  --gf-primary-hover: #4a9bff;
-  --gf-success: #3ccf8e;
-  --gf-success-soft: rgba(60, 207, 142, 0.12);
-  --gf-danger: #ff7a7a;
-  --gf-danger-soft: rgba(255, 122, 122, 0.12);
-  --gf-warning: #f5b452;
-  --gf-warning-soft: rgba(245, 180, 82, 0.12);
-  --gf-field: var(--gf-surface);
-  --gf-field-line: var(--gf-line);
-  --gf-placeholder: #4f647a;
-  --gf-elev-sheet: none;
   color-scheme: dark;
-}
 
-/* nomes curtos usados em estilos inline do app */
-:root, [data-tema="escuro"] {
+  /* nomes curtos usados em estilos inline do app */
   --cinza: var(--gf-muted); --branco: var(--gf-ink); --placa: var(--gf-brand-blue);
   --verde: var(--gf-success); --verm: var(--gf-danger);
 }
