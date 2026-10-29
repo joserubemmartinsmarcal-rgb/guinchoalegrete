@@ -40,6 +40,11 @@ function backend() {
       return json(route, 200, db.perfil);
     }
     if (url.pathname === '/rest/v1/rpc/gf_reputacao') return json(route, 200, []);
+    if (url.pathname === '/rest/v1/rpc/gf_pedir_antecipacao') {
+      (db.antec ||= []).push({ ...corpo.p, id: 'a' + db.antec.length, status: 'recebido', guincheiro_id: UID, criado_em: new Date().toISOString() });
+      return json(route, 200, 'a0');
+    }
+    if (url.pathname === '/rest/v1/gf_antecipacoes') return json(route, 200, db.antec || []);
     if (url.pathname === '/rest/v1/gf_pedidos') {
       if (db.falharPedidos) return json(route, 500, { message: 'falha simulada' });
       if (m === 'POST') {
@@ -96,6 +101,9 @@ test('site: slogan, caminhos e lista de espera com validação', async () => {
   const api = backend(); const { ctx, page, erros } = await abrir(api);
   await page.goto(base + '/');
   assert.match(await page.locator('h1').innerText(), /nunca mais volta vazio/);
+  assert.match(await page.locator('#antecipe h2').innerText(), /Receba na hora/);
+  assert.equal(await page.locator('a.novo[href="#antecipe"]').isVisible(), true, 'antecipação visível no topo');
+  assert.equal(await page.locator('#antecipe a[href="/app#servicos/antecipar"]').count(), 1);
   assert.equal(await page.locator('a[href="/app#pedido/novo"]').first().isVisible(), true);
   assert.ok(await semRolagemLateral(page), 'sem rolagem lateral no celular');
   await foto(page, '1-site');
@@ -206,6 +214,22 @@ test('app guincheiro: validação de placa e cadastro em análise', async () => 
   assert.match(await page.locator('#cRes').innerText(), /sobra estimada/);
   await foto(page, '9-calculadora');
   assert.ok(!api.db.chamadas.some(c => c.startsWith('POST /rest/v1/rpc/gf_enviar_proposta')));
+  // antecipação de recebíveis
+  await page.locator('[data-chips=aba] button[data-v=antecipar]').click();
+  await page.locator('#fA').waitFor();
+  assert.match(await page.locator('.aviso').first().innerText(), /TED/);
+  await page.fill('#av', '1.500,00'); await page.fill('#apn', 'Assistência Exemplo');
+  await page.fill('#avc', new Date(Date.now() + 20 * 864e5).toISOString().slice(0, 10));
+  await page.locator('#fA button').click();
+  await page.waitForFunction(() => /autorização/.test(document.querySelector('#toast').textContent));
+  assert.equal(api.db.antec, undefined, 'sem consentimento não envia');
+  await page.check('#fA input[name=consentimento]');
+  await page.locator('#fA button').click();
+  await page.waitForFunction(() => /Recebido pelo GF/.test(document.querySelector('#v').textContent));
+  assert.equal(api.db.antec[0].valor, 1500);
+  assert.equal(api.db.antec[0].consentimento, true);
+  assert.equal(api.db.antec[0].forma, 'boleto');
+  await foto(page, '10-antecipar');
   assert.deepEqual(erros, []);
   await ctx.close();
 });

@@ -18,6 +18,14 @@
   const EQUIPAMENTOS = ['Plataforma', 'Asa-delta', 'Guincho pesado', 'Mais de um'];
   const CAPACIDADE = { leve: 'Leve (até 3,5 t)', utilitario: 'Utilitário (até 5 t)', pesado: 'Pesado (até 12 t)', extra_pesado: 'Extra pesado (acima de 12 t)' };
   const APROVACAO = { pendente: 'Em análise', aprovado: 'Aprovado', recusado: 'Recusado', bloqueado: 'Bloqueado' };
+  // antecipação de recebíveis com a parceira JK Invest (o GF só encaminha o pedido)
+  const ANTECIPACAO = {
+    parceira: 'JK Invest', contato: 'Bernardo Cerolini', zap: '5555996380374',
+    pagador: { seguradora: 'Seguradora ou assistência 24h', empresa: 'Empresa ou transportadora', pessoa: 'Pessoa física', outro: 'Outro' },
+    forma: { boleto: 'Boleto', pix_prazo: 'Pix a prazo', cartao: 'Cartão de crédito', outro: 'Outra (menos TED)' },
+    pessoa: { pf: 'Pessoa física (CPF)', mei: 'MEI', pj: 'Empresa (CNPJ)' },
+    status: { recebido: 'Recebido pelo GF', enviado: 'Com a JK Invest', aprovado: 'Aprovado', recusado: 'Não aprovado', cancelado: 'Cancelado' }
+  };
   const OCORRENCIA = { servico: 'Problema no serviço', cobranca: 'Valor / cobrança', cadastro: 'Cadastro', seguranca: 'Segurança', outro: 'Outro' };
 
   // espelho de public.gf_transicao_valida
@@ -91,7 +99,7 @@
       margem: valor ? Math.round(resultado / valor * 1000) / 10 : null, porKm: km ? c(resultado / km) : null };
   }
 
-  const GF = { STATUS, calcularResultado, ETAPAS, ATIVOS, PROXIMO, ACAO_PRESTADOR, CONDICAO, VEICULO, EQUIPAMENTOS, CAPACIDADE, APROVACAO, OCORRENCIA,
+  const GF = { STATUS, calcularResultado, ANTECIPACAO, ETAPAS, ATIVOS, PROXIMO, ACAO_PRESTADOR, CONDICAO, VEICULO, EQUIPAMENTOS, CAPACIDADE, APROVACAO, OCORRENCIA,
     transicaoValida, etapaIndice, soNum, zapValido, mascaraZap, linkZap, placaNormal, placaValida, valorDigitado, brl, esc,
     dataHora, dataCurta, dentroDoPeriodo, totalRegistrado, progressoCadastro };
   root.GF = GF;

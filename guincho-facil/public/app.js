@@ -3,7 +3,7 @@
 // banco (rpc gf_*), que validam papel, estado e dados. A tela só orienta.
 const { STATUS, ETAPAS, ATIVOS, PROXIMO, ACAO_PRESTADOR, CONDICAO, VEICULO, EQUIPAMENTOS, CAPACIDADE, APROVACAO, OCORRENCIA,
   esc, brl, dataHora, dataCurta, soNum, zapValido, mascaraZap, linkZap, placaValida, valorDigitado,
-  dentroDoPeriodo, totalRegistrado, progressoCadastro, calcularResultado } = window.GF;
+  dentroDoPeriodo, totalRegistrado, progressoCadastro, calcularResultado, ANTECIPACAO } = window.GF;
 const CFG = window.GF_CONFIG;
 const sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey);
 const $ = s => document.querySelector(s);
@@ -413,7 +413,7 @@ async function pedidosAbertos() {
 async function inicioGuincheiro() {
   titulo('Olá, ' + S.perfil.nome.split(' ')[0]);
   if (!aprovado()) {
-    V.innerHTML = `${blocoInstalar()}${blocoProgresso()}<a class="btn full" href="#perfil">Completar cadastro</a>`;
+    V.innerHTML = `${blocoInstalar()}${blocoProgresso()}<a class="btn full" href="#perfil">Completar cadastro</a>${blocoAntecipar()}`;
     return ligaInstalar();
   }
   S.raio ||= String([20, 50, 100, 150].reduce((m, r) => r <= (S.perfil.raio_km || 100) ? r : m, 20));
@@ -433,7 +433,7 @@ async function inicioGuincheiro() {
       <a href="#servicos"><b>${servR.count ?? 0}</b>serviços em andamento</a>
       <a href="#servicos/propostas"><b>${propsR.count ?? 0}</b>propostas aguardando</a>
       <a href="#rotas"><b>${retR.count ?? 0}</b>rotas ativas</a>
-    </div>
+    </div>${blocoAntecipar()}
     <h3 class="sec-t">Próximos de ${esc(S.perfil.cidade)}</h3>
     ${chips('raio', [['20', '20 km'], ['50', '50 km'], ['100', '100 km'], ['150', '150 km']], S.raio)}
     ${perto.length ? perto.slice(0, 10).map(p => cardPedidoAberto(p, `${p.dist} km de você`)).join('') : '<div class="vazio">Nenhum pedido aberto neste raio agora.<br>Aumente o raio ou anuncie sua rota de volta.</div>'}
@@ -542,12 +542,14 @@ async function telaRota(id) {
     catch (er) { falha(er); }
   };
 }
+const ABAS_SERV = [['andamento', 'Em andamento'], ['historico', 'Histórico e valores'], ['propostas', 'Propostas'], ['quanto', 'Quanto sobra?'], ['antecipar', 'Antecipar']];
 async function telaServicos() {
   titulo('Meus serviços');
   const aba = decodeURIComponent(location.hash).split('/')[1] || 'andamento';
   const f = S.filtros.servicos ||= { dias: '30' };
   if (aba === 'quanto') return telaCalculadora(decodeURIComponent(location.hash).split('/')[2] || null);
-  let html = chips('aba', [['andamento', 'Em andamento'], ['historico', 'Histórico e valores'], ['propostas', 'Propostas'], ['quanto', 'Quanto sobra?']], aba);
+  if (aba === 'antecipar') return telaAntecipar();
+  let html = chips('aba', ABAS_SERV, aba);
   if (aba === 'propostas') {
     const d = ok(await sb.from('gf_propostas').select('*, p:gf_pedidos(id,origem,destino,veiculo,status)').eq('guincheiro_id', S.user.id)
       .order('atualizado_em', { ascending: false }).limit(100));
@@ -585,6 +587,60 @@ async function telaServicos() {
   V.querySelectorAll('[data-av]').forEach(b => b.onclick = () => avancar(b, b.dataset.av, b.dataset.st));
   if (aba === 'andamento') aoVivo();
 }
+// ───────────── antecipação de recebíveis (parceira JK Invest; o GF só encaminha) ─────────────
+function blocoAntecipar() {
+  return `<a class="item quente antecipa" href="#servicos/antecipar"><div class="trajeto">Fez o serviço? Receba na hora.</div>
+    <div class="meta">Antecipe o que você tem a receber de seguradora, empresa, cartão ou Pix a prazo com a ${ANTECIPACAO.parceira}. Dinheiro em até 3 horas após a aprovação.</div>
+    <div class="tags"><span class="tag az">Antecipar recebíveis ›</span></div></a>`;
+}
+async function telaAntecipar() {
+  titulo('Antecipar recebíveis');
+  const d = ok(await sb.from('gf_antecipacoes').select('*').eq('guincheiro_id', S.user.id).order('criado_em', { ascending: false }).limit(50));
+  const op = o => Object.entries(o).map(([v, t]) => `<option value="${v}">${esc(t)}</option>`).join('');
+  const amanha = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
+  const tagAnt = st => `<span class="tag ${st === 'aprovado' ? 'vd' : st === 'recusado' || st === 'cancelado' ? 'vm' : 'am'}">${esc(ANTECIPACAO.status[st])}</span>`;
+  V.innerHTML = `${chips('aba', ABAS_SERV, 'antecipar')}
+  <div class="aviso"><b>Receba na hora o que você já trabalhou.</b> Serviço feito para seguradora, assistência, empresa, no cartão ou no Pix a prazo? A ${ANTECIPACAO.parceira}, securitizadora parceira do GF, antecipa o valor e o dinheiro cai em até 3 horas após a aprovação.
+    <br><br>Pessoa física, MEI ou empresa podem pedir. A taxa vem na proposta, antes de você aceitar. <b>Valores pagos por TED não podem ser antecipados.</b></div>
+  <form id="fA" novalidate>
+    <label for="av">Quanto você tem a receber (R$)</label><input id="av" name="valor" inputmode="decimal" placeholder="Ex.: 1.500,00" required>
+    <label for="apt">Quem vai pagar</label><select id="apt" name="pagador_tipo">${op(ANTECIPACAO.pagador)}</select>
+    <label for="apn">Nome de quem paga</label><input id="apn" name="pagador_nome" maxlength="120" placeholder="Ex.: nome da seguradora ou empresa" required>
+    <label for="af">Como vai ser pago</label><select id="af" name="forma">${op(ANTECIPACAO.forma)}</select>
+    <label for="avc">Data em que você receberia</label><input id="avc" name="vencimento" type="date" min="${amanha}" required>
+    <label for="ap">Você recebe como</label><select id="ap" name="pessoa">${op(ANTECIPACAO.pessoa)}</select>
+    <label for="ao">Observação (opcional)</label><textarea id="ao" name="observacao" maxlength="500" placeholder="Ex.: número da nota ou do atendimento"></textarea>
+    <label class="chk" style="margin-top:16px"><input type="checkbox" name="consentimento" value="1"><span>Autorizo o GF a enviar estes dados, meu nome e meu WhatsApp para a ${ANTECIPACAO.parceira} analisar a antecipação.</span></label>
+    <button class="btn full" style="margin-top:16px">Pedir antecipação</button>
+    <p style="color:var(--cinza);font-size:13px;margin:10px 0 0">O GF encaminha seu pedido e acompanha com você. A análise, a taxa e o pagamento são feitos pela ${ANTECIPACAO.parceira}.</p>
+  </form>
+  <h3 class="sec-t">Meus pedidos de antecipação</h3>
+  ${d.length ? d.map(a => `<div class="item"><div style="display:flex;justify-content:space-between;gap:8px"><b class="valor" style="font-size:24px">${brl(a.valor)}</b>${tagAnt(a.status)}</div>
+    <div class="meta">${esc(a.pagador_nome)} · ${esc(ANTECIPACAO.forma[a.forma])} · receberia em ${dataCurta(a.vencimento)}</div>
+    <div class="meta">Pedido em ${dataHora(a.criado_em)}</div>
+    ${a.nota_admin ? `<p style="margin:8px 0 0"><b>GF:</b> ${esc(a.nota_admin)}</p>` : ''}
+    ${['recebido', 'enviado'].includes(a.status) ? `<button class="btn perigo peq" style="margin-top:10px" data-cant="${a.id}">Cancelar pedido</button>` : ''}</div>`).join('')
+    : '<div class="vazio">Nenhum pedido ainda.</div>'}`;
+  ligaChips('aba', v => location.hash = 'servicos/' + v);
+  $('#fA').onsubmit = e => {
+    e.preventDefault(); const f = Object.fromEntries(new FormData(e.target));
+    const valor = valorDigitado(f.valor);
+    if (!(valor > 0)) return toast('Informe o valor a receber.', true);
+    if (f.pagador_nome.trim().length < 2) return toast('Informe quem vai pagar.', true);
+    if (!f.vencimento || f.vencimento < amanha) return toast('Informe uma data de recebimento futura.', true);
+    if (!f.consentimento) return toast('Marque a autorização para enviar seus dados à ' + ANTECIPACAO.parceira + '.', true);
+    comBotao(e.target.querySelector('button'), async () => {
+      try {
+        await rpc('gf_pedir_antecipacao', { p: { ...f, valor, consentimento: true } });
+        toast('Pedido enviado. A ' + ANTECIPACAO.parceira + ' vai falar com você pelo WhatsApp.'); rota();
+      } catch (er) { falha(er); }
+    });
+  };
+  V.querySelectorAll('[data-cant]').forEach(b => b.onclick = async () => {
+    if (!await perguntar({ titulo: 'Cancelar este pedido de antecipação?', ok: 'Cancelar pedido', perigo: true })) return;
+    try { await rpc('gf_cancelar_antecipacao', { p_id: b.dataset.cant }); toast('Pedido cancelado.'); rota(); } catch (er) { falha(er); }
+  });
+}
 // ───────────── "Quanto realmente sobra?" (estimativa feita no próprio celular) ─────────────
 const PREF_CALC = 'gf_calc_pref';
 function prefCalc() { try { return JSON.parse(localStorage.getItem(PREF_CALC)) || {}; } catch (e) { return {}; } }
@@ -600,7 +656,7 @@ async function telaCalculadora(pedidoId) {
     }
   }
   const v = (k, d = '') => esc(String(pref[k] ?? d)).replace('.', ',');
-  V.innerHTML = `${chips('aba', [['andamento', 'Em andamento'], ['historico', 'Histórico e valores'], ['propostas', 'Propostas'], ['quanto', 'Quanto sobra?']], 'quanto')}
+  V.innerHTML = `${chips('aba', ABAS_SERV, 'quanto')}
   <div class="aviso"><b>Quanto realmente sobra?</b> Coloque o que recebeu e o que gastou. A conta é feita aqui no seu celular e não é enviada a ninguém.</div>
   ${ped ? `<div class="item quente"><div class="trajeto">${esc(ped.origem)} › ${esc(ped.destino)}</div><div class="meta">${esc(ped.veiculo)}${kmSug ? ` · ~${kmSug} km ida e volta desde ${esc(S.perfil.cidade)} (estimativa, ajuste se precisar)` : ''}</div></div>` : ''}
   <form id="fC" novalidate>
@@ -841,7 +897,7 @@ function csv(rows, nome) {
 async function telaAdmin(aba) {
   if (!S.perfil.is_admin) { location.hash = 'inicio'; return; }
   titulo('Administração');
-  let html = chips('adm', [['indicadores', 'Indicadores'], ['cadastros', 'Cadastros'], ['pedidos', 'Pedidos'], ['rotas', 'Rotas'], ['ocorrencias', 'Ocorrências'], ['lista', 'Lista de espera']], aba);
+  let html = chips('adm', [['indicadores', 'Indicadores'], ['cadastros', 'Cadastros'], ['pedidos', 'Pedidos'], ['rotas', 'Rotas'], ['antecipacoes', 'Antecipações'], ['ocorrencias', 'Ocorrências'], ['lista', 'Lista de espera']], aba);
   let dados = [];
   if (aba === 'indicadores') {
     const k = await rpc('gf_admin_indicadores');
@@ -902,6 +958,22 @@ async function telaAdmin(aba) {
     html += `<button class="btn sec full" id="btCsv">Baixar CSV</button><div class="rolar"><table><thead><tr><th>Rota</th><th>Saída</th><th>Guincheiro</th><th>Vagas</th><th>Situação</th></tr></thead><tbody>
       ${dados.map(r => `<tr><td>${esc(r.origem)} › ${esc(r.destino)} (${r.sentido})</td><td>${dataHora(r.saida)}</td><td>${esc(r.g?.nome || '')}</td><td>${r.vagas}</td><td>${esc(r.status)}</td></tr>`).join('')}</tbody></table></div>
       ${dados.length ? '' : '<div class="vazio">Nenhuma rota anunciada.</div>'}`;
+  } else if (aba === 'antecipacoes') {
+    dados = await rpc('gf_admin_antecipacoes');
+    const msg = a => `Olá ${ANTECIPACAO.contato}! Pedido de antecipação pelo GF:\n• Guincheiro: ${a.nome}${a.empresa ? ' (' + a.empresa + ')' : ''} – ${a.cidade}\n• WhatsApp: ${mascaraZap(String(a.whatsapp).replace(/^55/, ''))}\n• Valor: ${brl(a.valor)}\n• Quem paga: ${ANTECIPACAO.pagador[a.pagador_tipo]} – ${a.pagador_nome}\n• Forma: ${ANTECIPACAO.forma[a.forma]}\n• Receberia em: ${dataCurta(a.vencimento)}\n• Recebe como: ${ANTECIPACAO.pessoa[a.pessoa]}${a.observacao ? '\n• Obs.: ' + a.observacao : ''}`;
+    html += `<p style="color:var(--cinza);margin-top:0">Pedidos dos guincheiros para a ${ANTECIPACAO.parceira}. Envie ao ${ANTECIPACAO.contato} pelo WhatsApp e atualize a situação: o guincheiro acompanha no app.</p>
+      <button class="btn sec full" id="btCsv">Baixar CSV</button><div style="height:12px"></div>` +
+      (dados.length ? dados.map(a => `<div class="item ${['recebido', 'enviado'].includes(a.status) ? 'quente' : ''}"><div style="display:flex;justify-content:space-between;gap:8px"><b class="valor" style="font-size:24px">${brl(a.valor)}</b>
+        <span class="tag ${a.status === 'aprovado' ? 'vd' : ['recusado', 'cancelado'].includes(a.status) ? 'vm' : 'am'}">${esc(ANTECIPACAO.status[a.status])}</span></div>
+        <div class="meta">${esc(a.nome)} · ${esc(a.cidade)} · ${esc(ANTECIPACAO.pessoa[a.pessoa])}</div>
+        <div class="meta">${esc(ANTECIPACAO.pagador[a.pagador_tipo])}: ${esc(a.pagador_nome)} · ${esc(ANTECIPACAO.forma[a.forma])} · receberia em ${dataCurta(a.vencimento)}</div>
+        ${a.observacao ? `<div class="meta">Obs.: ${esc(a.observacao)}</div>` : ''}${a.nota_admin ? `<div class="meta">Nota: ${esc(a.nota_admin)}</div>` : ''}
+        <div class="meta">Pedido em ${dataHora(a.criado_em)}</div>
+        <div class="acoes" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr))">
+          ${a.status !== 'cancelado' ? `<a class="btn zap peq" target="_blank" rel="noopener" data-envia="${a.id}" data-st="${a.status}" href="${linkZap(ANTECIPACAO.zap, msg(a))}">Enviar à JK</a>` : ''}
+          <a class="btn fant peq" target="_blank" rel="noopener" href="${linkZap(a.whatsapp, `Olá ${a.nome}, aqui é da equipe GF sobre sua antecipação de ${brl(a.valor)}.`)}">Falar com guincheiro</a>
+          ${['recebido', 'enviado'].includes(a.status) ? `<button class="btn peq" data-ant="${a.id}" data-st="aprovado">Aprovado</button><button class="btn perigo peq" data-ant="${a.id}" data-st="recusado">Não aprovado</button>` : ''}
+        </div></div>`).join('') : '<div class="vazio">Nenhum pedido de antecipação ainda.</div>');
   } else if (aba === 'ocorrencias') {
     dados = ok(await sb.from('gf_ocorrencias').select('*').order('status').order('criado_em', { ascending: false }).limit(200));
     html += dados.length ? dados.map(o => `<div class="item"><div class="meta">${dataHora(o.criado_em)} · ${esc(OCORRENCIA[o.tipo])}</div>
@@ -934,6 +1006,17 @@ async function telaAdmin(aba) {
     const m = await perguntar({ titulo: 'Cancelar pedido como administração?', campo: { label: 'Motivo (cliente e guincheiro veem)', obrigatorio: true }, ok: 'Cancelar pedido', perigo: true });
     if (!m) return;
     try { await rpc('gf_cancelar_pedido', { p_pedido: b.dataset.canc, p_motivo: m }); toast('Pedido cancelado.'); rota(); } catch (er) { falha(er); }
+  });
+  V.querySelectorAll('[data-envia]').forEach(b => b.addEventListener('click', async () => {
+    if (b.dataset.st !== 'recebido') return;
+    try { await rpc('gf_admin_tratar_antecipacao', { p_id: b.dataset.envia, p_status: 'enviado', p_nota: null }); rota(true); } catch (er) { falha(er); }
+  }));
+  V.querySelectorAll('[data-ant]').forEach(b => b.onclick = async () => {
+    const st = b.dataset.st;
+    const r = await perguntar({ titulo: st === 'aprovado' ? 'Marcar como aprovado pela JK?' : 'Marcar como não aprovado?',
+      campo: { label: 'Recado para o guincheiro (ele vê no app)', obrigatorio: st !== 'aprovado' }, ok: 'Salvar', perigo: st !== 'aprovado' });
+    if (r == null) return;
+    try { await rpc('gf_admin_tratar_antecipacao', { p_id: b.dataset.ant, p_status: st, p_nota: r === true ? null : r }); toast('Antecipação atualizada.'); rota(); } catch (er) { falha(er); }
   });
   V.querySelectorAll('[data-oc]').forEach(b => b.onclick = async () => {
     const st = b.dataset.st;

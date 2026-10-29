@@ -27,6 +27,26 @@ html{scroll-behavior:smooth}
   background:repeating-linear-gradient(155deg,transparent 0 46px,rgba(28,106,168,.06) 46px 47px),linear-gradient(180deg,#f7fafd,#e6eff8)}
 .claro .rede{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.9}
 .claro .wrap{position:relative}
+/* antecipação de recebíveis: maior diferencial, logo abaixo do topo */
+.novo{display:inline-flex;align-items:center;gap:10px;margin:0 0 16px;padding:7px 14px 7px 7px;border-radius:999px;text-decoration:none;
+  background:rgba(10,200,254,.12);border:1px solid var(--gf-accent-line);color:var(--gf-ink);font-size:14px;font-weight:600}
+.novo b{background:var(--gf-brand-blue);color:var(--gf-on-brand-blue);border-radius:999px;padding:3px 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.novo:hover{border-color:var(--gf-accent)}
+.menu a.dest{color:var(--gf-accent)}
+.antecipa{position:relative;overflow:hidden;background:radial-gradient(900px 420px at 85% 0%,rgba(10,200,254,.22),transparent 60%),linear-gradient(180deg,#081f47,#0b2a5b)}
+.antecipa .wrap{position:relative;display:grid;gap:34px}
+.antecipa h2{font-size:clamp(36px,5vw,64px);max-width:15ch}
+.antecipa .lead{font-size:clamp(17px,1.6vw,20px);color:var(--gf-ink-2);max-width:620px;margin:0}
+.relogio{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.relogio strong{font-size:clamp(84px,12vw,150px);line-height:.85;font-weight:800;letter-spacing:-.06em;color:var(--gf-brand-blue);text-shadow:0 0 50px rgba(10,200,254,.35)}
+.relogio span{font-size:clamp(18px,2vw,24px);font-weight:700;max-width:12ch;line-height:1.15}
+.cards3{display:grid;gap:14px}
+.cards3 div{background:rgba(22,63,129,.75);border:1px solid var(--gf-line-strong);border-radius:var(--gf-radius-xl);padding:22px}
+.cards3 b{display:block;font-size:20px;letter-spacing:-.01em;margin-bottom:6px}
+.cards3 span{color:var(--gf-muted);font-size:15px}
+.antecipa .letra{font-size:13px;color:var(--gf-faint);max-width:760px;margin:0}
+.antecipa .parceira{display:inline-flex;gap:8px;align-items:center;font-size:13px;color:var(--gf-muted);border:1px solid var(--gf-line-strong);border-radius:999px;padding:6px 14px}
+@media (min-width:900px){.antecipa .wrap{grid-template-columns:1.15fr .85fr;align-items:center}.antecipa .lado{grid-column:2;grid-row:1/span 2}.cards3{grid-template-columns:1fr}}
 /* topo */
 header.top{position:absolute;inset:0 0 auto;z-index:5}
 header.top .wrap{display:flex;align-items:center;justify-content:space-between;height:84px;gap:18px}
@@ -149,13 +169,14 @@ footer p{margin:6px 0 0;color:var(--gf-faint);font-size:13px}
 <body>
 <header class="top"><div class="wrap">
   <a href="/"><img src="/assets/gf-mark.png" alt="GF · Guincho Fácil"></a>
-  <nav class="menu" aria-label="Seções"><a href="#plataforma">A plataforma</a><a href="#profissionais">Para profissionais</a><a href="#motoristas">Para motoristas</a><a href="#contato">Contato</a></nav>
+  <nav class="menu" aria-label="Seções"><a class="dest" href="#antecipe">Receba na hora</a><a href="#plataforma">A plataforma</a><a href="#profissionais">Para profissionais</a><a href="#motoristas">Para motoristas</a><a href="#contato">Contato</a></nav>
   <a class="cta-s" href="/app">Entrar no app</a>
 </div></header>
 <main>
 <section class="hero" aria-labelledby="t1" style="padding:0">
   <div class="wrap">
     <div>
+      <a class="novo" href="#antecipe"><b>Novo</b>Fez o serviço? Receba na hora ›</a><br>
       <span class="eyebrow">Conexões que movem</span>
       <h1 id="t1">O seu caminhão nunca mais <em>volta vazio.</em></h1>
       <div class="regua"></div>
@@ -165,7 +186,7 @@ footer p{margin:6px 0 0;color:var(--gf-faint);font-size:13px}
         <a class="btn fant" href="/app">Sou guincheiro</a>
       </div>
       <ul class="selos" aria-label="Por que usar o GF">
-        <li>Grátis nesta fase</li><li>Guincheiros conferidos</li><li>Acerto direto no WhatsApp</li>
+        <li>Grátis nesta fase</li><li>Guincheiros conferidos</li><li>Antecipação em até 3 horas</li>
       </ul>
     </div>
     <aside class="vitrine" aria-label="Exemplo de como o GF mostra um pedido no caminho de volta">
@@ -187,6 +208,29 @@ footer p{margin:6px 0 0;color:var(--gf-faint);font-size:13px}
         <div class="linha"><span class="desvio">desvio de 12 km</span><span class="acao">Mandar proposta ›</span></div>
       </div>
     </aside>
+  </div>
+</section>
+
+<section class="antecipa" id="antecipe" aria-labelledby="tA">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">Antecipação de recebíveis</span>
+      <h2 id="tA">Fez o serviço? <em>Receba na hora.</em></h2>
+      <p class="lead">Seguradora pagando em 30, 60 dias? Empresa no boleto? Cliente no cartão? Pelo GF, você antecipa o que tem a receber com a JK Invest, securitizadora parceira, e não fica sem caixa para o diesel e a próxima saída.</p>
+    </div>
+    <div class="lado">
+      <div class="relogio"><strong>3h</strong><span>no máximo para o dinheiro cair depois da aprovação</span></div>
+      <div class="cards3" style="margin-top:22px">
+        <div><b>Todo mundo pode pedir</b><span>Pessoa física, MEI ou empresa.</span></div>
+        <div><b>Seguradora, empresa, cartão ou Pix a prazo</b><span>Só não entram valores pagos por TED.</span></div>
+        <div><b>Pedido direto no app</b><span>Informe valor, quem paga e a data. A JK Invest manda a proposta com a taxa antes de você aceitar.</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="acts"><a class="btn" href="/app#servicos/antecipar">Quero antecipar</a>
+        <a class="btn fant" target="_blank" rel="noopener" href="https://wa.me/5555996380374?text=Ol%C3%A1%20Bernardo!%20Vim%20pelo%20site%20do%20GF%20e%20quero%20saber%20sobre%20a%20antecipa%C3%A7%C3%A3o%20de%20receb%C3%ADveis.">Tirar dúvidas no WhatsApp</a></div>
+      <p class="letra" style="margin-top:18px">Análise, taxa e pagamento são feitos pela JK Invest (CNPJ 53.662.389/0001-05). O GF encaminha seu pedido e acompanha com você. Taxas definidas caso a caso, sempre informadas antes da contratação. Sujeito a aprovação.</p>
+    </div>
   </div>
 </section>
 
@@ -277,6 +321,7 @@ footer p{margin:6px 0 0;color:var(--gf-faint);font-size:13px}
   <h2>Dúvidas comuns</h2>
   <details><summary>Quanto custa?</summary><p>Nesta fase o uso é gratuito para clientes e guincheiros.</p></details>
   <details><summary>O GF fica com parte do valor?</summary><p>Não. O preço é do guincheiro e o pagamento é acertado direto entre cliente e guincheiro. O GF registra o valor combinado, mas não processa pagamentos.</p></details>
+  <details><summary>Como funciona a antecipação de recebíveis?</summary><p>No app, em Serviços › Antecipar, você informa quanto tem a receber, de quem e quando. O GF envia o pedido à JK Invest, securitizadora parceira, que manda a proposta com a taxa. Se você aceitar e for aprovado, o dinheiro cai em até 3 horas. Vale para pessoa física, MEI e empresa, com recebíveis de seguradora, empresa, cartão ou Pix a prazo. Valores pagos por TED não entram.</p></details>
   <details><summary>Como sei que o guincheiro é confiável?</summary><p>Todo guincheiro passa por conferência da equipe GF antes de mandar propostas. Depois de cada serviço, o cliente avalia, e a nota aparece nas próximas propostas.</p></details>
   <details><summary>Preciso baixar na loja?</summary><p>Não. Abra o app pelo celular e toque em “Instalar” (Android) ou em Compartilhar › Adicionar à Tela de Início (iPhone). Ele fica com ícone e abre em tela cheia.</p></details>
   <details><summary>Onde funciona?</summary><p>Começamos pela Fronteira Oeste e região central do RS: Alegrete, Uruguaiana, Rosário do Sul, São Gabriel, Santa Maria, Bagé e arredores.</p></details>
@@ -319,7 +364,7 @@ footer p{margin:6px 0 0;color:var(--gf-faint);font-size:13px}
 <footer><div class="wrap">
   <div><img src="/assets/gf-mark.png" alt="GF"><div class="tag">CONEXÕES QUE MOVEM</div></div>
   <div>
-    <nav aria-label="Rodapé"><a href="#plataforma">A plataforma</a><a href="#profissionais">Para profissionais</a><a href="#motoristas">Para motoristas</a><a href="#contato">Contato</a><a href="/privacidade">Privacidade</a></nav>
+    <nav aria-label="Rodapé"><a href="#antecipe">Antecipação de recebíveis</a><a href="#plataforma">A plataforma</a><a href="#profissionais">Para profissionais</a><a href="#motoristas">Para motoristas</a><a href="#contato">Contato</a><a href="/privacidade">Privacidade</a></nav>
     <p>GF · Guincho Fácil · Alegrete – RS · <a href="https://instagram.com/guinchofacil.app" target="_blank" rel="noopener" style="color:inherit">@guinchofacil.app</a></p>
   </div>
 </div></footer>
