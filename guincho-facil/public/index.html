@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>GF · Guincho Fácil — o seu caminhão nunca mais volta vazio</title>
 <meta name="description" content="O GF conecta quem precisa transportar um veículo a guincheiros que já estão na rota. Anuncie seu retorno, receba serviços no caminho e pare de voltar vazio. Fronteira Oeste e região central do RS.">
-<meta name="theme-color" content="#081f47">
+<meta name="theme-color" content="#050b16">
 <meta property="og:title" content="O seu caminhão nunca mais volta vazio · GF Guincho Fácil">
 <meta property="og:description" content="Seu retorno vazio pode virar frete. Guincheiro ajuda guincheiro.">
 <meta property="og:image" content="/assets/gf-mark.png">
@@ -16,12 +16,18 @@
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="stylesheet" href="/style.css">
 <style>
+:root{/* tons da arte "Em breve": preto-azulado, azul elétrico e azul-claro (29/10/2026) */
+  --gf-surface:#070f1e;--gf-surface-deep:#050b16;--gf-surface-alt:#0a1528;--gf-card:#0d1a30;--gf-card-2:#12233f;
+  --gf-line:rgba(90,169,255,.16);--gf-line-strong:#24406b;--gf-ink-2:#d6e0ee;--gf-muted:#a9b8cf;--gf-faint:#8496b3;
+  --gf-accent:#5aa9ff;--gf-accent-soft:rgba(30,143,255,.12);--gf-accent-line:rgba(30,143,255,.4);
+  --gf-brand-blue:#1e8fff;--gf-on-brand-blue:#04101f;--gf-primary:#1e8fff;--gf-primary-hover:#4aa6ff;--gf-on-primary:#04101f;--gf-focus:#1e8fff}
+
 html{scroll-behavior:smooth}
 .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
 /* seções claras: tom branco e azul-claro, com linhas de rede */
 .claro{--gf-surface:#f3f7fb;--gf-surface-alt:#e8f0f8;--gf-card:#ffffff;--gf-line:#d6e1ec;--gf-line-strong:#8aa3bd;
   --gf-ink:#0f2440;--gf-ink-2:#2e4561;--gf-muted:#4f6681;--gf-faint:#5d7088;--gf-accent:#1c6aa8;
-  --gf-accent-soft:#e3f0fb;--gf-accent-line:#b9d6ee;--gf-primary:#0b2a5b;--gf-primary-hover:#163f81;--gf-on-primary:#ffffff;
+  --gf-accent-soft:#e3f0fb;--gf-accent-line:#b9d6ee;--gf-primary:#1e8fff;--gf-primary-hover:#4aa6ff;--gf-on-primary:#04101f;
   --gf-field:#f3f7fb;--gf-field-line:#8aa3bd;--gf-placeholder:#6b7f96;--gf-success:#0e7448;--gf-success-soft:#e5f4ec;--gf-danger:#c2362b;
   color-scheme:light;color:var(--gf-ink);position:relative;overflow:hidden;
   background:repeating-linear-gradient(155deg,transparent 0 46px,rgba(28,106,168,.06) 46px 47px),linear-gradient(180deg,#f7fafd,#e6eff8)}
@@ -29,19 +35,19 @@ html{scroll-behavior:smooth}
 .claro .wrap{position:relative}
 /* antecipação de recebíveis: maior diferencial, logo abaixo do topo */
 .novo{display:inline-flex;align-items:center;gap:10px;margin:0 0 16px;padding:7px 14px 7px 7px;border-radius:999px;text-decoration:none;
-  background:rgba(10,200,254,.12);border:1px solid var(--gf-accent-line);color:var(--gf-ink);font-size:14px;font-weight:600}
+  background:rgba(30,143,255,.12);border:1px solid var(--gf-accent-line);color:var(--gf-ink);font-size:14px;font-weight:600}
 .novo b{background:var(--gf-brand-blue);color:var(--gf-on-brand-blue);border-radius:999px;padding:3px 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
 .novo:hover{border-color:var(--gf-accent)}
 .menu a.dest{color:var(--gf-accent)}
-.antecipa{position:relative;overflow:hidden;background:radial-gradient(900px 420px at 85% 0%,rgba(10,200,254,.22),transparent 60%),linear-gradient(180deg,#081f47,#0b2a5b)}
+.antecipa{position:relative;overflow:hidden;background:radial-gradient(900px 420px at 85% 0%,rgba(30,143,255,.22),transparent 60%),linear-gradient(180deg,#050b16,#081a36)}
 .antecipa .wrap{position:relative;display:grid;gap:34px}
 .antecipa h2{font-size:clamp(36px,5vw,64px);max-width:15ch}
 .antecipa .lead{font-size:clamp(17px,1.6vw,20px);color:var(--gf-ink-2);max-width:620px;margin:0}
 .relogio{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
-.relogio strong{font-size:clamp(84px,12vw,150px);line-height:.85;font-weight:800;letter-spacing:-.06em;color:var(--gf-brand-blue);text-shadow:0 0 50px rgba(10,200,254,.35)}
+.relogio strong{font-size:clamp(84px,12vw,150px);line-height:.85;font-weight:800;letter-spacing:-.06em;color:var(--gf-brand-blue);text-shadow:0 0 50px rgba(30,143,255,.35)}
 .relogio span{font-size:clamp(18px,2vw,24px);font-weight:700;max-width:12ch;line-height:1.15}
 .cards3{display:grid;gap:14px}
-.cards3 div{background:rgba(22,63,129,.75);border:1px solid var(--gf-line-strong);border-radius:var(--gf-radius-xl);padding:22px}
+.cards3 div{background:rgba(13,26,48,.75);border:1px solid var(--gf-line-strong);border-radius:var(--gf-radius-xl);padding:22px}
 .cards3 b{display:block;font-size:20px;letter-spacing:-.01em;margin-bottom:6px}
 .cards3 span{color:var(--gf-muted);font-size:15px}
 .antecipa .letra{font-size:13px;color:var(--gf-faint);max-width:760px;margin:0}
@@ -58,22 +64,22 @@ header.top img{height:34px;display:block}
 @media (min-width:980px){.menu{display:flex}}
 /* hero */
 .hero{position:relative;overflow:hidden;min-height:min(100svh,820px);display:flex;align-items:center;
-  background:#071633 url(/assets/hero-rede.jpg) right center/auto 100% no-repeat}
+  background:#050b16 url(/assets/hero-rede.jpg) right center/auto 100% no-repeat}
 .hero::before{content:"";position:absolute;inset:0;background:
-  linear-gradient(90deg,#071633 0%,#071633 38%,rgba(7,22,51,.55) 55%,rgba(7,22,51,0) 72%),
-  linear-gradient(180deg,rgba(7,22,51,.7) 0%,rgba(7,22,51,0) 22%,rgba(7,22,51,0) 82%,#081f47 100%)}
+  linear-gradient(90deg,#050b16 0%,#050b16 38%,rgba(5,11,22,.55) 55%,rgba(5,11,22,0) 72%),
+  linear-gradient(180deg,rgba(5,11,22,.7) 0%,rgba(5,11,22,0) 22%,rgba(5,11,22,0) 82%,#050b16 100%)}
 .hero .wrap{position:relative;z-index:1;width:100%;padding-top:108px;padding-bottom:56px;display:grid;gap:28px}
 .eyebrow{font-size:12px;letter-spacing:.28em;color:var(--gf-accent);font-weight:700;text-transform:uppercase;display:inline-flex;align-items:center;gap:10px}
 .eyebrow::before{content:"";width:22px;height:2px;background:currentColor}
-.hero h1{font-size:clamp(38px,5vw,66px);line-height:1;letter-spacing:-.04em;margin:14px 0 18px;max-width:13ch;text-shadow:0 2px 24px rgba(3,12,30,.45)}
+.hero h1{font-size:clamp(38px,5vw,66px);line-height:1;letter-spacing:-.04em;margin:14px 0 18px;max-width:13ch;text-shadow:0 2px 24px rgba(0,4,12,.45)}
 .regua{width:120px;height:2px;background:linear-gradient(90deg,var(--gf-brand-blue),transparent);margin:0 0 18px}
 .hero p.lead{font-size:clamp(17px,1.6vw,19px);color:var(--gf-ink-2);max-width:470px;margin:0 0 26px}
 .acts{display:flex;flex-wrap:wrap;gap:12px}
 .selos{display:flex;flex-wrap:wrap;gap:8px 18px;margin:22px 0 0;padding:0;list-style:none;font-size:14px;color:var(--gf-ink-2)}
 .selos li{display:flex;align-items:center;gap:8px}
 .selos li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--gf-success);box-shadow:0 0 0 3px rgba(69,217,154,.2)}
-.vitrine{background:rgba(13,44,96,.82);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--gf-accent-line);
-  border-radius:var(--gf-radius-2xl);padding:20px;box-shadow:0 20px 50px rgba(3,12,30,.45);max-width:440px;width:100%}
+.vitrine{background:rgba(10,20,40,.82);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--gf-accent-line);
+  border-radius:var(--gf-radius-2xl);padding:20px;box-shadow:0 20px 50px rgba(0,4,12,.45);max-width:440px;width:100%}
 .vitrine .cab{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:var(--gf-muted)}
 .vitrine .exemplo{font-size:11px;letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--gf-line-strong);border-radius:999px;padding:2px 8px;color:var(--gf-ink-2)}
 .vitrine .rota-t{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:8px 0 2px}
@@ -90,7 +96,7 @@ header.top img{height:34px;display:block}
 }
 @media (max-width:899px){
   .hero{background-size:100% auto;background-position:center bottom;min-height:auto}
-  .hero::before{background:linear-gradient(180deg,#071633 0%,#071633 52%,rgba(7,22,51,.35) 70%,rgba(7,22,51,0) 82%,#081f47 100%)}
+  .hero::before{background:linear-gradient(180deg,#050b16 0%,#050b16 52%,rgba(5,11,22,.35) 70%,rgba(5,11,22,0) 82%,#050b16 100%)}
   .hero .wrap{padding-top:96px;padding-bottom:calc(86vw - 30px);gap:22px}
   .hero h1{font-size:clamp(32px,9vw,40px);margin:10px 0 14px}
   .hero p.lead{font-size:16px;margin-bottom:20px}
@@ -108,7 +114,7 @@ section h2{font-size:clamp(32px,4.6vw,56px);line-height:1.02;margin:14px 0 16px}
 .custos div:last-child{border:0}
 .custos span{color:var(--gf-muted)}.custos b{font-weight:700;text-align:right}
 /* faixa profissionais */
-.prof{background:linear-gradient(180deg,#081f47,var(--gf-surface));position:relative;overflow:hidden}
+.prof{background:linear-gradient(180deg,#050b16,var(--gf-surface));position:relative;overflow:hidden}
 .duas{display:grid;gap:40px;align-items:center}@media (min-width:900px){.duas{grid-template-columns:1.1fr .9fr}.duas .vitrine{justify-self:end}}
 .barras{list-style:none;padding:0;margin:26px 0 30px;display:grid;gap:14px}
 .barras li{border-left:3px solid var(--gf-brand-blue);padding:2px 0 2px 16px;font-size:clamp(18px,2vw,22px);font-weight:600}
@@ -150,14 +156,14 @@ section h2{font-size:clamp(32px,4.6vw,56px);line-height:1.02;margin:14px 0 16px}
 .erro{color:var(--gf-danger);margin-top:10px;min-height:1em;font-size:14px}
 .ig{display:inline-flex;align-items:center;gap:10px;margin-top:18px;font-weight:600;color:var(--gf-accent);text-decoration:none}
 .ig svg{width:22px;height:22px}
-footer{background:#081f47;border-top:1px solid var(--gf-line);padding:40px 0 120px}
+footer{background:#050b16;border-top:1px solid var(--gf-line);padding:40px 0 120px}
 footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
 footer img{height:30px;display:block}
 footer nav{display:flex;flex-wrap:wrap;gap:10px 22px;font-size:14px}
 footer nav a{color:var(--gf-ink-2);text-decoration:none}
 footer p{margin:6px 0 0;color:var(--gf-faint);font-size:13px}
 .tag{font-size:11px;letter-spacing:.32em;color:var(--gf-accent);margin-top:8px}
-.fixo{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(8,31,71,.96);border-top:1px solid var(--gf-line);display:flex;gap:10px}
+.fixo{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(5,11,22,.96);border-top:1px solid var(--gf-line);display:flex;gap:10px}
 .fixo .btn{flex:1;padding:0 10px;font-size:15px}
 @media (min-width:860px){.grade2{grid-template-columns:1.1fr 1fr;gap:64px;align-items:center}.passos{grid-template-columns:repeat(3,1fr)}.tres{grid-template-columns:repeat(3,1fr)}.fixo{display:none}footer{padding-bottom:48px}}
 @media (max-width:860px){.claro .rede{opacity:.35}section{padding:72px 0}.wrap{padding:0 20px}header.top img{height:28px}.form{padding:22px 18px}}
@@ -250,13 +256,13 @@ footer p{margin:6px 0 0;color:var(--gf-faint);font-size:13px}
       <div class="rota-t">Santa Maria › Alegrete</div>
       <div class="rota-m">Plataforma livre · 1 vaga</div>
       <svg viewBox="0 0 400 110" role="img" aria-label="Rota de Santa Maria a Alegrete passando por Cacequi">
-        <path d="M20 80 C 120 80, 140 26, 220 34 S 330 78, 380 54" fill="none" stroke="rgba(120,170,235,.25)" stroke-width="14" stroke-linecap="round"/>
-        <path d="M20 80 C 120 80, 140 26, 220 34 S 330 78, 380 54" fill="none" stroke="#0ac8fe" stroke-width="3" stroke-dasharray="12 9"/>
+        <path d="M20 80 C 120 80, 140 26, 220 34 S 330 78, 380 54" fill="none" stroke="rgba(90,169,255,.25)" stroke-width="14" stroke-linecap="round"/>
+        <path d="M20 80 C 120 80, 140 26, 220 34 S 330 78, 380 54" fill="none" stroke="#1e8fff" stroke-width="3" stroke-dasharray="12 9"/>
         <circle cx="20" cy="80" r="8" fill="#ffffff"/><circle cx="380" cy="54" r="8" fill="#ffffff"/>
-        <circle cx="220" cy="34" r="12" fill="#0ac8fe"/><circle cx="220" cy="34" r="4.5" fill="#062048"/>
+        <circle cx="220" cy="34" r="12" fill="#1e8fff"/><circle cx="220" cy="34" r="4.5" fill="#04101f"/>
         <text class="pin" x="22" y="105" fill="#b4c8e6" text-anchor="start">Santa Maria</text>
         <text class="pin" x="380" y="84" fill="#b4c8e6" text-anchor="end">Alegrete</text>
-        <text class="pin" x="220" y="12" fill="#3cc4f7" text-anchor="middle">Cacequi</text>
+        <text class="pin" x="220" y="12" fill="#5aa9ff" text-anchor="middle">Cacequi</text>
       </svg>
       <div class="pedido">
         <b>Pedido no caminho: Cacequi › Alegrete</b>
