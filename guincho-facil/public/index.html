@@ -57,10 +57,11 @@ header.top img{height:34px;display:block}
 .cta-s:hover{border-color:var(--gf-accent)}
 @media (min-width:980px){.menu{display:flex}}
 /* hero */
-.hero{position:relative;overflow:hidden;min-height:min(100svh,860px);display:flex;align-items:center;
-  background:var(--gf-surface-deep) url(/assets/hero-guincho.jpg) 70% 60%/cover no-repeat}
+.hero{position:relative;overflow:hidden;min-height:min(100svh,820px);display:flex;align-items:center;
+  background:#071633 url(/assets/hero-rede.jpg) right center/auto 100% no-repeat}
 .hero::before{content:"";position:absolute;inset:0;background:
-  linear-gradient(180deg,rgba(8,31,71,.92) 0%,rgba(8,31,71,.55) 38%,rgba(8,31,71,.75) 70%,#081f47 100%)}
+  linear-gradient(90deg,#071633 0%,#071633 38%,rgba(7,22,51,.55) 55%,rgba(7,22,51,0) 72%),
+  linear-gradient(180deg,rgba(7,22,51,.7) 0%,rgba(7,22,51,0) 22%,rgba(7,22,51,0) 82%,#081f47 100%)}
 .hero .wrap{position:relative;z-index:1;width:100%;padding-top:108px;padding-bottom:56px;display:grid;gap:28px}
 .eyebrow{font-size:12px;letter-spacing:.28em;color:var(--gf-accent);font-weight:700;text-transform:uppercase;display:inline-flex;align-items:center;gap:10px}
 .eyebrow::before{content:"";width:22px;height:2px;background:currentColor}
@@ -85,16 +86,12 @@ header.top img{height:34px;display:block}
 .pedido .desvio{font-size:12px;font-weight:700;color:var(--gf-on-primary);background:var(--gf-primary);border-radius:999px;padding:4px 10px}
 .pedido .acao{font-size:13px;font-weight:700;color:var(--gf-accent)}
 @media (min-width:900px){
-  .hero{background-position:62% 55%}
-  .hero::before{background:linear-gradient(90deg,rgba(8,31,71,.97) 0%,rgba(8,31,71,.88) 38%,rgba(8,31,71,.35) 70%,rgba(8,31,71,.55) 100%),
-    linear-gradient(180deg,rgba(8,31,71,.6) 0%,rgba(8,31,71,0) 30%,rgba(8,31,71,0) 80%,#081f47 100%)}
   .hero .wrap{grid-template-columns:1.1fr .9fr;align-items:center;gap:48px;padding-top:120px;padding-bottom:90px}
-  .vitrine{justify-self:end}
 }
 @media (max-width:899px){
-  .hero{background-size:auto 72%;background-position:58% 100%;min-height:auto}
-  .hero::before{background:linear-gradient(180deg,var(--gf-surface-deep) 0%,var(--gf-surface-deep) 34%,rgba(8,31,71,.78) 52%,rgba(8,31,71,.62) 78%,#081f47 100%)}
-  .hero .wrap{padding-top:96px;padding-bottom:40px;gap:22px}
+  .hero{background-size:100% auto;background-position:center bottom;min-height:auto}
+  .hero::before{background:linear-gradient(180deg,#071633 0%,#071633 52%,rgba(7,22,51,.35) 70%,rgba(7,22,51,0) 82%,#081f47 100%)}
+  .hero .wrap{padding-top:96px;padding-bottom:calc(86vw - 30px);gap:22px}
   .hero h1{font-size:clamp(32px,9vw,40px);margin:10px 0 14px}
   .hero p.lead{font-size:16px;margin-bottom:20px}
   .acts .btn{flex:1 1 auto}
@@ -112,7 +109,7 @@ section h2{font-size:clamp(32px,4.6vw,56px);line-height:1.02;margin:14px 0 16px}
 .custos span{color:var(--gf-muted)}.custos b{font-weight:700;text-align:right}
 /* faixa profissionais */
 .prof{background:linear-gradient(180deg,#081f47,var(--gf-surface));position:relative;overflow:hidden}
-.prof .linha-rota{position:absolute;right:-40px;top:0;height:100%;width:min(520px,60%);opacity:.75;pointer-events:none}
+.duas{display:grid;gap:40px;align-items:center}@media (min-width:900px){.duas{grid-template-columns:1.1fr .9fr}.duas .vitrine{justify-self:end}}
 .barras{list-style:none;padding:0;margin:26px 0 30px;display:grid;gap:14px}
 .barras li{border-left:3px solid var(--gf-brand-blue);padding:2px 0 2px 16px;font-size:clamp(18px,2vw,22px);font-weight:600}
 .barras li span{display:block;font-size:15px;font-weight:400;color:var(--gf-muted);margin-top:2px}
@@ -163,7 +160,7 @@ footer p{margin:6px 0 0;color:var(--gf-faint);font-size:13px}
 .fixo{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(8,31,71,.96);border-top:1px solid var(--gf-line);display:flex;gap:10px}
 .fixo .btn{flex:1;padding:0 10px;font-size:15px}
 @media (min-width:860px){.grade2{grid-template-columns:1.1fr 1fr;gap:64px;align-items:center}.passos{grid-template-columns:repeat(3,1fr)}.tres{grid-template-columns:repeat(3,1fr)}.fixo{display:none}footer{padding-bottom:48px}}
-@media (max-width:860px){.prof .linha-rota{opacity:.18;width:40%}.claro .rede{opacity:.35}section{padding:72px 0}.wrap{padding:0 20px}header.top img{height:28px}.form{padding:22px 18px}}
+@media (max-width:860px){.claro .rede{opacity:.35}section{padding:72px 0}.wrap{padding:0 20px}header.top img{height:28px}.form{padding:22px 18px}}
 </style>
 </head>
 <body>
@@ -189,25 +186,6 @@ footer p{margin:6px 0 0;color:var(--gf-faint);font-size:13px}
         <li>Grátis nesta fase</li><li>Guincheiros conferidos</li><li>Antecipação em até 3 horas</li>
       </ul>
     </div>
-    <aside class="vitrine" aria-label="Exemplo de como o GF mostra um pedido no caminho de volta">
-      <div class="cab"><span>Seu retorno hoje · 14h</span><span class="exemplo">Exemplo</span></div>
-      <div class="rota-t">Santa Maria › Alegrete</div>
-      <div class="rota-m">Plataforma livre · 1 vaga</div>
-      <svg viewBox="0 0 400 110" role="img" aria-label="Rota de Santa Maria a Alegrete passando por Cacequi">
-        <path d="M20 80 C 120 80, 140 26, 220 34 S 330 78, 380 54" fill="none" stroke="rgba(120,170,235,.25)" stroke-width="14" stroke-linecap="round"/>
-        <path d="M20 80 C 120 80, 140 26, 220 34 S 330 78, 380 54" fill="none" stroke="#0ac8fe" stroke-width="3" stroke-dasharray="12 9"/>
-        <circle cx="20" cy="80" r="8" fill="#ffffff"/><circle cx="380" cy="54" r="8" fill="#ffffff"/>
-        <circle cx="220" cy="34" r="12" fill="#0ac8fe"/><circle cx="220" cy="34" r="4.5" fill="#062048"/>
-        <text class="pin" x="22" y="105" fill="#b4c8e6" text-anchor="start">Santa Maria</text>
-        <text class="pin" x="380" y="84" fill="#b4c8e6" text-anchor="end">Alegrete</text>
-        <text class="pin" x="220" y="12" fill="#3cc4f7" text-anchor="middle">Cacequi</text>
-      </svg>
-      <div class="pedido">
-        <b>Pedido no caminho: Cacequi › Alegrete</b>
-        <span>Carro · não anda · hoje</span>
-        <div class="linha"><span class="desvio">desvio de 12 km</span><span class="acao">Mandar proposta ›</span></div>
-      </div>
-    </aside>
   </div>
 </section>
 
@@ -255,12 +233,7 @@ footer p{margin:6px 0 0;color:var(--gf-faint);font-size:13px}
 </section>
 
 <section class="prof" id="profissionais" aria-labelledby="t3">
-  <svg class="linha-rota" viewBox="0 0 400 600" preserveAspectRatio="xMaxYMid slice" aria-hidden="true">
-    <path d="M330 -10 C 380 90, 250 150, 300 250 S 380 380, 260 450 S 150 560, 200 620" fill="none" stroke="#0ac8fe" stroke-width="2.5" opacity=".7"/>
-    <path d="M330 -10 C 380 90, 250 150, 300 250 S 380 380, 260 450 S 150 560, 200 620" fill="none" stroke="#0ac8fe" stroke-width="10" opacity=".08"/>
-    <g fill="#0ac8fe"><circle cx="300" cy="250" r="7"/><circle cx="260" cy="450" r="7"/></g>
-  </svg>
-  <div class="wrap" style="position:relative">
+  <div class="wrap duas" style="position:relative"><div>
     <span class="eyebrow">Para profissionais</span>
     <h2 id="t3">Seu retorno vazio pode virar <em>frete.</em></h2>
     <p class="sub">O GF conecta quem está na estrada a quem precisa de transporte no mesmo caminho. Divulgue sua rota e veja o que cabe nela.</p>
@@ -271,6 +244,26 @@ footer p{margin:6px 0 0;color:var(--gf-faint);font-size:13px}
     </ul>
     <p class="ex">“Saio de Santa Maria para Alegrete hoje às 14h. Plataforma livre.”</p>
     <div class="acts" style="margin-top:26px"><a class="btn" href="/app">Divulgar minha rota</a></div>
+  </div>
+  <aside class="vitrine" aria-label="Exemplo de como o GF mostra um pedido no caminho de volta">
+      <div class="cab"><span>Seu retorno hoje · 14h</span><span class="exemplo">Exemplo</span></div>
+      <div class="rota-t">Santa Maria › Alegrete</div>
+      <div class="rota-m">Plataforma livre · 1 vaga</div>
+      <svg viewBox="0 0 400 110" role="img" aria-label="Rota de Santa Maria a Alegrete passando por Cacequi">
+        <path d="M20 80 C 120 80, 140 26, 220 34 S 330 78, 380 54" fill="none" stroke="rgba(120,170,235,.25)" stroke-width="14" stroke-linecap="round"/>
+        <path d="M20 80 C 120 80, 140 26, 220 34 S 330 78, 380 54" fill="none" stroke="#0ac8fe" stroke-width="3" stroke-dasharray="12 9"/>
+        <circle cx="20" cy="80" r="8" fill="#ffffff"/><circle cx="380" cy="54" r="8" fill="#ffffff"/>
+        <circle cx="220" cy="34" r="12" fill="#0ac8fe"/><circle cx="220" cy="34" r="4.5" fill="#062048"/>
+        <text class="pin" x="22" y="105" fill="#b4c8e6" text-anchor="start">Santa Maria</text>
+        <text class="pin" x="380" y="84" fill="#b4c8e6" text-anchor="end">Alegrete</text>
+        <text class="pin" x="220" y="12" fill="#3cc4f7" text-anchor="middle">Cacequi</text>
+      </svg>
+      <div class="pedido">
+        <b>Pedido no caminho: Cacequi › Alegrete</b>
+        <span>Carro · não anda · hoje</span>
+        <div class="linha"><span class="desvio">desvio de 12 km</span><span class="acao">Mandar proposta ›</span></div>
+      </div>
+    </aside>
   </div>
 </section>
 
