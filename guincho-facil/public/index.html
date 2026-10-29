@@ -70,6 +70,14 @@ section h2{font-size:clamp(32px,4.6vw,54px);line-height:1.02;margin:14px 0 16px}
 .lado ol{padding-left:20px;margin:0 0 22px;color:var(--gf-muted)}
 .lado li{margin:8px 0}.lado li b{color:var(--gf-ink)}
 .ex{margin:0 0 20px;background:var(--gf-accent-soft);border:1px solid var(--gf-accent-line);border-radius:var(--gf-radius-md);padding:10px 12px;font-size:14px;color:var(--gf-ink-2)}
+.conceito{background:var(--gf-surface-alt);border-top:1px solid var(--gf-line)}
+.tres{display:grid;gap:18px;margin-top:36px}
+.tres article{background:var(--gf-card);border:1px solid var(--gf-line);border-radius:var(--gf-radius-xl);padding:26px}
+.tres .num{font-size:13px;font-weight:700;letter-spacing:.1em;color:var(--gf-accent)}
+.tres h3{font-size:30px;letter-spacing:-.03em;margin:8px 0 10px}
+.tres article:last-child h3{color:var(--gf-accent)}
+.tres p{margin:0;color:var(--gf-muted)}
+@media (min-width:860px){.tres{grid-template-columns:repeat(3,1fr)}}
 .juntos{background:linear-gradient(180deg,var(--gf-surface),var(--gf-surface-deep))}
 .citacao{font-size:clamp(28px,3.6vw,44px);line-height:1.08;letter-spacing:-.03em;font-weight:800;margin:0}
 .citacao em{font-style:normal;color:var(--gf-accent)}
@@ -199,6 +207,20 @@ footer a{color:var(--gf-ink-2)}
         <a class="btn full" href="/app">Cadastrar meu caminhão</a>
       </article>
     </div>
+  </div>
+</section>
+
+<section class="conceito" aria-labelledby="t35">
+  <div class="wrap">
+    <span class="eyebrow">Para quem vive do guincho</span>
+    <h2 id="t35">Uma estrada. <em>Mais conexões.</em></h2>
+    <p class="sub">O GF não é só um mural de pedidos. É a sua operação no bolso, do primeiro contato até saber quanto sobrou.</p>
+    <div class="tres">
+      <article><span class="num">01</span><h3>Conectar.</h3><p>Pedidos no seu caminho de volta, repasse de serviço entre colegas e vagas de ida e retorno anunciadas na rede.</p></article>
+      <article><span class="num">02</span><h3>Operar.</h3><p>Proposta, aceite, contato direto no WhatsApp e cada etapa do atendimento registrada: a caminho, no local, em transporte, entregue.</p></article>
+      <article><span class="num">03</span><h3>Entender o lucro.</h3><p>Na calculadora “Quanto sobra?”, combustível, pedágio, manutenção e impostos entram numa conta só, a partir do valor de cada serviço.</p></article>
+    </div>
+    <div class="acts" style="margin-top:28px"><a class="btn" href="/app">Cadastrar meu caminhão</a></div>
   </div>
 </section>
 

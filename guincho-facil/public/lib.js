@@ -74,7 +74,24 @@
     return { itens, pct: Math.round(100 * itens.filter(i => i.ok).length / itens.length) };
   }
 
-  const GF = { STATUS, ETAPAS, ATIVOS, PROXIMO, ACAO_PRESTADOR, CONDICAO, VEICULO, EQUIPAMENTOS, CAPACIDADE, APROVACAO, OCORRENCIA,
+  // "Quanto realmente sobra?": estimativa simples de resultado de um serviço.
+  // Combustível = km ÷ consumo × preço; manutenção = km × custo por km; impostos = % do valor.
+  function calcularResultado(e) {
+    const n = x => { const v = typeof x === 'number' ? x : valorDigitado(x); return Number.isFinite(v) && v > 0 ? v : 0; };
+    const c = v => Math.round(v * 100) / 100;
+    const valor = n(e.valor), km = n(e.km), consumo = n(e.consumo);
+    const combustivel = km && consumo ? km / consumo * n(e.diesel) : 0;
+    const manutencao = km * n(e.manutencaoKm);
+    const impostos = valor * Math.min(n(e.impostosPct), 100) / 100;
+    const pedagios = n(e.pedagios), outros = n(e.outros);
+    const custos = combustivel + manutencao + impostos + pedagios + outros;
+    const resultado = valor - custos;
+    return { receita: c(valor), combustivel: c(combustivel), manutencao: c(manutencao), impostos: c(impostos), pedagios: c(pedagios),
+      outros: c(outros), custos: c(custos), resultado: c(resultado),
+      margem: valor ? Math.round(resultado / valor * 1000) / 10 : null, porKm: km ? c(resultado / km) : null };
+  }
+
+  const GF = { STATUS, calcularResultado, ETAPAS, ATIVOS, PROXIMO, ACAO_PRESTADOR, CONDICAO, VEICULO, EQUIPAMENTOS, CAPACIDADE, APROVACAO, OCORRENCIA,
     transicaoValida, etapaIndice, soNum, zapValido, mascaraZap, linkZap, placaNormal, placaValida, valorDigitado, brl, esc,
     dataHora, dataCurta, dentroDoPeriodo, totalRegistrado, progressoCadastro };
   root.GF = GF;

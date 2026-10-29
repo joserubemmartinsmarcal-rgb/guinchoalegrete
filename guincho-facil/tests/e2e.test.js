@@ -198,6 +198,13 @@ test('app guincheiro: validação de placa e cadastro em análise', async () => 
   await foto(page, '8-guincheiro-analise');
   await page.locator('#nav a[data-r=buscar]').click();
   await page.locator('.aviso.am').waitFor();
+  await page.locator('#nav a[data-r=servicos]').click();
+  await page.locator('[data-chips=aba] button[data-v=quanto]').click();
+  await page.locator('#fC').waitFor();
+  await page.fill('#cv', '850'); await page.fill('#ck', '320');
+  await page.waitForFunction(() => /R\$\s*111,00/.test(document.querySelector('#cRes').textContent));
+  assert.match(await page.locator('#cRes').innerText(), /sobra estimada/);
+  await foto(page, '9-calculadora');
   assert.ok(!api.db.chamadas.some(c => c.startsWith('POST /rest/v1/rpc/gf_enviar_proposta')));
   assert.deepEqual(erros, []);
   await ctx.close();

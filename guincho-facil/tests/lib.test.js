@@ -79,3 +79,19 @@ test('distâncias e desvio entre cidades', () => {
   assert.ok(d >= 0 && d < 40, `Cacequi fica no caminho (${d} km)`);
   assert.ok(GF_GEO.desvio('Santa Maria', 'Alegrete', 'Pelotas', 'Alegrete') > 300, 'Pelotas não fica no caminho');
 });
+
+test('calculadora "Quanto sobra?"', () => {
+  // 320 km a 4 km/l com diesel a 6,20 = 496; manutenção 0,60/km = 192; impostos 6% de 850 = 51
+  const r = GF.calcularResultado({ valor: '850', km: '320', consumo: '4', diesel: '6,20', manutencaoKm: '0,60', impostosPct: '6', pedagios: '', outros: '' });
+  assert.equal(r.combustivel, 496);
+  assert.equal(r.manutencao, 192);
+  assert.equal(r.impostos, 51);
+  assert.equal(r.custos, 739);
+  assert.equal(r.resultado, 111);
+  assert.equal(r.margem, 13.1);
+  assert.equal(r.porKm, 0.35);
+  const vazio = GF.calcularResultado({});
+  assert.equal(vazio.resultado, 0); assert.equal(vazio.margem, null);
+  const prejuizo = GF.calcularResultado({ valor: 100, pedagios: '150', impostosPct: '-5' });
+  assert.equal(prejuizo.resultado, -50, 'valores negativos são ignorados; pode dar prejuízo');
+});
