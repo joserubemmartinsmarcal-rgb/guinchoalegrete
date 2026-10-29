@@ -14,7 +14,10 @@
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="stylesheet" href="/style.css">
 <style>
-body{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px));background:linear-gradient(180deg,var(--gf-surface-deep),var(--gf-surface) 260px) fixed}
+html{background:#e6eff8}
+body{min-height:100vh;padding-bottom:calc(76px + env(safe-area-inset-bottom,0px));background:repeating-linear-gradient(155deg,transparent 0 46px,rgba(28,106,168,.05) 46px 47px),linear-gradient(180deg,#f7fafd,#e6eff8 420px) #e6eff8}
+.item,.resumo a,.resumo div,.prop,.passos,.historico,.troca,.vazio{box-shadow:0 1px 2px rgba(11,42,91,.06)}
+[data-tema="claro"] .btn.zap{color:#fff}
 .barra{position:sticky;top:0;z-index:10;background:var(--gf-surface-deep);border-bottom:1px solid var(--gf-line);color:var(--gf-on-navy);display:flex;align-items:center;gap:12px;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px));margin-top:calc(-1 * env(safe-area-inset-top,0px))}
 .barra img{height:26px;width:auto}
 .barra h1{font-size:20px;letter-spacing:-.02em;margin:0;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -44,7 +47,7 @@ a.item:hover{border-color:var(--gf-line-strong)}
 .resumo a,.resumo div{background:var(--gf-card);border:1px solid var(--gf-line);border-radius:var(--gf-radius-xl);padding:14px 16px;text-decoration:none;color:var(--gf-muted);font-size:13px}
 .resumo a:hover{border-color:var(--gf-line-strong)}
 .resumo b{display:block;font:800 28px/1.05 var(--gf-font);letter-spacing:-.02em;color:var(--gf-ink);margin-bottom:4px;font-variant-numeric:tabular-nums}
-.toast{position:fixed;left:16px;right:16px;bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:50;background:#ffffff;color:#062048;padding:14px 16px;border-radius:var(--gf-radius-lg);font-weight:600;transform:translateY(calc(100% + 140px));visibility:hidden;transition:transform .25s,visibility .25s;max-width:640px;margin:auto;box-shadow:var(--gf-elev-sheet)}
+.toast{position:fixed;left:16px;right:16px;bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:50;background:var(--gf-surface-deep);color:#fff;border:1px solid var(--gf-line-strong);padding:14px 16px;border-radius:var(--gf-radius-lg);font-weight:600;transform:translateY(calc(100% + 140px));visibility:hidden;transition:transform .25s,visibility .25s;max-width:640px;margin:auto;box-shadow:var(--gf-elev-sheet)}
 .toast.on{transform:none;visibility:visible}
 .toast.err{background:#c2362b;color:#fff}
 .aviso{background:var(--gf-accent-soft);border:1px solid var(--gf-accent-line);border-radius:var(--gf-radius-xl);padding:16px;margin-bottom:16px;color:var(--gf-ink-2)}
@@ -95,11 +98,11 @@ th{color:var(--gf-muted);font-size:12px}
 .boas-vindas p{color:var(--gf-ink-2);margin:0}
 </style>
 </head>
-<body>
-<div class="barra"><img src="/assets/gf-mark.png" alt="GF"><h1 id="titulo">Guincho Fácil</h1><button id="btSair" hidden>Sair</button></div>
+<body data-tema="claro">
+<div class="barra" data-tema="escuro"><img src="/assets/gf-mark.png" alt="GF"><h1 id="titulo">Guincho Fácil</h1><button id="btSair" hidden>Sair</button></div>
 <main id="v" tabindex="-1"><div class="carregando">Carregando…</div></main>
-<nav class="nav" id="nav" aria-label="Navegação principal" hidden></nav>
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<nav class="nav" data-tema="escuro" id="nav" aria-label="Navegação principal" hidden></nav>
+<div class="toast" data-tema="escuro" id="toast" role="status" aria-live="polite"></div>
 <datalist id="dlCidades"></datalist>
 <dialog class="dialogo" id="dlg"></dialog>
 <script src="/cidades.js"></script>

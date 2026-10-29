@@ -56,3 +56,42 @@
   --cinza: var(--gf-muted); --branco: var(--gf-ink); --placa: var(--gf-brand-blue);
   --verde: var(--gf-success); --verm: var(--gf-danger);
 }
+
+/* Tom claro (branco e azul-claro), aprovado em 29/10/2026 para mesclar com o
+   marinho: seções claras do site e área de conteúdo do app. Topo e menu do app
+   continuam no tema escuro. */
+[data-tema="claro"] {
+  --gf-surface: #f3f7fb;
+  --gf-surface-deep: #e6eff8;
+  --gf-surface-alt: #e8f0f8;
+  --gf-card: #ffffff;
+  --gf-card-2: #f2f8fe;
+  --gf-line: #d6e1ec;
+  --gf-line-strong: #8aa3bd;
+  --gf-ink: #0f2440;
+  --gf-ink-2: #2e4561;
+  --gf-muted: #4f6681;
+  --gf-faint: #5d7088;
+  --gf-accent: #1c6aa8;
+  --gf-accent-soft: #e3f0fb;
+  --gf-accent-line: #b9d6ee;
+  --gf-brand-blue: #1c6aa8;
+  --gf-on-brand-blue: #ffffff;
+  --gf-primary: #0b2a5b;
+  --gf-primary-hover: #163f81;
+  --gf-on-primary: #ffffff;
+  --gf-success: #0e7448;
+  --gf-success-soft: #e5f4ec;
+  --gf-danger: #c2362b;
+  --gf-danger-soft: #fdecea;
+  --gf-warning: #8a5300;
+  --gf-warning-soft: #fff3dc;
+  --gf-field: #f7fafd;
+  --gf-field-line: #8aa3bd;
+  --gf-placeholder: #6b7f96;
+  --gf-focus: #1c6aa8;
+  --gf-overlay: rgba(11, 42, 91, 0.45);
+  --gf-halo-blue: 0 0 0 4px rgba(28, 106, 168, 0.18);
+  --gf-elev-sheet: 0 12px 32px rgba(11, 42, 91, 0.18);
+  color-scheme: light;
+}
