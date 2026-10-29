@@ -23,23 +23,38 @@ header.top .wrap{display:flex;align-items:center;justify-content:space-between;h
 header.top img{height:34px;display:block}
 .cta-s{font-size:14px;font-weight:600;text-decoration:none;color:var(--gf-ink);border:1px solid var(--gf-line-strong);border-radius:999px;padding:9px 16px;white-space:nowrap}
 .cta-s:hover{border-color:var(--gf-accent)}
-.hero{position:relative;overflow:hidden;display:flex;flex-direction:column;background:linear-gradient(180deg,var(--gf-surface-deep) 0%,var(--gf-surface) 380px,var(--gf-surface) 100%)}
-.hero .wrap{position:relative;z-index:1;width:100%;padding-top:112px;padding-bottom:8px}
+.hero{position:relative;overflow:hidden;min-height:min(100svh,860px);display:flex;align-items:center;
+  background:var(--gf-surface-deep) url(/assets/hero-guincho.jpg) 70% 60%/cover no-repeat}
+.hero::before{content:"";position:absolute;inset:0;background:
+  linear-gradient(180deg,rgba(8,31,71,.92) 0%,rgba(8,31,71,.55) 38%,rgba(8,31,71,.75) 70%,var(--gf-surface-alt) 100%)}
+.hero .wrap{position:relative;z-index:1;width:100%;padding-top:108px;padding-bottom:56px;display:grid;gap:28px}
 .eyebrow{font-size:12px;letter-spacing:.28em;color:var(--gf-accent);font-weight:600;text-transform:uppercase}
-.hero h1{font-size:clamp(42px,6.4vw,84px);line-height:.98;letter-spacing:-.045em;margin:18px 0 22px;max-width:15ch}
-.regua{width:120px;height:2px;background:linear-gradient(90deg,var(--gf-brand-blue),transparent);margin:0 0 22px}
-.hero p.lead{font-size:clamp(17px,2vw,20px);color:var(--gf-ink-2);max-width:520px;margin:0 0 30px}
+.hero h1{font-size:clamp(38px,5vw,66px);line-height:1;letter-spacing:-.04em;margin:14px 0 18px;max-width:13ch;text-shadow:0 2px 24px rgba(3,12,30,.45)}
+.regua{width:120px;height:2px;background:linear-gradient(90deg,var(--gf-brand-blue),transparent);margin:0 0 18px}
+.hero p.lead{font-size:clamp(17px,1.6vw,19px);color:var(--gf-ink-2);max-width:470px;margin:0 0 26px}
 .acts{display:flex;flex-wrap:wrap;gap:12px}
-.foto{position:relative;height:clamp(260px,70vw,440px);margin-top:4px;background:url(/assets/hero-guincho.jpg) 62% 100%/cover no-repeat}
-.foto::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--gf-surface) 0%,var(--gf-surface) 4%,rgba(11,42,91,.6) 24%,rgba(11,42,91,0) 50%)}
-.foto::after{content:"";position:absolute;inset:auto 0 0 0;height:56px;background:linear-gradient(180deg,rgba(15,52,112,0),var(--gf-surface-alt))}
+.selos{display:flex;flex-wrap:wrap;gap:8px 18px;margin:22px 0 0;padding:0;list-style:none;font-size:14px;color:var(--gf-ink-2)}
+.selos li{display:flex;align-items:center;gap:8px}
+.selos li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--gf-success);box-shadow:0 0 0 3px rgba(69,217,154,.2)}
+.vitrine{background:rgba(13,44,96,.82);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--gf-accent-line);
+  border-radius:var(--gf-radius-2xl);padding:20px;box-shadow:0 20px 50px rgba(3,12,30,.45);max-width:440px;width:100%}
+.vitrine .cab{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:var(--gf-muted)}
+.vitrine .exemplo{font-size:11px;letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--gf-line-strong);border-radius:999px;padding:2px 8px;color:var(--gf-ink-2)}
+.vitrine .rota-t{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:8px 0 2px}
+.vitrine .rota-m{font-size:13px;color:var(--gf-muted)}
+.vitrine svg{width:100%;height:auto;margin:10px 0 4px;display:block}
+.pin{font:600 12px var(--gf-font)}
+.pedido{background:var(--gf-surface-deep);border:1px solid var(--gf-line);border-radius:var(--gf-radius-lg);padding:14px;display:grid;gap:4px}
+.pedido b{font-size:16px}.pedido span{font-size:13px;color:var(--gf-muted)}
+.pedido .linha{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px}
+.pedido .desvio{font-size:12px;font-weight:700;color:var(--gf-on-primary);background:var(--gf-primary);border-radius:999px;padding:4px 10px}
+.pedido .acao{font-size:13px;font-weight:700;color:var(--gf-accent)}
 @media (min-width:900px){
-  .hero{min-height:min(100svh,880px);justify-content:center}
-  .hero .wrap{padding-top:120px;padding-bottom:120px}
-  .hero h1{max-width:560px}.hero p.lead{max-width:430px}
-  .foto{position:absolute;inset:auto 0 0 38%;height:70%;margin:0;background-position:60% 100%}
-  .foto::before{background:linear-gradient(90deg,var(--gf-surface) 0%,rgba(11,42,91,.7) 16%,rgba(11,42,91,0) 42%),linear-gradient(180deg,var(--gf-surface) 0%,rgba(11,42,91,.4) 22%,rgba(11,42,91,0) 45%)}
-  .foto::after{height:110px}
+  .hero{background-position:62% 55%}
+  .hero::before{background:linear-gradient(90deg,rgba(8,31,71,.97) 0%,rgba(8,31,71,.88) 38%,rgba(8,31,71,.35) 70%,rgba(8,31,71,.55) 100%),
+    linear-gradient(180deg,rgba(8,31,71,.6) 0%,rgba(8,31,71,0) 30%,rgba(8,31,71,0) 80%,var(--gf-surface-alt) 100%)}
+  .hero .wrap{grid-template-columns:1.1fr .9fr;align-items:center;gap:48px;padding-top:120px;padding-bottom:90px}
+  .vitrine{justify-self:end}
 }
 section{padding:96px 0}
 section h2{font-size:clamp(32px,4.6vw,54px);line-height:1.02;margin:14px 0 16px}
@@ -84,6 +99,16 @@ footer a{color:var(--gf-ink-2)}
 .fixo{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(8,31,71,.96);border-top:1px solid var(--gf-line);display:flex;gap:10px}
 .fixo .btn{flex:1;padding:0 10px;font-size:15px}
 @media (min-width:860px){.grade2{grid-template-columns:1.1fr 1fr;gap:64px;align-items:end}.dois{grid-template-columns:1fr 1fr}.fixo{display:none}footer{padding-bottom:48px}}
+@media (max-width:899px){
+  .hero{background-size:auto 72%;background-position:58% 100%;min-height:auto}
+  .hero::before{background:linear-gradient(180deg,var(--gf-surface-deep) 0%,var(--gf-surface-deep) 34%,rgba(8,31,71,.78) 52%,rgba(8,31,71,.62) 78%,var(--gf-surface-alt) 100%)}
+  .hero .wrap{padding-top:96px;padding-bottom:40px;gap:22px}
+  .hero h1{font-size:clamp(32px,9vw,40px);margin:10px 0 14px}
+  .hero p.lead{font-size:16px;margin-bottom:20px}
+  .acts .btn{flex:1 1 auto}
+  .selos{font-size:13px;gap:6px 14px}
+  .vitrine{max-width:none;padding:16px}
+}
 @media (max-width:860px){section{padding:72px 0}.wrap{padding:0 20px}header.top img{height:28px}.form{padding:22px 18px}}
 </style>
 </head>
@@ -95,16 +120,39 @@ footer a{color:var(--gf-ink-2)}
 <main>
 <section class="hero" aria-labelledby="t1" style="padding:0">
   <div class="wrap">
-    <span class="eyebrow">Guincho Fácil</span>
-    <h1 id="t1">O seu caminhão nunca mais <em>volta vazio.</em></h1>
-    <div class="regua"></div>
-    <p class="lead">O GF junta quem precisa transportar um veículo com o guincheiro que já está passando por ali. Menos viagem vazia, mais serviço no caminho.</p>
-    <div class="acts">
-      <a class="btn" href="/app#pedido/novo">Preciso transportar um veículo</a>
-      <a class="btn fant" href="/app">Sou guincheiro</a>
+    <div>
+      <span class="eyebrow">Guincho Fácil · RS</span>
+      <h1 id="t1">O seu caminhão nunca mais <em>volta vazio.</em></h1>
+      <div class="regua"></div>
+      <p class="lead">Quem precisa transportar um veículo encontra o guincheiro que já está passando por ali. Quem guincha pega serviço no caminho de volta.</p>
+      <div class="acts">
+        <a class="btn" href="/app#pedido/novo">Preciso transportar um veículo</a>
+        <a class="btn fant" href="/app">Sou guincheiro</a>
+      </div>
+      <ul class="selos" aria-label="Por que usar o GF">
+        <li>Grátis nesta fase</li><li>Guincheiros conferidos</li><li>Acerto direto no WhatsApp</li>
+      </ul>
     </div>
+    <aside class="vitrine" aria-label="Exemplo de como o GF mostra um pedido no caminho de volta">
+      <div class="cab"><span>Seu retorno hoje · 14h</span><span class="exemplo">Exemplo</span></div>
+      <div class="rota-t">Santa Maria › Alegrete</div>
+      <div class="rota-m">Plataforma livre · 1 vaga</div>
+      <svg viewBox="0 0 400 110" role="img" aria-label="Rota de Santa Maria a Alegrete passando por Cacequi">
+        <path d="M20 80 C 120 80, 140 26, 220 34 S 330 78, 380 54" fill="none" stroke="rgba(120,170,235,.25)" stroke-width="14" stroke-linecap="round"/>
+        <path d="M20 80 C 120 80, 140 26, 220 34 S 330 78, 380 54" fill="none" stroke="#0ac8fe" stroke-width="3" stroke-dasharray="12 9"/>
+        <circle cx="20" cy="80" r="8" fill="#ffffff"/><circle cx="380" cy="54" r="8" fill="#ffffff"/>
+        <circle cx="220" cy="34" r="12" fill="#0ac8fe"/><circle cx="220" cy="34" r="4.5" fill="#062048"/>
+        <text class="pin" x="22" y="105" fill="#b4c8e6" text-anchor="start">Santa Maria</text>
+        <text class="pin" x="380" y="84" fill="#b4c8e6" text-anchor="end">Alegrete</text>
+        <text class="pin" x="220" y="12" fill="#3cc4f7" text-anchor="middle">Cacequi</text>
+      </svg>
+      <div class="pedido">
+        <b>Pedido no caminho: Cacequi › Alegrete</b>
+        <span>Carro · não anda · hoje</span>
+        <div class="linha"><span class="desvio">desvio de 12 km</span><span class="acao">Mandar proposta ›</span></div>
+      </div>
+    </aside>
   </div>
-  <div class="foto" role="img" aria-label="Guincho plataforma levando um SUV pela rodovia"></div>
 </section>
 
 <section class="dor" aria-labelledby="t2">
