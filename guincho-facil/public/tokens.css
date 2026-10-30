@@ -1,33 +1,33 @@
 /* Guincho Fácil — tokens de cor e forma.
-   Paleta aprovada pelo Zeca em 28/10/2026 a partir do protótipo "gf-prototipo":
-   fundo azul-royal/marinho, cartões azuis com borda azul e destaque azul-ciano.
+   Paleta atualizada em 30/10/2026 a partir da arte "Em breve":
+   preto-azulado, azul elétrico (#1e8fff) e azul-claro (#5aa9ff).
    Estrutura de nomes do Design System "Guincho Fácil"; a paleta clara dele
    foi substituída por esta. Site, app e admin usam o mesmo tema.
    Não usar aqui cores da JM Transportes. */
 @import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&display=swap');
 
 :root, [data-tema="escuro"] {
-  --gf-surface: #0b2a5b;        /* fundo da página */
-  --gf-surface-deep: #081f47;   /* topo do degradê, barras fixas */
-  --gf-surface-alt: #0f3470;    /* faixas alternadas */
-  --gf-card: #163f81;           /* cartões e painéis */
-  --gf-card-2: #1d4b92;         /* cartão em destaque / hover */
-  --gf-line: rgba(120, 170, 235, 0.22);
-  --gf-line-strong: #3b6db5;
+  --gf-surface: #070f1e;        /* fundo da página */
+  --gf-surface-deep: #050b16;   /* topo do degradê, barras fixas */
+  --gf-surface-alt: #0a1528;    /* faixas alternadas */
+  --gf-card: #0d1a30;           /* cartões e painéis */
+  --gf-card-2: #12233f;         /* cartão em destaque / hover */
+  --gf-line: rgba(90, 169, 255, 0.16);
+  --gf-line-strong: #24406b;
   --gf-ink: #ffffff;
-  --gf-ink-2: #dbe7f7;
-  --gf-muted: #b4c8e6;
-  --gf-faint: #93add4;
-  --gf-accent: #3cc4f7;         /* texto de destaque: virada do título, links */
-  --gf-accent-soft: rgba(10, 200, 254, 0.12);
-  --gf-accent-line: rgba(10, 200, 254, 0.35);
-  --gf-brand-blue: #0ac8fe;     /* ciano da marca: preenchimentos */
-  --gf-on-brand-blue: #062048;
-  --gf-primary: #0ac8fe;        /* botão principal */
-  --gf-primary-hover: #4dd8ff;
-  --gf-on-primary: #062048;
-  --gf-navy: #0a2350;
-  --gf-navy-deep: #081f47;
+  --gf-ink-2: #d6e0ee;
+  --gf-muted: #a9b8cf;
+  --gf-faint: #8496b3;
+  --gf-accent: #5aa9ff;         /* texto de destaque: virada do título, links */
+  --gf-accent-soft: rgba(30, 143, 255, 0.12);
+  --gf-accent-line: rgba(30, 143, 255, 0.4);
+  --gf-brand-blue: #1e8fff;     /* ciano da marca: preenchimentos */
+  --gf-on-brand-blue: #04101f;
+  --gf-primary: #1e8fff;        /* botão principal */
+  --gf-primary-hover: #4aa6ff;
+  --gf-on-primary: #04101f;
+  --gf-navy: #0a1528;
+  --gf-navy-deep: #050b16;
   --gf-on-navy: #ffffff;
   --gf-success: #45d99a;
   --gf-success-soft: rgba(69, 217, 154, 0.14);
@@ -35,12 +35,12 @@
   --gf-danger-soft: rgba(255, 138, 128, 0.14);
   --gf-warning: #ffc561;
   --gf-warning-soft: rgba(255, 197, 97, 0.14);
-  --gf-field: #0a2455;
-  --gf-field-line: #2d5a9a;
-  --gf-placeholder: #7f9cc6;
-  --gf-focus: #0ac8fe;
-  --gf-overlay: rgba(4, 16, 38, 0.7);
-  --gf-halo-blue: 0 0 0 4px rgba(10, 200, 254, 0.22);
+  --gf-field: #0a1528;
+  --gf-field-line: #24406b;
+  --gf-placeholder: #7d8fac;
+  --gf-focus: #1e8fff;
+  --gf-overlay: rgba(2, 6, 14, 0.72);
+  --gf-halo-blue: 0 0 0 4px rgba(30, 143, 255, 0.25);
   --gf-elev-sheet: 0 12px 32px rgba(3, 12, 30, 0.45);
 
   --gf-font: 'Inter Tight', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -75,11 +75,11 @@
   --gf-accent: #1c6aa8;
   --gf-accent-soft: #e3f0fb;
   --gf-accent-line: #b9d6ee;
-  --gf-brand-blue: #1c6aa8;
-  --gf-on-brand-blue: #ffffff;
-  --gf-primary: #0b2a5b;
-  --gf-primary-hover: #163f81;
-  --gf-on-primary: #ffffff;
+  --gf-brand-blue: #1e8fff;
+  --gf-on-brand-blue: #04101f;
+  --gf-primary: #1e8fff;
+  --gf-primary-hover: #4aa6ff;
+  --gf-on-primary: #04101f;
   --gf-success: #0e7448;
   --gf-success-soft: #e5f4ec;
   --gf-danger: #c2362b;
@@ -90,7 +90,7 @@
   --gf-field-line: #8aa3bd;
   --gf-placeholder: #6b7f96;
   --gf-focus: #1c6aa8;
-  --gf-overlay: rgba(11, 42, 91, 0.45);
+  --gf-overlay: rgba(5, 11, 22, 0.5);
   --gf-halo-blue: 0 0 0 4px rgba(28, 106, 168, 0.18);
   --gf-elev-sheet: 0 12px 32px rgba(11, 42, 91, 0.18);
   color-scheme: light;

@@ -75,9 +75,9 @@ function mapaRota(origem, destino) {
     const el = document.getElementById('mapa'); if (!el || !window.L) return;
     const m = L.map(el, { zoomControl: false, attributionControl: true, dragging: !L.Browser.mobile, scrollWheelZoom: false });
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 13, attribution: '© OpenStreetMap' }).addTo(m);
-    L.circleMarker(A, { radius: 8, color: '#062048', fillColor: '#ffffff', fillOpacity: 1 }).addTo(m).bindTooltip(origem);
-    L.circleMarker(B, { radius: 8, color: '#062048', fillColor: '#0ac8fe', fillOpacity: 1 }).addTo(m).bindTooltip(destino);
-    L.polyline([A, B], { color: '#0ac8fe', weight: 3, dashArray: '8 8' }).addTo(m);
+    L.circleMarker(A, { radius: 8, color: '#04101f', fillColor: '#ffffff', fillOpacity: 1 }).addTo(m).bindTooltip(origem);
+    L.circleMarker(B, { radius: 8, color: '#04101f', fillColor: '#1e8fff', fillOpacity: 1 }).addTo(m).bindTooltip(destino);
+    L.polyline([A, B], { color: '#1e8fff', weight: 3, dashArray: '8 8' }).addTo(m);
     m.fitBounds([A, B], { padding: [30, 30] });
   };
   if (window.L) return desenha();
