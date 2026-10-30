@@ -13,6 +13,10 @@ Link na bio: **appdoguincheiro.com**
 | Seg 03/11 · 19h | Story: "Novo post" com a capa do carrossel 2 | `carrossel-antecipacao/gf-antecipacao-1.png` | — |
 | Qua 05/11 · 19h | Stories: "Como funciona" + "Guincheiro" (repost dos destaques) | `stories/story-2`, `story-4` | — |
 | Sex 07/11 · 12h | Stories: "Quanto sobra?" (arte 6 do carrossel 1) com caixa de perguntas "Quanto sobra da sua volta vazia?" | `carrossel/gf-carrossel-6.png` | — |
+| Seg 10/11 · 7h | Post único · Ida com chamado. Volta com frete. | `posts-novembro/post-ida-e-volta.png` | `posts-novembro/legendas.txt` |
+| Qui 13/11 · 19h | Carrossel · Guincheiro ajuda guincheiro | `posts-novembro/repasse-1…5.png` | `posts-novembro/legendas.txt` |
+| Seg 17/11 · 12h | Carrossel · Passo a passo do app | `posts-novembro/passo-a-passo-1…6.png` | `posts-novembro/legendas.txt` |
+| Ter 18/11 · 19h | Story: "Novo post" com a capa do passo a passo + adesivo de link | `posts-novembro/passo-a-passo-1.png` | — |
 
 ## Antes de postar o carrossel 2
 - Avisar o Bernardo: o botão "Tirar dúvidas no WhatsApp" do site cai direto nele.
@@ -20,8 +24,5 @@ Link na bio: **appdoguincheiro.com**
 - Supabase: Authentication → URL Configuration → Redirect URLs com
   `https://appdoguincheiro.com/app`, `https://www.appdoguincheiro.com/app` e `https://guincho-facil-gf.vercel.app/app`.
 
-## Próximos posts (precisam de arte nova; peça quando quiser)
-1. "Ida com chamado. Volta com frete." (post único, mesma arte do story 2 em 1080×1350)
-2. "Guincheiro ajuda guincheiro": repasse de serviço entre colegas
-3. Passo a passo do app em telas (cadastro → anunciar rota → receber pedido)
-4. Depoimento do primeiro guincheiro cadastrado (só com autorização dele, nada inventado)
+## Próximos posts
+- Depoimento do primeiro guincheiro cadastrado (só com autorização dele, nada inventado)
