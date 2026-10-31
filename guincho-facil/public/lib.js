@@ -45,6 +45,9 @@
     let n = soNum(numero); if (n.length <= 11) n = '55' + n;
     return `https://wa.me/${n}?text=${encodeURIComponent(mensagem || '')}`;
   }
+  // rota de carro no Google Maps sem chave de API (as cidades do GF são do RS)
+  const linkMaps = (origem, destino) => 'https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=' +
+    encodeURIComponent(origem + ', RS, Brasil') + '&destination=' + encodeURIComponent(destino + ', RS, Brasil');
   const placaNormal = s => String(s ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '');
   const placaValida = s => { const p = placaNormal(s); return p === '' || /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(p); };
   // "1.234,56" | "1234.56" | "450" → número
@@ -100,7 +103,7 @@
   }
 
   const GF = { STATUS, calcularResultado, ANTECIPACAO, ETAPAS, ATIVOS, PROXIMO, ACAO_PRESTADOR, CONDICAO, VEICULO, EQUIPAMENTOS, CAPACIDADE, APROVACAO, OCORRENCIA,
-    transicaoValida, etapaIndice, soNum, zapValido, mascaraZap, linkZap, placaNormal, placaValida, valorDigitado, brl, esc,
+    transicaoValida, etapaIndice, soNum, zapValido, mascaraZap, linkZap, linkMaps, placaNormal, placaValida, valorDigitado, brl, esc,
     dataHora, dataCurta, dentroDoPeriodo, totalRegistrado, progressoCadastro };
   root.GF = GF;
   if (typeof module === 'object' && module.exports) module.exports = GF;

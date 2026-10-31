@@ -28,6 +28,8 @@ body{min-height:100vh;padding-bottom:calc(76px + env(safe-area-inset-bottom,0px)
 .nav a svg{width:24px;height:24px}
 .nav a.on{color:var(--gf-accent)}
 .nav a.on svg{background:var(--gf-accent-soft);border-radius:999px;padding:3px;width:40px;height:30px}
+.sino{position:relative;color:#fff;display:grid;place-items:center;width:40px;height:40px;border-radius:999px}.sino svg{width:24px;height:24px}.sino .badge{position:absolute;top:2px;right:0;background:#e5483c;color:#fff;border-radius:10px;font-size:11px;padding:1px 6px;font-weight:700}
+.aviso-item{display:block;text-decoration:none;color:inherit}.aviso-item.novo{border-color:var(--gf-accent-line);box-shadow:inset 4px 0 0 var(--gf-brand-blue)}
 .nav .badge{position:absolute;top:6px;right:calc(50% - 24px);background:#e5483c;color:#fff;border-radius:10px;font-size:11px;padding:1px 6px}
 .item{display:block;background:var(--gf-card);border:1px solid var(--gf-line);border-radius:var(--gf-radius-xl);padding:20px;margin-bottom:12px;color:var(--gf-ink);text-decoration:none}
 a.item:hover{border-color:var(--gf-line-strong)}
@@ -99,7 +101,7 @@ th{color:var(--gf-muted);font-size:12px}
 </style>
 </head>
 <body data-tema="claro">
-<div class="barra" data-tema="escuro"><img src="/assets/gf-mark.png" alt="GF"><h1 id="titulo">Guincho Fácil</h1><button id="btSair" hidden>Sair</button></div>
+<div class="barra" data-tema="escuro"><img src="/assets/gf-mark.png" alt="GF"><h1 id="titulo">Guincho Fácil</h1><a id="btAvisos" class="sino" href="#avisos" aria-label="Avisos" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="badge" id="avBadge" hidden></span></a><button id="btSair" hidden>Sair</button></div>
 <main id="v" tabindex="-1"><div class="carregando">Carregando…</div></main>
 <nav class="nav" data-tema="escuro" id="nav" aria-label="Navegação principal" hidden></nav>
 <div class="toast" data-tema="escuro" id="toast" role="status" aria-live="polite"></div>

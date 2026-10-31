@@ -45,6 +45,13 @@ function backend() {
       return json(route, 200, 'a0');
     }
     if (url.pathname === '/rest/v1/gf_antecipacoes') return json(route, 200, db.antec || []);
+    if (url.pathname === '/rest/v1/gf_avisos') {
+      const avisos = db.avisos || [];
+      const n = avisos.filter(a => !a.lido_em).length;
+      if (m === 'HEAD') return route.fulfill({ status: 200, headers: { 'content-range': `*/${n}`, 'access-control-allow-origin': '*', 'access-control-expose-headers': 'content-range' } });
+      return json(route, 200, avisos);
+    }
+    if (url.pathname === '/rest/v1/rpc/gf_marcar_avisos_lidos') { (db.avisos || []).forEach(a => a.lido_em ||= new Date().toISOString()); return json(route, 200, 1); }
     if (url.pathname === '/rest/v1/gf_pedidos') {
       if (db.falharPedidos) return json(route, 500, { message: 'falha simulada' });
       if (m === 'POST') {
@@ -182,6 +189,23 @@ test('app cliente: login, perfil, pedido e persistência após recarregar', asyn
   assert.match(await page.locator('.resumo').innerText(), /1\s*no período/);
   await foto(page, '7-meus-pedidos');
   assert.ok(await semRolagemLateral(page));
+  // pedido mostra rota no Google Maps
+  await page.locator('.item .trajeto').first().click();
+  await page.getByRole('link', { name: 'Ver rota no Google Maps' }).waitFor();
+  assert.match(await page.getByRole('link', { name: 'Ver rota no Google Maps' }).getAttribute('href'), /google\.com\/maps\/dir\/\?api=1.*origin=Alegrete.*destination=Santa%20Maria/);
+  // avisos: sininho com contador, lista e marcar como lidos
+  api.db.avisos = [{ id: 'a1', titulo: 'Nova proposta para Alegrete › Santa Maria', corpo: 'Proposta de R$ 450,00', url: '#pedido/' + enviado.id, criado_em: new Date().toISOString(), lido_em: null }];
+  await page.evaluate(() => contadores());
+  await page.waitForFunction(() => !document.querySelector('#avBadge').hidden && document.querySelector('#avBadge').textContent === '1');
+  await page.locator('#btAvisos').click();
+  await page.locator('.aviso-item').waitFor();
+  assert.match(await page.locator('.aviso-item').innerText(), /Nova proposta/);
+  assert.match(await page.locator('#v .aviso').first().innerText(), /avisos/i, 'cartão para ligar os avisos no celular');
+  await page.waitForFunction(() => document.querySelector('#avBadge').hidden);
+  assert.ok(api.db.chamadas.includes('POST /rest/v1/rpc/gf_marcar_avisos_lidos'));
+  await foto(page, '7b-avisos');
+  await page.locator('.aviso-item').click();
+  await page.waitForURL(/#pedido\//);
   assert.deepEqual(erros, []);
   await ctx.close();
 });

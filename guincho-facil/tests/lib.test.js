@@ -23,6 +23,8 @@ test('WhatsApp: máscara, validação e link', () => {
   assert.equal(GF.zapValido('99999'), false);
   assert.equal(GF.linkZap('55999990001', 'olá'), 'https://wa.me/5555999990001?text=ol%C3%A1');
   assert.equal(GF.linkZap('5555999990001', ''), 'https://wa.me/5555999990001?text=');
+  assert.equal(GF.linkMaps('Santa Maria', 'São Gabriel'),
+    'https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=Santa%20Maria%2C%20RS%2C%20Brasil&destination=S%C3%A3o%20Gabriel%2C%20RS%2C%20Brasil');
 });
 
 test('placa: padrões antigo e Mercosul', () => {

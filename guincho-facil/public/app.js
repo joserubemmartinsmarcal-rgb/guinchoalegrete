@@ -2,7 +2,7 @@
 // GF · Guincho Fácil — app (PWA). Toda escrita relevante passa por funções do
 // banco (rpc gf_*), que validam papel, estado e dados. A tela só orienta.
 const { STATUS, ETAPAS, ATIVOS, PROXIMO, ACAO_PRESTADOR, CONDICAO, VEICULO, EQUIPAMENTOS, CAPACIDADE, APROVACAO, OCORRENCIA,
-  esc, brl, dataHora, dataCurta, soNum, zapValido, mascaraZap, linkZap, placaValida, valorDigitado,
+  esc, brl, dataHora, dataCurta, soNum, zapValido, mascaraZap, linkZap, linkMaps, placaValida, valorDigitado,
   dentroDoPeriodo, totalRegistrado, progressoCadastro, calcularResultado, ANTECIPACAO } = window.GF;
 const CFG = window.GF_CONFIG;
 const sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey);
@@ -119,7 +119,7 @@ function montaNav() {
     : [['inicio', 'Início', IC.casa], ['pedido/novo', 'Pedir', IC.mais], ['pedidos', 'Pedidos', IC.lista], ['perfil', 'Perfil', IC.user]];
   if (S.perfil?.is_admin && !ehGuincho()) itens.splice(3, 0, ['admin', 'Admin', IC.admin]);
   $('#nav').innerHTML = itens.map(([h, t, i]) => `<a href="#${h}" data-r="${h}">${svg(i)}${t}<span class="badge" data-b="${h}" hidden></span></a>`).join('');
-  $('#nav').hidden = false; $('#btSair').hidden = false;
+  $('#nav').hidden = false; $('#btSair').hidden = false; $('#btAvisos').hidden = false;
 }
 function marcaNav(r) {
   const base = r.split('/')[0] || 'inicio';
@@ -132,6 +132,11 @@ function badge(r, n) { const b = document.querySelector(`[data-b="${r}"]`); if (
 
 async function contadores() {
   if (!S.perfil) return;
+  try {
+    const { count: nAv } = await sb.from('gf_avisos').select('id', { count: 'exact', head: true }).is('lido_em', null);
+    const b = $('#avBadge'); b.hidden = !nAv; b.textContent = nAv > 9 ? '9+' : nAv;
+    $('#btAvisos').setAttribute('aria-label', nAv ? `Avisos, ${nAv} novo(s)` : 'Avisos');
+  } catch (e) { /* tabela de avisos ainda não publicada */ }
   try {
     if (ehGuincho()) {
       const { count } = await sb.from('gf_pedidos').select('id', { count: 'exact', head: true }).eq('prestador_id', S.user.id).in('status', ATIVOS);
@@ -164,6 +169,7 @@ async function rota(silencioso) {
     if (a === 'rota') return await telaRota(b);
     if (a === 'servicos') return await telaServicos();
     if (a === 'perfil') return telaPerfil(false);
+    if (a === 'avisos') return await telaAvisos();
     if (a === 'ocorrencias') return await telaOcorrencias();
     if (a === 'ocorrencia') return telaNovaOcorrencia(c || null);
     if (a === 'admin') return await telaAdmin(b || 'indicadores');
@@ -175,7 +181,7 @@ window.addEventListener('hashchange', () => rota());
 
 // ───────────────────────── acesso ─────────────────────────
 function telaLogin() {
-  titulo('Entrar'); $('#nav').hidden = true; $('#btSair').hidden = true;
+  titulo('Entrar'); $('#nav').hidden = true; $('#btSair').hidden = true; $('#btAvisos').hidden = true;
   V.innerHTML = `
   <div class="boas-vindas"><h2>O seu caminhão nunca mais <em>volta vazio.</em></h2>
   <p>Entre ou crie sua conta. Quem precisa transportar pede; guincheiros recebem pedidos na rota.</p></div>
@@ -285,6 +291,7 @@ function telaPerfil(novo) {
   </form>
   ${!novo ? `<div class="acoes" style="margin-top:22px">
     ${ehGuincho() ? '<a class="btn fant full" href="#pedidos">Meus repasses</a>' : ''}
+    <a class="btn fant full" href="#avisos">Avisos no celular</a>
     <a class="btn fant full" href="#ocorrencias">Minhas ocorrências</a>
     ${S.perfil?.is_admin ? '<a class="btn sec full" href="#admin">Painel da administração</a>' : ''}
     <button class="btn fant full" id="btInst">Instalar app no celular</button>
@@ -742,7 +749,8 @@ async function telaPedido(id) {
     <div class="meta">${dataCurta(p.data_servico)}${km ? ' · trajeto ' + kmTxt(km) : ''}${papel !== 'cliente' && p.autor ? ' · pedido por ' + esc(p.autor.nome.split(' ')[0]) : ''}</div>
     ${p.obs ? `<div class="meta">${esc(p.obs)}</div>` : ''}
     <div class="tags">${p.tipo === 'repasse' ? '<span class="tag am">Repasse</span>' : ''}${tagStatus(p.status)}</div>
-    <div id="mapa" role="img" aria-label="Mapa aproximado de ${esc(p.origem)} até ${esc(p.destino)}"></div></div>
+    <div id="mapa" role="img" aria-label="Mapa aproximado de ${esc(p.origem)} até ${esc(p.destino)}"></div>
+    <a class="btn fant full" style="margin-top:10px" target="_blank" rel="noopener" href="${linkMaps(p.origem, p.destino)}">Ver rota no Google Maps</a></div>
     ${papel !== 'outro' ? linhaDoTempo(p) : ''}`;
 
   if (papel === 'cliente') {
@@ -806,6 +814,7 @@ async function telaPedido(id) {
   }
   V.innerHTML = html;
   mapaRota(p.origem, p.destino);
+
   if (['aberto', ...ATIVOS].includes(p.status)) aoVivo();
 
   V.querySelectorAll('[data-ac]').forEach(b => b.onclick = async () => {
@@ -1044,13 +1053,80 @@ async function instalar() {
   toast('Abra o menu do navegador (⋮) e toque em “Instalar app” ou “Adicionar à tela inicial”.');
 }
 
+// ───────────────────────── avisos (lista + celular) ─────────────────────────
+// O aparelho se inscreve com a chave pública guardada no banco (gf_push_chave) e a
+// inscrição fica ligada ao usuário logado (gf_registrar_push). Quem envia é a função gf-avisos.
+const ehIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const temPush = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+async function registroSW() { return 'serviceWorker' in navigator && await navigator.serviceWorker.getRegistration() ? navigator.serviceWorker.ready : null; }
+function bytesChave(b64) {
+  const raw = atob((b64 + '='.repeat((4 - b64.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/'));
+  return Uint8Array.from(raw, c => c.charCodeAt(0));
+}
+async function estadoPush() {
+  if (ehIOS() && !instalado()) return 'ios';
+  if (!temPush()) return 'sem';
+  if (Notification.permission === 'denied') return 'negado';
+  const reg = await registroSW(); if (!reg) return 'sem';
+  return (await reg.pushManager.getSubscription()) && Notification.permission === 'granted' ? 'ligado' : 'desligado';
+}
+async function salvarInscricao(sub) {
+  const j = sub.toJSON();
+  await rpc('gf_registrar_push', { p_endpoint: j.endpoint, p_p256dh: j.keys?.p256dh, p_auth: j.keys?.auth, p_user_agent: navigator.userAgent.slice(0, 300) });
+}
+async function ligarPush() {
+  if (await Notification.requestPermission() !== 'granted') return estadoPush();
+  const reg = await registroSW(); if (!reg) throw new Error('Abra o app pelo endereço appdoguincheiro.com/app para ligar os avisos.');
+  const chave = await rpc('gf_push_chave');
+  if (!chave) throw new Error('Os avisos no celular ainda estão sendo configurados. Tente mais tarde.');
+  const k = bytesChave(chave);
+  let sub = await reg.pushManager.getSubscription();
+  const mesma = sub?.options?.applicationServerKey && new Uint8Array(sub.options.applicationServerKey).every((v, i) => v === k[i]);
+  if (sub && !mesma) { await sub.unsubscribe(); sub = null; }
+  sub ||= await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: k });
+  await salvarInscricao(sub);
+  return 'ligado';
+}
+async function desligarPush() {
+  const sub = await (await registroSW())?.pushManager.getSubscription();
+  if (sub) { await rpc('gf_remover_push', { p_endpoint: sub.endpoint }).catch(() => {}); await sub.unsubscribe().catch(() => {}); }
+}
+async function esquecerAparelho() { // ao sair: este aparelho para de receber os avisos desta conta
+  try { const sub = await (await registroSW())?.pushManager.getSubscription(); if (sub) await rpc('gf_remover_push', { p_endpoint: sub.endpoint }); } catch (e) { /* sair não pode falhar */ }
+}
+async function sincronizarPush() { // ao entrar: aparelho já inscrito passa a avisar a conta atual
+  try { if (temPush() && Notification.permission === 'granted') { const sub = await (await registroSW())?.pushManager.getSubscription(); if (sub) await salvarInscricao(sub); } } catch (e) { /* silencioso */ }
+}
+async function telaAvisos() {
+  titulo('Avisos');
+  const [lista, st] = await Promise.all([
+    sb.from('gf_avisos').select('id,titulo,corpo,url,criado_em,lido_em').order('criado_em', { ascending: false }).limit(60), estadoPush()]);
+  const d = ok(lista);
+  const cartao = {
+    ligado: '<b>Avisos no celular ligados.</b> Você recebe as novidades mesmo com o app fechado.<div class="acoes" style="grid-template-columns:1fr 1fr"><button class="btn peq" id="btTeste">Mandar um teste</button><button class="btn fant peq" id="btDesl">Desligar</button></div>',
+    desligado: '<b>Receba os avisos no celular.</b> Proposta nova, guincheiro a caminho, pedido na sua região: chega na hora, mesmo com o app fechado.<button class="btn full" style="margin-top:12px" id="btLig">Ligar avisos</button>',
+    negado: '<b>Os avisos estão bloqueados neste aparelho.</b> Libere nas configurações do navegador (Notificações → appdoguincheiro.com) e volte aqui.',
+    ios: '<b>No iPhone, os avisos só funcionam com o app na tela inicial.</b> Toque em Compartilhar › Adicionar à Tela de Início, abra o GF pelo ícone e ligue os avisos.',
+    sem: '<b>Este navegador não recebe avisos no celular.</b> Use o Chrome no Android ou o app instalado no iPhone. A lista abaixo continua funcionando.'
+  }[st];
+  V.innerHTML = `<div class="aviso ${st === 'ligado' ? '' : 'am'}">${cartao}</div>
+    ${d.length ? d.map(a => `<a class="item aviso-item ${a.lido_em ? '' : 'novo'}" href="${esc(a.url || '#avisos')}">
+      <b>${esc(a.titulo)}</b>${a.corpo ? `<div class="meta" style="margin-top:2px">${esc(a.corpo)}</div>` : ''}<div class="meta">${dataHora(a.criado_em)}</div></a>`).join('')
+      : '<div class="vazio">Nenhum aviso ainda. Quando chegar proposta ou mudar a etapa de um pedido, aparece aqui.</div>'}`;
+  if (d.some(a => !a.lido_em)) rpc('gf_marcar_avisos_lidos').then(contadores).catch(() => {});
+  const bt = (id, fn) => { const b = document.getElementById(id); if (b) b.onclick = () => comBotao(b, fn); };
+  bt('btLig', async () => { try { const r = await ligarPush(); toast(r === 'ligado' ? 'Avisos ligados neste aparelho.' : 'Permissão não concedida.', r !== 'ligado'); rota(); } catch (e) { falha(e, e.message); } });
+  bt('btDesl', async () => { await desligarPush(); toast('Avisos desligados neste aparelho.'); rota(); });
+  bt('btTeste', async () => { try { await rpc('gf_aviso_teste'); toast('Teste enviado. Deve chegar em alguns segundos.'); setTimeout(() => rota(true), 3000); } catch (e) { falha(e); } });
+}
+
 // ───────────────────────── sessão ─────────────────────────
 async function carregaPerfil() {
   try { S.perfil = await rpc('gf_meu_perfil'); }
   catch (e) { S.perfil = null; throw e; }
   if (S.perfil) montaNav();
 }
-$('#btSair').onclick = async () => { await sb.auth.signOut(); S.perfil = null; location.hash = ''; };
+$('#btSair').onclick = async () => { await esquecerAparelho(); await sb.auth.signOut(); S.perfil = null; location.hash = ''; };
 sb.auth.onAuthStateChange((ev, session) => {
   setTimeout(async () => {
     if (ev === 'PASSWORD_RECOVERY') S.recuperandoSenha = true;
@@ -1058,7 +1134,7 @@ sb.auth.onAuthStateChange((ev, session) => {
     S.user = novo;
     if (!S.user) { S.perfil = null; $('#nav').hidden = true; return rota(); }
     if (mudou || ev === 'INITIAL_SESSION') {
-      try { await carregaPerfil(); rota(); contadores(); } catch (e) { telaErro(e); }
+      try { await carregaPerfil(); rota(); contadores(); sincronizarPush(); } catch (e) { telaErro(e); }
     }
   }, 0);
 });
