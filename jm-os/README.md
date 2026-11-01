@@ -1,25 +1,30 @@
-# Ordens de Serviço — JM Transportes
+# JM Serviços — controle de ordens de serviço da JM Transportes
 
-Página `os.html` para controlar as ordens de serviço da JM, com o mesmo visual do site
-https://jmautossocorro.vercel.app (fundo escuro, prata/azul-aço, fontes Barlow Condensed e Inter).
-
-Baseada no app OS Guincho (os-guincho.vercel.app): mesmos campos de OS (data/hora, tipo de serviço,
-cliente, veículo, origem/destino, motorista, caminhão, km, valor, forma de pagamento, status, observações),
-mais: protocolo/sinistro, despesas (combustível, pedágio, repasse, outras), lucro, recebido/a receber e vencimento.
+App de uma página só (`os.html`) para celular e computador, com o layout de apps de gestão de guincho
+(barra inferior, menu lateral, abas e cartões) e as cores do site https://jmautossocorro.vercel.app
+(grafite #171C23, aço #344B63, prata #C0C8D0). Tem modo escuro (padrão) e claro.
 
 ## Telas
-- **Painel**: OS abertas hoje, em andamento, concluídas e faturado no mês.
-- **Ordens de Serviço**: lista por mês, filtros por status/serviço, busca por placa, cliente, cidade.
-- **Controle mensal**: faturamento, despesas, lucro, recebido, a receber, gráfico por dia e totais por
-  serviço, cliente, forma de pagamento e motorista. Exporta para Excel (CSV) e imprime/PDF.
-- **Clientes, Motoristas, Veículos**: cadastros.
-- **Backup**: baixar/restaurar os dados (.json) e exportar todas as OS.
-- Cada OS pode ser impressa com o cabeçalho da JM (nome, CNPJ, contato) e espaço para assinatura.
+- **Dashboard**: acionamentos ativos, serviços de hoje, faturamento e lucro do mês, a receber, notas a vencer.
+- **Serviços** (abas):
+  - *Dashboard*: serviços do mês, faturamento, serviços sem valor, pagamentos pendentes, serviços sem
+    fechamento de lote, top faturamento por cliente / colaboradores / contratados / agregados e consulta por motorista.
+  - *Serviços*: filtros por nome, placa, protocolo, mês, motorista, status e tipo; seleção múltipla para criar
+    lote ou marcar recebido; exportar Excel.
+  - *Lotes*: agrupa serviços não pagos por cliente para emitir a nota; “Sincronizar” atualiza o lote para
+    Faturado/Pago conforme a nota.
+  - *Notas Fiscais*: notas pendentes, total a receber e pago (líquido de retenções), filtros por período e status.
+- **Acionamentos**: chamados em andamento em Cards, Lista ou Kanban (Tela TV), contadores do dia, motoristas
+  disponíveis, mapa, envio dos dados ao motorista e aviso ao segurado pelo WhatsApp. Ao concluir, gera o serviço.
+- **Checklists**: vistoria de coleta/entrega com itens, combustível, km, avarias e fotos; impressão.
+- **Perfil**: dados da empresa (saem nas impressões), tema e som.
+- Menu lateral: clientes/assistências, colaboradores e motoristas (próprio, contratado, agregado), caminhões,
+  itens do checklist, relatório mensal, relatório de agregados (repasses), exportar dados e backup.
 
 ## Como colocar no site
-Copie `os.html` para a pasta do site (ao lado de `index.html`, `jm.css` e `assets/`) e publique.
-Fica em `https://jmautossocorro.vercel.app/os.html`. A página tem `noindex` (não aparece no Google).
+Copie `os.html` para a pasta do site (ao lado de `index.html`) e publique: `https://jmautossocorro.vercel.app/os.html`.
+A página tem `noindex`.
 
-## Onde ficam os dados
-No navegador do aparelho (localStorage, chave `jm-os-v1`). Use **Backup** para levar os dados para
-outro aparelho ou guardar uma cópia.
+## Dados
+Ficam no navegador do aparelho (localStorage, chave `jm-app-v2`; dados da versão anterior `jm-os-v1` são migrados
+automaticamente). Use **Exportar Dados → Backup** para guardar ou levar para outro aparelho.
