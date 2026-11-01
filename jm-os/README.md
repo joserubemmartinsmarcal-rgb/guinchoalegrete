@@ -21,6 +21,18 @@ App de uma página só (`os.html`) para celular e computador, com o layout de ap
 - Menu lateral: clientes/assistências, colaboradores e motoristas (próprio, contratado, agregado), caminhões,
   itens do checklist, relatório mensal, relatório de agregados (repasses), exportar dados e backup.
 
+## Pedidos pelo site
+`solicitar.html` é a página pública para clientes pedirem atendimento (nome, telefone, serviço, veículo, local com GPS,
+destino, ocorrido). O pedido é gravado na tabela `jm_solicitacoes` do Supabase (projeto central-24h-jm) — o público só
+consegue inserir. O app lê os pedidos pelas funções `jm_solicitacoes_listar` / `jm_solicitacoes_marcar`, que exigem a
+chave secreta salva em **Perfil → Pedidos do site** (fica só no aparelho). Os pedidos aparecem no topo de
+**Acionamentos**, com som e aviso no sino; **Aceitar** abre o acionamento já preenchido.
+
+## Importar PDF da assistência
+Em **Novo Acionamento** e **Novo Serviço** há o botão *Importar PDF da assistência*. O PDF é lido no próprio aparelho
+(pdf.js) e o sistema procura protocolo, segurado, telefone, veículo, placa, cor, origem, destino, valor, km, data e a
+assistência (cadastra automaticamente se for nova). PDF escaneado (imagem) não tem texto e não é lido.
+
 ## Como colocar no site
 Copie `os.html` para a pasta do site (ao lado de `index.html`) e publique: `https://jmautossocorro.vercel.app/os.html`.
 A página tem `noindex`.
