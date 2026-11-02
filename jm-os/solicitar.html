@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Solicitar guincho | JM Transportes e Autossocorro</title>
+<meta name="description" content="Peça guincho, autossocorro ou transporte de veículo para a JM Transportes, em Alegrete — RS. Atendimento 24 horas.">
+<meta name="theme-color" content="#171C23">
+<meta property="og:title" content="Solicitar guincho — JM Transportes">
+<meta property="og:description" content="Peça seu atendimento em 1 minuto. Guincho e autossocorro 24h em Alegrete e região.">
+<meta property="og:image" content="https://jmautossocorro.vercel.app/assets/og-jm.jpg">
+<link rel="icon" href="https://jmautossocorro.vercel.app/assets/logo-jm.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{color-scheme:dark;--bg:#171C23;--card:#292F38;--line:#344B63;--fg:#fff;--muted:#C0C8D0;--dim:#8C96A1;--ok:#4CC08A;--bad:#F07A72}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font:16px/1.55 'Inter',Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--muted);outline-offset:3px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 6%;border-bottom:1px solid #292F38;position:sticky;top:0;background:rgba(23,28,35,.92);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);z-index:5}
+header img{height:52px;border-radius:8px;display:block}
+header .tel{font-size:13px;border:1px solid var(--line);border-radius:7px;padding:9px 13px;background:var(--card);white-space:nowrap}
+main{max-width:640px;margin:auto;padding:28px 6% 60px}
+.pill{display:inline-flex;align-items:center;gap:10px;padding:7px 14px;border:1px solid var(--line);border-radius:20px;font-size:13px;color:var(--muted)}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+h1{font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-weight:700;font-size:clamp(42px,9vw,60px);line-height:1;margin:18px 0 10px}
+h1 span{color:var(--muted)}
+.lead{color:var(--muted);margin:0 0 24px}
+form{display:flex;flex-direction:column;gap:16px}
+.card{background:linear-gradient(#292F38,#1d232b);border:1px solid var(--line);border-radius:14px;padding:20px}
+.card h2{font-size:11px;letter-spacing:2.5px;color:var(--muted);margin:0 0 14px;font-weight:700}
+label{display:block;font-size:14px;color:var(--muted);margin:0 0 7px}
+label i{color:var(--bad);font-style:normal}
+.f{margin-bottom:14px}.f:last-child{margin-bottom:0}
+input,textarea,select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:14px;color:#fff;font-size:16px}
+textarea{min-height:80px;resize:vertical}
+input:focus,textarea:focus{outline:none;border-color:var(--muted)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips label{margin:0;cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:13px 12px;background:var(--bg);color:#fff;display:flex;gap:10px;align-items:center;font-size:15px}
+.chips input{width:18px;height:18px;accent-color:#C0C8D0;padding:0}
+.chips label:has(input:checked){border-color:var(--muted);background:#344B63}
+.button{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:16px 20px;border-radius:8px;border:1px solid var(--line);font-size:15px;font-weight:700;cursor:pointer;min-height:56px;text-align:center;background:var(--card);color:#fff}
+.primary{background:linear-gradient(130deg,#C0C8D0,#344B63);color:#171C23;border-color:#C0C8D0}
+.primary[disabled]{opacity:.6;cursor:wait}
+.whats{background:#25D366;border-color:#25D366;color:#fff}
+.note{font-size:12.5px;color:var(--dim);margin:8px 0 0}
+#loc-status{font-size:13.5px;color:var(--muted);margin:8px 0 0}
+.ok-box{text-align:center;padding:30px 20px}
+.ok-box .big{width:70px;height:70px;border-radius:50%;background:rgba(76,192,138,.15);color:var(--ok);display:grid;place-items:center;margin:0 auto 14px;font-size:36px}
+.ok-box h2{font-family:'Barlow Condensed',Arial,sans-serif;font-size:34px;margin:0 0 8px;letter-spacing:0;color:#fff}
+.err{color:var(--bad);font-size:14px;margin:0}
+.hp{position:absolute;left:-5000px}
+footer{text-align:center;color:var(--dim);font-size:12px;padding:20px 6% 40px}
+@media(max-width:420px){.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <a href="https://jmautossocorro.vercel.app/" aria-label="Site da JM Transportes"><img src="https://jmautossocorro.vercel.app/assets/logo-jm.png" alt="JM Transportes e Autossocorro"></a>
+  <a class="tel" href="tel:+5555997118847">Ligar (55) 99711-8847</a>
+</header>
+<main>
+  <section id="tela-form">
+    <p class="pill"><i></i>Atendimento 24 horas</p>
+    <h1>Solicitar<br><span>atendimento.</span></h1>
+    <p class="lead">Preencha em 1 minuto. O pedido chega direto na nossa central e a equipe entra em contato para confirmar valor e prazo.</p>
+    <form id="form" novalidate>
+      <div class="card">
+        <h2>O QUE VOCÊ PRECISA</h2>
+        <div class="chips">
+          <label><input type="radio" name="servico" value="GUINCHO" checked> Guincho / reboque</label>
+          <label><input type="radio" name="servico" value="AUTOSSOCORRO"> Socorro no local</label>
+          <label><input type="radio" name="servico" value="TRANSPORTE"> Transporte de veículo</label>
+          <label><input type="radio" name="servico" value="LOGISTICA"> Logística / empresa</label>
+        </div>
+      </div>
+      <div class="card">
+        <h2>SEUS DADOS</h2>
+        <div class="f"><label for="nome">Seu nome <i>*</i></label><input id="nome" name="nome" autocomplete="name" maxlength="120" required></div>
+        <div class="f"><label for="telefone">WhatsApp / telefone <i>*</i></label><input id="telefone" name="telefone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(55) 9 9999-9999" maxlength="30" required></div>
+      </div>
+      <div class="card">
+        <h2>VEÍCULO</h2>
+        <div class="two"><div class="f"><label for="veiculo">Modelo</label><input id="veiculo" name="veiculo" placeholder="Ex.: Gol, Hilux, caminhão" maxlength="120"></div>
+        <div class="f"><label for="placa">Placa</label><input id="placa" name="placa" placeholder="ABC1D23" maxlength="8" style="text-transform:uppercase"></div></div>
+      </div>
+      <div class="card">
+        <h2>ONDE</h2>
+        <div class="f"><label for="origem">Onde está o veículo <i>*</i></label><textarea id="origem" name="origem" placeholder="Rua, rodovia e km, cidade ou ponto de referência" maxlength="500" required></textarea>
+          <button class="button" type="button" id="btn-loc" style="margin-top:10px">Usar minha localização atual ⌖</button><p id="loc-status" role="status" aria-live="polite"></p></div>
+        <div class="f"><label for="destino">Para onde levar</label><input id="destino" name="destino" placeholder="Oficina, casa, cidade… (se souber)" maxlength="500"></div>
+        <div class="f"><label for="obs">O que aconteceu?</label><textarea id="obs" name="obs" placeholder="Ex.: não liga, pneu furado, batida, carro atolado…" maxlength="1000"></textarea></div>
+      </div>
+      <input class="hp" tabindex="-1" autocomplete="off" name="site" aria-hidden="true">
+      <p class="err" id="err" role="alert"></p>
+      <button class="button primary" type="submit" id="enviar">Enviar pedido ↗</button>
+      <p class="note">Ao enviar, você concorda em ser contatado pela JM Transportes sobre este pedido. A localização só é usada se você tocar no botão e permitir.</p>
+    </form>
+  </section>
+  <section id="tela-ok" hidden>
+    <div class="card ok-box">
+      <div class="big">✓</div>
+      <h2>Pedido recebido!</h2>
+      <p style="color:var(--muted);margin:0 0 20px">Nossa equipe já foi avisada e vai entrar em contato pelo número informado. Se for urgente, chame também no WhatsApp:</p>
+      <a class="button whats" id="zap-ok" target="_blank" rel="noopener">Avisar no WhatsApp ↗</a>
+      <a class="button" href="tel:+5555997118847" style="margin-top:10px">Ligar (55) 99711-8847</a>
+    </div>
+  </section>
+</main>
+<footer>JM Transportes e Autossocorro · CNPJ 57.783.070/0001-80 · Alegrete — RS</footer>
+<script>
+(function(){
+"use strict";
+const SUPA_URL="https://rubzloqnfcuumaejfuuz.supabase.co", SUPA_KEY="sb_publishable_r2uRooh-WYlD-D7Ids9_FA_Ca1GpjUh", ZAP="5555997118847";
+const NOMES={GUINCHO:"Guincho / reboque",AUTOSSOCORRO:"Socorro no local",TRANSPORTE:"Transporte de veículo",LOGISTICA:"Logística / empresa"};
+const $=s=>document.querySelector(s);
+let coords=null;
+function msgZap(d){return "Olá! Fiz um pedido pelo site da JM Transportes.\n\n*Serviço:* "+NOMES[d.servico]+"\n*Nome:* "+d.nome+"\n*Telefone:* "+d.telefone+(d.veiculo||d.placa?"\n*Veículo:* "+[d.veiculo,d.placa].filter(Boolean).join(" · "):"")+"\n*Local:* "+d.origem+(d.destino?"\n*Destino:* "+d.destino:"")+(d.obs?"\n*Ocorrido:* "+d.obs:"");}
+const zapLink=d=>"https://wa.me/"+ZAP+"?text="+encodeURIComponent(msgZap(d));
+$("#btn-loc").addEventListener("click",()=>{
+  const st=$("#loc-status");
+  if(!navigator.geolocation){st.textContent="Seu navegador não permite localização. Digite o endereço.";return;}
+  st.textContent="Buscando sua localização…";
+  navigator.geolocation.getCurrentPosition(p=>{
+    coords={lat:p.coords.latitude,lng:p.coords.longitude};
+    const link="https://maps.google.com/?q="+coords.lat.toFixed(6)+","+coords.lng.toFixed(6);
+    const o=$("#origem"); o.value=(o.value.trim()?o.value.trim()+"\n":"")+link;
+    st.textContent="Localização adicionada (precisão de "+Math.round(p.coords.accuracy)+" m). Se puder, escreva também uma referência.";
+  },()=>{st.textContent="Não foi possível pegar a localização. Digite o endereço ou ponto de referência.";},{enableHighAccuracy:true,timeout:12000});
+});
+$("#form").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const f=e.target,err=$("#err");err.textContent="";
+  if(f.site.value) return; // robô
+  const d={servico:f.servico.value,nome:f.nome.value.trim(),telefone:f.telefone.value.trim(),veiculo:f.veiculo.value.trim()||null,placa:f.placa.value.toUpperCase().replace(/[^A-Z0-9]/g,"")||null,origem:f.origem.value.trim(),destino:f.destino.value.trim()||null,obs:f.obs.value.trim()||null};
+  if(d.nome.length<2){err.textContent="Informe seu nome.";f.nome.focus();return;}
+  if(d.telefone.replace(/\D/g,"").length<8){err.textContent="Informe um telefone com DDD.";f.telefone.focus();return;}
+  if(d.origem.length<3){err.textContent="Informe onde está o veículo.";f.origem.focus();return;}
+  if(coords){d.lat=coords.lat;d.lng=coords.lng;}
+  const b=$("#enviar");b.disabled=true;b.textContent="Enviando…";
+  try{
+    const r=await fetch(SUPA_URL+"/rest/v1/jm_solicitacoes",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json","Prefer":"return=minimal"},body:JSON.stringify(d)});
+    if(!r.ok){let m="";try{m=(await r.json()).message||"";}catch(_){}throw new Error(m);}
+    $("#zap-ok").href=zapLink(d);$("#tela-form").hidden=true;$("#tela-ok").hidden=false;window.scrollTo(0,0);
+  }catch(x){
+    err.innerHTML=(x&&x.message&&/Pedido|Muitos/.test(x.message)?x.message:"Não conseguimos enviar agora.")+' <a href="'+zapLink(d)+'" target="_blank" rel="noopener" style="text-decoration:underline">Enviar pelo WhatsApp ↗</a>';
+    b.disabled=false;b.textContent="Enviar pedido ↗";
+  }
+});
+})();
+</script>
+</body>
+</html>
