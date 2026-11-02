@@ -378,7 +378,7 @@ function carregar(){
     if(v1){const o=JSON.parse(v1);D.servicos=(o.os||[]).map(x=>Object.assign({},x,{numero:(x.numero||"").replace("OS-","S-")}));D.clientes=o.clientes||[];D.motoristas=(o.motoristas||[]).map(m=>Object.assign({},m,{tipo:m.tipo==="PARCEIRO"?"CONTRATADO":"PROPRIO"}));D.veiculos=o.veiculos||[];D.seq.servico=o.seq||D.servicos.length;salvar();}
   }catch(_){}
 }
-function salvar(){try{localStorage.setItem(CHAVE,JSON.stringify(D));return true;}catch(_){toast("Não foi possível salvar","O armazenamento do aparelho está cheio. Apague fotos de checklists antigos ou faça backup.","bad");return false;}}
+function salvar(){try{localStorage.setItem(CHAVE,JSON.stringify(D));agendarSync();return true;}catch(_){toast("Não foi possível salvar","O armazenamento do aparelho está cheio. Apague fotos de checklists antigos ou faça backup.","bad");return false;}}
 const by=(col,id)=>D[col].find(x=>x.id===id);
 const cliNome=x=>(by("clientes",x.clienteId)||{}).nome||x.clienteNome||"Particular";
 const motNome=x=>(by("motoristas",x.motoristaId)||{}).nome||"";
@@ -387,7 +387,7 @@ const valido=s=>s.status!=="CANCELADA";
 const custo=s=>numIn(s.combustivel)+numIn(s.pedagio)+numIn(s.repasse)+numIn(s.outrasDespesas);
 const servMes=ym=>D.servicos.filter(s=>(s.dataHora||"").slice(0,7)===ym);
 const cliPJ=s=>{const c=by("clientes",s.clienteId);return c&&c.tipoPessoa==="JURIDICA";};
-const proxNum=(k,pre)=>{D.seq[k]=(D.seq[k]||0)+1;return pre+String(D.seq[k]).padStart(4,"0");};
+const proxNum=(k,pre)=>{const col={servico:"servicos",acionamento:"acionamentos",lote:"lotes",checklist:"checklists"}[k];const maior=(D[col]||[]).reduce((m,o)=>{const n=parseInt(String(o.numero||"").slice(pre.length),10);return n>m?n:m;},0);D.seq[k]=Math.max(D.seq[k]||0,maior)+1;return pre+String(D.seq[k]).padStart(4,"0");};
 const loteTotal=l=>(l.servicoIds||[]).map(id=>by("servicos",id)).filter(Boolean).reduce((a,s)=>a+numIn(s.valor),0);
 const nfLiq=n=>numIn(n.valorBruto)-numIn(n.retencoes);
 
@@ -635,7 +635,7 @@ function vPerfil(){
   return ph("Meu Perfil","Gerencie as informações da empresa")
    +`<section class="box"><div class="box-b"><div class="profile"><div class="big"><img src="${LOGO}" alt="" onerror="this.replaceWith(document.createTextNode('${esc(iniciais(e.nome))}'))"></div><div><h2>${esc(e.nome)}</h2><span class="tagadm">${I("shield")}Administrador</span></div></div></div></section>`
    +`<section class="box"><div class="box-h"><h2>Informações da empresa</h2></div><div class="box-b"><form id="form-emp" class="fg">${[["nome","Nome da empresa"],["sigla","Sigla (aparece no círculo do topo)"],["razao","Razão social"],["cnpj","CNPJ"],["responsavel","Responsável"],["fone","Telefone / WhatsApp"],["email","E-mail"],["cidade","Cidade"]].map(([k,l])=>`<div class="f"><label for="e-${k}">${l}</label><input class="input" id="e-${k}" name="${k}" value="${esc(e[k]||"")}"></div>`).join("")}<div class="full"><button class="btn primary" type="submit">Salvar informações</button></div></form><p class="note">Esses dados saem no cabeçalho das Ordens de Serviço e checklists impressos.</p></div></section>`
-   +`<section class="box"><div class="box-h"><h2>${I("radio")}Pedidos do site</h2></div><div class="box-b"><p class="note" style="margin-top:0">Link para os clientes pedirem atendimento (coloque no site e na bio do Instagram):</p><div class="row" style="margin-bottom:14px;flex-wrap:nowrap"><input class="input" readonly value="${esc(linkPedido())}" id="link-pedido" aria-label="Link de pedido"><button class="btn sm" data-act="copiar-link" style="min-height:48px">${I("copy")}</button></div><div class="f"><label for="chave-site">Chave secreta dos pedidos</label><input class="input" id="chave-site" type="password" autocomplete="off" value="${esc(chaveSite())}" placeholder="JM-xxxxx-xxxxx-xxxxx-xxxxx"></div><div class="row"><button class="btn primary" data-act="salvar-chave">Salvar e testar</button>${chaveSite()?`<span class="note">${SOL_ERR?"⚠ "+(/Chave/.test(SOL_ERR)?"Chave inválida":"Sem conexão"):"✓ Conectado · "+SOLS.length+" pedido(s) aguardando"}</span>`:""}</div><p class="note">A chave fica só neste aparelho. Use a mesma chave no celular do seu pai para os dois receberem os pedidos.</p></div></section>`
+   +`<section class="box"><div class="box-h"><h2>${I("sync")}Conexão online</h2></div><div class="box-b"><p class="note" style="margin-top:0">Link para os clientes pedirem atendimento (coloque no site e na bio do Instagram):</p><div class="row" style="margin-bottom:14px;flex-wrap:nowrap"><input class="input" readonly value="${esc(linkPedido())}" id="link-pedido" aria-label="Link de pedido"><button class="btn sm" data-act="copiar-link" style="min-height:48px">${I("copy")}</button></div><div class="f"><label for="chave-site">Chave secreta dos pedidos</label><input class="input" id="chave-site" type="password" autocomplete="off" value="${esc(chaveSite())}" placeholder="JM-xxxxx-xxxxx-xxxxx-xxxxx"></div><div class="row"><button class="btn primary" data-act="salvar-chave">Salvar e testar</button>${chaveSite()?`<span class="note">${SOL_ERR?"⚠ "+(/Chave/.test(SOL_ERR)?"Chave inválida":"Sem conexão"):"✓ Conectado · "+SOLS.length+" pedido(s) aguardando"}</span>`:""}</div><div class="row" style="justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)"><span><b>Sincronização</b><br><span class="note" id="sync-status">${esc(textoSync())}</span></span>${chaveSite()?`<button class="btn sm" data-act="sync-agora">${I("sync")}Sincronizar agora</button>`:""}</div><p class="note">Com a chave, os pedidos do site e todos os dados (serviços, acionamentos, lotes, notas, checklists e cadastros) ficam iguais no seu celular e no seu Mac. Use a mesma chave nos dois. A chave fica guardada só no aparelho.</p></div></section>`
    +`<section class="box"><div class="box-h"><h2>Preferências</h2></div><div class="box-b"><div class="row" style="justify-content:space-between;padding:6px 0"><span>Modo escuro</span><label class="switch"><input type="checkbox" id="pref-tema" ${tema()==="dark"?"checked":""}><span></span></label></div><div class="row" style="justify-content:space-between;padding:6px 0"><span>Som em novo acionamento</span><label class="switch"><input type="checkbox" id="som" ${D.som?"checked":""}><span></span></label></div><div class="row" style="margin-top:10px"><button class="btn" data-go="exportar">${I("dl")}Exportar dados e backup</button><a class="btn" href="https://jmautossocorro.vercel.app/" target="_blank" rel="noopener">Ver site ↗</a></div></div></section>`;
 }
 
@@ -657,7 +657,7 @@ function renderNotif(){
 
 /* ================= Formulários ================= */
 function abrir(html){$("#overlay").innerHTML=`<div class="scrim" data-close></div><div class="sheet" role="dialog" aria-modal="true">${html}</div>`;document.body.style.overflow="hidden";}
-function fechar(){MODAL=null;$("#overlay").innerHTML="";document.body.style.overflow="";}
+function fechar(){MODAL=null;$("#overlay").innerHTML="";document.body.style.overflow="";if(typeof SYNC!=="undefined"&&SYNC&&SYNC.precisaRender){SYNC.precisaRender=false;setTimeout(render,0);}}
 const fi=(o,n,l,req,attrs,cls)=>`<div class="f ${cls||""}"><label for="m-${n}">${l}${req?" <i>*</i>":""}</label><input class="input" id="m-${n}" name="${n}" value="${esc(o[n]??"")}" ${attrs||""}></div>`;
 const fm=(o,n,l,req,cls)=>fi(o,n,l,req,'inputmode="decimal" placeholder="0,00" data-money',cls);
 const fs=(n,l,inner,cls)=>`<div class="f ${cls||""}"><label for="m-${n}">${l}</label><select class="input" id="m-${n}" name="${n}">${inner}</select></div>`;
@@ -898,6 +898,7 @@ function csvServ(list,nome){const cab=["Nº","Data","Hora","Serviço","Cliente",
   baixar(nome,"﻿"+[cab.join(";"),...rows].join("\r\n"),"text/csv;charset=utf-8");}
 function csvNF(){const cab=["NF","Cliente","Lote","Emissão","Vencimento","Valor bruto","Retenções","Líquido","Status","Pago em"];const rows=D.notas.map(n=>[n.numero,cliNome(n),(by("lotes",n.loteId)||{}).numero||"",fmtD(n.emissao),fmtD(n.vencimento),dec(n.valorBruto),dec(n.retencoes),dec(nfLiq(n)),ST_NF[n.status][0],n.pagoEm?fmtD(n.pagoEm):""].map(q).join(";"));baixar("notas-fiscais-jm.csv","﻿"+[cab.join(";"),...rows].join("\r\n"),"text/csv;charset=utf-8");}
 function restaurar(input){const f=input.files&&input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);let novo;if(Array.isArray(d.servicos))novo=d;else if(Array.isArray(d.os)){novo=VAZIO();novo.servicos=d.os;novo.clientes=d.clientes||[];novo.motoristas=d.motoristas||[];novo.veiculos=d.veiculos||[];novo.seq.servico=d.seq||d.os.length;}else throw 0;
+  if(chaveSite()){const cols=["servicos","acionamentos","lotes","notas","checklists","clientes","motoristas","veiculos"];let n=0;const novos={};cols.forEach(c=>{const ids=new Set((D[c]||[]).map(o=>o.id));novos[c]=(novo[c]||[]).filter(o=>o&&o.id&&!ids.has(o.id));n+=novos[c].length;});if(!n){toast("Nada novo neste backup","Todos os registros já estão no sistema.");return;}if(!confirm(`Adicionar ${n} registro(s) do backup? Com a sincronização ligada, nada é apagado: só entra o que ainda não existe.`))return;cols.forEach(c=>D[c]=(D[c]||[]).concat(novos[c]));Object.keys(novo.seq||{}).forEach(k=>D.seq[k]=Math.max(D.seq[k]||0,Number(novo.seq[k])||0));salvar();toast("Backup adicionado",n+" registro(s)");render();return;}
   if(!confirm(`Restaurar backup com ${novo.servicos.length} serviço(s)? Os dados atuais deste aparelho serão substituídos.`))return;D=Object.assign(VAZIO(),novo);D.empresa=Object.assign({},EMPRESA_PADRAO,novo.empresa||{});salvar();toast("Backup restaurado","");render();}catch(_){toast("Arquivo inválido","Escolha um backup .json gerado por este sistema.","bad");}};r.readAsText(f);}
 
 /* ================= Pedidos do site (Supabase) ================= */
@@ -932,6 +933,67 @@ function solBox(){
   return `<section class="box" style="border-color:var(--warn)"><div class="box-h"><h2>${I("radio")}Pedidos do site (${SOLS.length})</h2><div class="grow"></div><button class="btn sm ghost" data-act="sols" aria-label="Atualizar pedidos">${I("sync")}</button></div><div class="box-b"><div class="list">${SOLS.map(itemSol).join("")}</div></div></section>`;
 }
 async function marcarSol(id,st){try{await rpc("jm_solicitacoes_marcar",{p_chave:chaveSite(),p_id:id,p_status:st});SOLS=SOLS.filter(s=>s.id!==id);return true;}catch(e){toast("Não foi possível atualizar o pedido",e.message,"bad");return false;}}
+
+/* ================= Sincronização entre aparelhos (Supabase) ================= */
+var SYNC={hashes:{},desde:null,pendentes:0,ultimo:null,erro:"",rodando:false,denovo:false,timer:null,precisaRender:false};
+const SYNC_META_K="jm-sync-meta",COLS_SYNC=["servicos","acionamentos","lotes","notas","checklists","clientes","motoristas","veiculos"];
+function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return(h>>>0).toString(36)+"."+s.length;}
+function syncCarregarMeta(){try{const m=JSON.parse(localStorage.getItem(SYNC_META_K)||"{}");SYNC.hashes=m.hashes||{};SYNC.desde=m.desde||null;SYNC.ultimo=m.ultimo||null;}catch(_){}}
+function syncSalvarMeta(){try{localStorage.setItem(SYNC_META_K,JSON.stringify({hashes:SYNC.hashes,desde:SYNC.desde,ultimo:SYNC.ultimo}));}catch(_){}}
+function syncLocais(){const m=new Map();COLS_SYNC.forEach(c=>(D[c]||[]).forEach(o=>{if(o&&o.id)m.set(c+"|"+o.id,{colecao:c,id:String(o.id),dados:o});}));m.set("config|empresa",{colecao:"config",id:"empresa",dados:D.empresa});m.set("config|seq",{colecao:"config",id:"seq",dados:D.seq});if(D.checkItens)m.set("config|checkItens",{colecao:"config",id:"checkItens",dados:D.checkItens});return m;}
+function syncDiferencas(){const loc=syncLocais(),out=[];loc.forEach((it,k)=>{const s=JSON.stringify(it.dados),h=hashStr(s);if(SYNC.hashes[k]!==h)out.push(Object.assign(it,{_k:k,_h:h,_n:s.length}));});Object.keys(SYNC.hashes).forEach(k=>{if(!loc.has(k)&&SYNC.hashes[k]!=="X"){const p=k.indexOf("|");out.push({colecao:k.slice(0,p),id:k.slice(p+1),excluido:true,_k:k,_h:"X",_n:60});}});return out;}
+async function syncEnviar(){
+  const dif=syncDiferencas();SYNC.pendentes=dif.length;let i=0;
+  while(i<dif.length){
+    const lote=[];let tam=0;
+    while(i<dif.length&&lote.length<100&&(tam<1500000||!lote.length)){lote.push(dif[i]);tam+=dif[i]._n;i++;}
+    await rpc("jm_app_salvar",{p_chave:chaveSite(),p_itens:lote.map(x=>x.excluido?{colecao:x.colecao,id:x.id,excluido:true}:{colecao:x.colecao,id:x.id,dados:x.dados})});
+    lote.forEach(x=>SYNC.hashes[x._k]=x._h);SYNC.pendentes-=lote.length;syncSalvarMeta();
+  }
+}
+async function syncReceber(){
+  let mudou=false;
+  for(let volta=0;volta<20;volta++){
+    const rows=await rpc("jm_app_puxar",{p_chave:chaveSite(),p_desde:SYNC.desde})||[];
+    const sujos=new Set(syncDiferencas().map(x=>x._k));
+    rows.forEach(r=>{
+      const k=r.colecao+"|"+r.id;
+      if(!SYNC.desde||r.atualizado_em>SYNC.desde)SYNC.desde=r.atualizado_em;
+      if(k==="config|seq"&&r.dados){Object.keys(r.dados).forEach(x=>{const v=Number(r.dados[x])||0;if(v>(D.seq[x]||0)){D.seq[x]=v;mudou=true;}});return;}
+      if(sujos.has(k))return; // alteração deste aparelho ainda não enviada: ela vence
+      if(r.excluido){
+        if(r.colecao==="config"){if(r.id==="checkItens"&&D.checkItens){delete D.checkItens;mudou=true;}}
+        else if(D[r.colecao]){const n=D[r.colecao].length;D[r.colecao]=D[r.colecao].filter(o=>String(o.id)!==r.id);if(D[r.colecao].length!==n)mudou=true;}
+        SYNC.hashes[k]="X";return;
+      }
+      const h=hashStr(JSON.stringify(r.dados));if(SYNC.hashes[k]===h)return;
+      if(r.colecao==="config"){if(r.id==="empresa")D.empresa=Object.assign({},EMPRESA_PADRAO,r.dados);else if(r.id==="checkItens")D.checkItens=r.dados;}
+      else if(D[r.colecao]){const arr=D[r.colecao],i=arr.findIndex(o=>String(o.id)===r.id);if(i>=0)arr[i]=r.dados;else arr.push(r.dados);}
+      SYNC.hashes[k]=h;mudou=true;
+    });
+    if(rows.length<1000)break;
+  }
+  if(mudou){try{localStorage.setItem(CHAVE,JSON.stringify(D));}catch(_){}}
+  syncSalvarMeta();return mudou;
+}
+async function sincronizar(manual){
+  if(!chaveSite())return;
+  if(SYNC.rodando){SYNC.denovo=true;return;}
+  SYNC.rodando=true;
+  try{
+    await syncEnviar();const mudou=await syncReceber();await syncEnviar();
+    SYNC.erro="";SYNC.ultimo=new Date().toISOString();syncSalvarMeta();
+    if(mudou)atualizarTela();
+    if(manual)toast("Sincronizado","Os dados estão iguais nos seus aparelhos.");
+  }catch(e){
+    SYNC.erro=(e&&e.message)||"erro";
+    if(manual)toast("Não foi possível sincronizar",/Chave/.test(SYNC.erro)?"Chave inválida. Confira em Perfil.":"Sem internet. As alterações ficam guardadas e vão quando a conexão voltar.","bad");
+  }finally{SYNC.rodando=false;indicadorSync();if(SYNC.denovo){SYNC.denovo=false;setTimeout(()=>sincronizar(),300);}}
+}
+function agendarSync(){if(typeof SYNC==="undefined"||!SYNC||!chaveSite())return;SYNC.pendentes=Math.max(SYNC.pendentes,1);indicadorSync();clearTimeout(SYNC.timer);SYNC.timer=setTimeout(()=>sincronizar(),1200);}
+function atualizarTela(){if(MODAL||(document.activeElement&&document.activeElement.matches("input,select,textarea"))){SYNC.precisaRender=true;return;}render();}
+function textoSync(){if(!chaveSite())return"Desligada";if(SYNC.erro)return/Chave/.test(SYNC.erro)?"⚠ Chave inválida":"⚠ Sem conexão — alterações guardadas para enviar";if(SYNC.pendentes)return"Enviando alterações…";return SYNC.ultimo?"✓ Sincronizado às "+new Date(SYNC.ultimo).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}):"Conectando…";}
+function indicadorSync(){const a=$("#avatar");if(!a)return;const k=chaveSite();a.style.boxShadow=!k?"":SYNC.erro?"0 0 0 2px var(--warn)":SYNC.pendentes?"0 0 0 2px var(--info)":"0 0 0 2px var(--ok)";a.title="Sincronização: "+textoSync();const st=$("#sync-status");if(st)st.textContent=textoSync();}
 
 /* ================= Importar PDF da assistência ================= */
 const PDFJS="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",PDFJS_W="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -1047,7 +1109,8 @@ document.addEventListener("click",async e=>{
   else if(a==="menu-close"){S.menu=false;render();}
   else if(a==="notif"){S.notif=!S.notif;renderNotif();}
   else if(a==="tema"){const n=tema()==="dark"?"light":"dark";try{localStorage.setItem(CHAVE_TEMA,n);}catch(_){}aplicarTema(n);render();}
-  else if(a==="refresh"){carregar();render();toast("Atualizado","Dados recarregados.");}
+  else if(a==="refresh"){carregar();render();if(chaveSite()){buscarSols(true);sincronizar(true);}else toast("Atualizado","Dados recarregados.");}
+  else if(a==="sync-agora")sincronizar(true);
   else if(a==="ajuda")toast("Como usar","Abra um Acionamento quando o chamado chega. Ao concluir, gere o Serviço. No fim do mês, feche os Lotes por cliente e registre as Notas Fiscais.");
   else if(a==="novo-serv")formServ(null);
   else if(a==="novo-aci")formAci(null);
@@ -1071,7 +1134,7 @@ document.addEventListener("click",async e=>{
   else if(a==="salvar-itens"){const v=$("#m-itens").value.split("\n").map(s=>s.trim()).filter(Boolean);if(!v.length){toast("Informe ao menos um item","","bad");return;}D.checkItens=v;salvar();toast("Itens salvos",v.length+" itens");}
   else if(a==="sols"){await buscarSols(true);render();}
   else if(a==="copiar-link"){const v=linkPedido();try{await navigator.clipboard.writeText(v);toast("Link copiado",v);}catch(_){const el=$("#link-pedido");el.select();toast("Selecione e copie o link",v);}}
-  else if(a==="salvar-chave"){const v=$("#chave-site").value.trim();try{v?localStorage.setItem(CHAVE_SITE,v):localStorage.removeItem(CHAVE_SITE);}catch(_){}SOLS=[];SOL_ERR="";solPrimeira=true;solVistos.clear();if(!v){render();toast("Pedidos do site desligados","");return;}const ok=await buscarSols(true);render();if(ok)toast("Chave conferida",SOLS.length+" pedido(s) aguardando.");}
+  else if(a==="salvar-chave"){const v=$("#chave-site").value.trim();try{v?localStorage.setItem(CHAVE_SITE,v):localStorage.removeItem(CHAVE_SITE);}catch(_){}SOLS=[];SOL_ERR="";solPrimeira=true;solVistos.clear();if(!v){render();toast("Pedidos do site desligados","");return;}const ok=await buscarSols(true);render();if(ok){toast("Chave conferida",SOLS.length+" pedido(s) aguardando. Sincronizando seus dados…");sincronizar(true);}}
   else if(a==="itens-padrao"){delete D.checkItens;salvar();render();toast("Itens padrão restaurados","");}
 });
 document.addEventListener("input",e=>{
@@ -1101,7 +1164,7 @@ document.addEventListener("submit",e=>{e.preventDefault();const id=e.target.id;
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(MODAL||$("#overlay").innerHTML)fechar();else if(S.menu){S.menu=false;render();}}});
 setInterval(()=>{if(!MODAL&&S.view==="acionamentos"&&!document.activeElement.matches("input,select,textarea"))render();},60000);
 
-aplicarTema(tema());carregar();render();buscarSols();setInterval(()=>{if(document.visibilityState==="visible")buscarSols();},30000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")buscarSols();});
+aplicarTema(tema());carregar();syncCarregarMeta();render();indicadorSync();buscarSols();sincronizar();setInterval(()=>{if(document.visibilityState==="visible")buscarSols();},30000);setInterval(()=>{if(document.visibilityState==="visible")sincronizar();},20000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){buscarSols();sincronizar();}});window.addEventListener("online",()=>sincronizar());
 })();
 </script>
 </body>

@@ -37,6 +37,11 @@ assistência (cadastra automaticamente se for nova). PDF escaneado (imagem) não
 Copie `os.html` para a pasta do site (ao lado de `index.html`) e publique: `https://jmautossocorro.vercel.app/os.html`.
 A página tem `noindex`.
 
-## Dados
-Ficam no navegador do aparelho (localStorage, chave `jm-app-v2`; dados da versão anterior `jm-os-v1` são migrados
-automaticamente). Use **Exportar Dados → Backup** para guardar ou levar para outro aparelho.
+## Dados e sincronização
+Os dados ficam no navegador (localStorage, chave `jm-app-v2`; a versão anterior `jm-os-v1` é migrada). Com a chave
+salva em **Perfil → Conexão online**, cada registro (serviços, acionamentos, lotes, notas, checklists, cadastros e
+configurações) é enviado para a tabela `jm_app_registros` do Supabase e os outros aparelhos com a mesma chave recebem as
+mudanças (a cada 20 s, ao voltar para o app e no botão atualizar). Alteração ainda não enviada vence a do servidor;
+exclusões também são repassadas. O contador de numeração é mesclado pelo maior valor (no servidor e no app). Sem
+internet, as alterações ficam guardadas e vão quando a conexão voltar. Com a sincronização ligada, restaurar backup só
+**adiciona** o que não existe.
