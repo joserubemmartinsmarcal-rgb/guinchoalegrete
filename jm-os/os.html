@@ -1022,7 +1022,64 @@ const ROTULOS=[
 ];
 const ROT_RE=ROTULOS.map(([k,r])=>[k,new RegExp("(?:^|\\s{2,}|\\|)\\s*(?:"+r+")\\s*(?:[:\\-–]\\s*|\\s{2,}|$)(.*)$","i")]);
 const QUALQUER_ROTULO=new RegExp("^\\s*(?:"+ROTULOS.map(x=>x[1]).join("|")+"|bairro|cidade|munic[ií]pio|uf|cep|n[úu]mero|complemento|refer[eê]ncia|data|hor[aá]rio|tipo|servi[cç]o|marca|ano|chassi)\\s*[:\\-–]","i");
+/* Modelo ViaNET (Mondial Assistance / Allianz AWP): tela "Solicitação aceita" */
+function ehViaNet(linhas){return linhas.some(l=>/^\s*Solicita[cç][aã]o aceita/i.test(l))||linhas.some(l=>/Assist[eê]ncia:\s*\d+\s+Solicita[cç][aã]o:\s*\d+/i.test(l));}
+function extrairViaNet(linhas){
+  const L=linhas.map(l=>l.replace(/\s+$/,"").trim()),d={},obs=[];
+  const campo=(l,rot)=>{const m=l.match(new RegExp("(?:^|\\s{2,})(?:"+rot+")\\s*:\\s*(.*?)(?=\\s{2,}[A-Za-zÀ-ú .()]{2,25}:|$)","i"));if(!m)return null;const r=m[1].trim();return /^(Regi[aã]o|Estado|CEP|Bairro|Cidade|Complemento|Refer[eê]ncias?|Placa|Telefone|Cor|Combust[ií]vel|Prazo|Aceito em|Solicita[cç][aã]o)\s*:/i.test(r)?"":r;};
+  const ROT=/^(Local|Complemento|Bairro|Cidade|Refer[eê]ncias?|Problema|Importante|Segurado|Solicitante|Ve[ií]culo|Ano|Destino|Servi[cç]o|Produto|Assist[eê]ncia|Tempo|Detalhes|Resumo|KM |Ped[aá]gios|Dist[aâ]ncia|Senhas|Tarifa)\b/i;
+  const acha=(re,de)=>{for(let i=de||0;i<L.length;i++)if(re.test(L[i]))return i;return -1;};
+  let v;
+  for(const l of L){
+    if((v=campo(l,"Assist[eê]ncia"))!==null&&/\d/.test(v)){const s=campo(l,"Solicita[cç][aã]o");d.protocolo=v.replace(/\D/g,"")+(s&&/\d/.test(s)?"/"+s.replace(/\D/g,""):"");}
+    if((v=campo(l,"Aceito em"))){const m=v.match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);if(m)d.dataHora=`${m[3]}-${m[2]}-${m[1]}T${m[4]}:${m[5]}`;}
+    if((v=campo(l,"Produto")))d._produto=v;
+    if((v=campo(l,"Servi[cç]o"))!==null&&!d._servico){d._servico=l.replace(/^Servi[cç]o:\s*/i,"").replace(/\s{2,}Prazo:.*$/i,"").replace(/\s{2,}/g," ").trim();}
+    if((v=campo(l,"Segurado")))d.solicitante=v;
+    if((v=campo(l,"Telefone"))&&digits(v).length>=10)d.telefone=v;
+    if((v=campo(l,"Ve[ií]culo"))&&!/vai para a base/i.test(l))d.veiculoModelo=v;
+    if((v=campo(l,"Placa")))d._placa=v.toUpperCase();
+    if((v=campo(l,"Ano"))&&/^\d{4}$/.test(v))d._ano=v;
+    if((v=campo(l,"Cor"))&&v!=="0")d.veiculoCor=v;
+    if(/^KM Total/i.test(l)){const m=l.match(/([\d.]+,\d+|\d+)\s*$/);if(m)d.km=numIn(m[1]);}
+    if(/vai para a base:\s*SIM/i.test(l))obs.push(l.replace(/SIMHor/i,"SIM — Hor"));
+  }
+  if(d.veiculoModelo&&d._ano)d.veiculoModelo+=" "+d._ano;
+  if(d._placa){d.veiculoPlaca=d._placa.replace(/[^A-Z0-9]/g,"");if(/X{3,}/.test(d.veiculoPlaca))obs.push("Placa parcial no PDF: "+d._placa);}
+  const endereco=(ini,fim)=>{let local="",bairro="",cidade="",uf="",ref="";const livre=[];
+    for(let i=ini;i<fim&&i<L.length;i++){const l=L[i];if(!l)continue;
+      if((v=campo(l,"Local"))!==null)local=v;
+      else if((v=campo(l,"Bairro"))!==null)bairro=v;
+      else if((v=campo(l,"Cidade"))!==null){cidade=v;uf=(campo(l,"Estado")||"").split(/\s/)[0];}
+      else if((v=campo(l,"Refer[eê]ncias?"))!==null){if(v)ref=v;}
+      else if((v=campo(l,"Complemento"))!==null){if(v)livre.push(v);}
+      else if(!ROT.test(l)&&/[A-Za-zÀ-ú]{3}/.test(l))livre.push(l.replace(/\s*-\s*$/,""));
+    }
+    const base=[local,bairro,cidade?cidade+(uf?"/"+uf:""):""].filter(Boolean).join(" - ");
+    const extra=[...livre,ref].filter(Boolean).join(", ");
+    return base?base+(extra?" ("+extra+")":""):"";};
+  const iLocal=acha(/^Local:/i),iProb=acha(/^(Problema|Importante|Segurado):/i,iLocal+1),iDest=acha(/^Destino:/i,iProb>0?iProb:0);
+  const iFim=acha(/^(Detalhes da Roteiriza|Resumo da Rota|Senhas para fechamento|KM Total)/i,iDest+1);
+  if(iLocal>=0)d.origem=endereco(iLocal,iProb>0?iProb:(iDest>0?iDest:L.length));
+  if(iDest>=0){const dst=endereco(iDest+1,iFim>0?iFim:L.length);d.destino=dst||"Sem destino informado no PDF";}
+  const iP=acha(/^Problema:/i),iI=acha(/^Importante:/i);
+  if(iP>=0){const t=[L[iP].replace(/^Problema:\s*/i,"")];for(let i=iP+1;i<L.length&&i!==iI&&!ROT.test(L[i]);i++)t.push(L[i]);const s=t.filter(Boolean).join(" · ");if(s)obs.unshift("Problema: "+s);}
+  if(iI>=0){const s=L[iI].replace(/^Importante:\s*/i,"");if(s)obs.push("Importante: "+s);}
+  if(d._servico)obs.unshift("Serviço ViaNET: "+d._servico);
+  const iS=acha(/^Senhas para fechamento/i);
+  if(iS>=0){const ss=[];for(let i=iS+1;i<L.length;i++){if(/^Tarifa/i.test(L[i])||!L[i])continue;const m=L[i].match(/^(.+?)\s{2,}(\S+)$/);if(m)ss.push(m[1].trim()+": "+m[2]);else break;}if(ss.length)obs.push("Senhas para fechamento — "+ss.join(" · "));}
+  if(d.telefone)obs.push("Telefone do segurado: "+d.telefone);
+  const sv=norm(d._servico||""),tudo=norm(L.join(" "));
+  d.tipo=/reboque|guincho|remoc/.test(sv)?"GUINCHO":/transporte/.test(sv)?"TRANSPORTE":sv?"AUTOSSOCORRO":(/reboque/.test(tudo)?"GUINCHO":"");
+  const prod=norm(d._produto||"");
+  let cli=D.clientes.find(c=>norm(c.nome).includes("mondial")&&(!prod||norm(c.nome).includes(prod)))||D.clientes.find(c=>norm(c.nome).includes("mondial"))||(prod&&D.clientes.find(c=>norm(c.nome).includes(prod)));
+  if(cli)d.clienteId=cli.id;else if(d._produto)d.assistNova=d._produto.charAt(0)+d._produto.slice(1).toLowerCase()+" (Mondial)";
+  d.obsTexto=obs.join("\n");
+  ["_produto","_servico","_placa","_ano"].forEach(k=>delete d[k]);
+  return d;
+}
 function extrairDados(linhas){
+  if(ehViaNet(linhas))return extrairViaNet(linhas);
   const txt=linhas.join("\n"),d={},cortar=v=>(v||"").split(/\s{3,}/)[0].trim().replace(/^[:\-–\s]+/,"");
   for(let i=0;i<linhas.length;i++){
     for(const [k,re] of ROT_RE){
@@ -1057,10 +1114,10 @@ async function importarPdf(file,form){
   const d=extrairDados(linhas);
   if(d.assistNova){const c={id:uid("cli_"),nome:d.assistNova,tipoPessoa:"JURIDICA"};D.clientes.push(c);salvar();d.clienteId=c.id;const sel=form.querySelector("[name=clienteId]");if(sel){const o=document.createElement("option");o.value=c.id;o.textContent=c.nome;sel.appendChild(o);}}
   const preenchidos=[];
-  Object.entries(d).forEach(([k,v])=>{if(v===""||v==null)return;const el=form.querySelector(`[name="${k}"]`);if(!el)return;
+  Object.entries(d).forEach(([k,v])=>{if(v===""||v==null||k==="obsTexto"||k==="assistNova")return;const el=form.querySelector(`[name="${k}"]`);if(!el)return;
     if(el.tagName==="SELECT"&&![...el.options].some(o=>o.value===v))return;
     el.value=typeof v==="number"?(k==="valor"?v.toFixed(2):String(v)).replace(".",","):v;preenchidos.push(k);});
-  const ob=form.querySelector("[name=observacoes],[name=obs]");if(ob&&!ob.value.includes(file.name))ob.value=(ob.value?ob.value+"\n":"")+"Importado do PDF: "+file.name;
+  const ob=form.querySelector("[name=observacoes],[name=obs]");if(ob&&!ob.value.includes(file.name))ob.value=(ob.value?ob.value+"\n":"")+(d.obsTexto?d.obsTexto+"\n":"")+"Importado do PDF: "+file.name;
   if(typeof calc==="function")calc();
   const nomes={protocolo:"protocolo",veiculoPlaca:"placa",veiculoModelo:"modelo",veiculoCor:"cor",solicitante:"segurado",telefone:"telefone",origem:"origem",destino:"destino",valor:"valor",km:"km",clienteId:"assistência",tipo:"tipo",dataHora:"data"};
   if(preenchidos.length)toast(preenchidos.length+" campo(s) preenchido(s) pelo PDF",preenchidos.map(k=>nomes[k]||k).join(", ")+(d.assistNova?" · assistência "+d.assistNova+" cadastrada":"")+". Confira antes de salvar.");
