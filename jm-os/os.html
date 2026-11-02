@@ -387,7 +387,8 @@ const valido=s=>s.status!=="CANCELADA";
 const custo=s=>numIn(s.combustivel)+numIn(s.pedagio)+numIn(s.repasse)+numIn(s.outrasDespesas);
 const servMes=ym=>D.servicos.filter(s=>(s.dataHora||"").slice(0,7)===ym);
 const cliPJ=s=>{const c=by("clientes",s.clienteId);return c&&c.tipoPessoa==="JURIDICA";};
-const proxNum=(k,pre)=>{const col={servico:"servicos",acionamento:"acionamentos",lote:"lotes",checklist:"checklists"}[k];const maior=(D[col]||[]).reduce((m,o)=>{const n=parseInt(String(o.numero||"").slice(pre.length),10);return n>m?n:m;},0);D.seq[k]=Math.max(D.seq[k]||0,maior)+1;return pre+String(D.seq[k]).padStart(4,"0");};
+const proxNum=(k,pre)=>{const col={servico:"servicos",acionamento:"acionamentos",lote:"lotes",checklist:"checklists"}[k];const maior=(D[col]||[]).reduce((m,o)=>{const t=String(o.numero||"");if(!t.startsWith(pre))return m;const n=parseInt(t.slice(pre.length),10);return n>m?n:m;},0);D.seq[k]=Math.max(D.seq[k]||0,maior)+1;return pre+String(D.seq[k]).padStart(4,"0");};
+const numAssist=prot=>{const m=String(prot||"").trim().match(/^(\d{5,})(?:\s*\/\s*(\d+))?$/);return m?m[1]+(m[2]&&m[2]!=="1"?"/"+m[2]:""):"";};
 const loteTotal=l=>(l.servicoIds||[]).map(id=>by("servicos",id)).filter(Boolean).reduce((a,s)=>a+numIn(s.valor),0);
 const nfLiq=n=>numIn(n.valorBruto)-numIn(n.retencoes);
 
@@ -702,8 +703,9 @@ function salvarServ(form){
   if(falta.length){toast("Preencha os campos obrigatórios",falta.map(x=>x[1]).join(", "),"bad");form.querySelector(`[name=${falta[0][0]}]`).focus();return;}
   ["valor","combustivel","pedagio","repasse","outrasDespesas","km"].forEach(k=>o[k]=numIn(o[k]));
   const t=new Date().toISOString();let s;
-  if(MODAL.id){s=by("servicos",MODAL.id);Object.assign(s,o,{atualizadoEm:t});toast("Serviço atualizado",s.numero);}
-  else{s=Object.assign({id:uid("s_"),numero:proxNum("servico","S-"),criadoEm:t},o);if(MODAL.acionamentoId){s.acionamentoId=MODAL.acionamentoId;const a=by("acionamentos",MODAL.acionamentoId);if(a)a.servicoId=s.id;}D.servicos.push(s);toast("Serviço cadastrado",s.numero);}
+  const na=numAssist(o.protocolo);
+  if(MODAL.id){s=by("servicos",MODAL.id);Object.assign(s,o,{atualizadoEm:t});if(na)s.numero=na;toast("Serviço atualizado",s.numero);}
+  else{s=Object.assign({id:uid("s_"),numero:na||proxNum("servico","S-"),criadoEm:t},o);if(MODAL.acionamentoId){s.acionamentoId=MODAL.acionamentoId;const a=by("acionamentos",MODAL.acionamentoId);if(a)a.servicoId=s.id;}D.servicos.push(s);toast("Serviço cadastrado",s.numero);}
   salvar();fechar();render();
 }
 
@@ -730,8 +732,9 @@ const msgMot=a=>`*${a.numero}* — ${TIPOS[a.tipo]||""}\nCliente: ${cliNome(a)}$
 function salvarAci(form){
   const o=lerForm(form);o.veiculoPlaca=placaFmt(o.veiculoPlaca);o.valor=numIn(o.valor);
   if(!o.origem){toast("Informe o local do atendimento","","bad");form.querySelector("[name=origem]").focus();return;}
-  let a;if(MODAL.id){a=by("acionamentos",MODAL.id);const antes=a.status;Object.assign(a,o);if(antes!==a.status)marcar(a);}
-  else{a=Object.assign({id:uid("a_"),numero:proxNum("acionamento","A-"),criadoEm:new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,19),hist:[]},o);D.acionamentos.push(a);beep();}
+  const na=numAssist(o.protocolo);
+  let a;if(MODAL.id){a=by("acionamentos",MODAL.id);const antes=a.status;Object.assign(a,o);if(na)a.numero=na;if(antes!==a.status)marcar(a);}
+  else{a=Object.assign({id:uid("a_"),numero:na||proxNum("acionamento","A-"),criadoEm:new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,19),hist:[]},o);D.acionamentos.push(a);beep();}
   const eraNovo=!MODAL.id,solId=MODAL.solId;salvar();fechar();if(eraNovo&&solId){a.origemPedido="site";marcarSol(solId,"RECEBIDA").then(ok=>{if(ok)render();});}toast(eraNovo?"Acionamento aberto":"Acionamento salvo",a.numero);
   if(a.status==="CONCLUIDO"&&!a.servicoId)perguntaGerar(a);else render();
 }
