@@ -130,7 +130,8 @@ function montaNav() {
   $('#nav').hidden = false; $('#btSair').hidden = false; $('#btAvisos').hidden = false;
 }
 function marcaNav(r) {
-  const base = r.split('/')[0] || 'inicio';
+  let base = r.split('/')[0] || 'inicio';
+  if (['rota', 'caminhoes', 'caminhao'].includes(base)) base = 'rotas';
   document.querySelectorAll('#nav a').forEach(a => {
     const on = a.dataset.r.split('/')[0] === base || (a.dataset.r === 'pedido/novo' && r === 'pedido/novo');
     a.classList.toggle('on', on); on ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current');
@@ -175,6 +176,9 @@ async function rota(silencioso) {
     if (a === 'rotas' && b === 'nova') return telaNovaRota();
     if (a === 'rotas') return await telaRotas();
     if (a === 'rota') return await telaRota(b);
+    if (a === 'caminhoes' && b === 'novo') return telaNovoCaminhao();
+    if (a === 'caminhoes') return await telaCaminhoes();
+    if (a === 'caminhao') return await telaCaminhao(b);
     if (a === 'servicos') return await telaServicos();
     if (a === 'perfil') return telaPerfil(false);
     if (a === 'avisos') return await telaAvisos();
@@ -364,11 +368,12 @@ function telaNovoPedido(tipo) {
   if (rep && !(ehGuincho() && aprovado())) { toast('Só guincheiros aprovados podem repassar serviços.', true); location.hash = 'inicio'; return; }
   titulo(rep ? 'Repassar serviço' : 'Pedir transporte');
   const hoje = new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
-  V.innerHTML = `${rep ? '<p style="color:var(--cinza)">Não consegue atender? Ofereça para a rede e mantenha seu cliente bem atendido.</p>' : ''}
+  const pre = (rep && S.prefill) || {}; S.prefill = null;
+  V.innerHTML = `${rep && pre.nota ? `<div class="aviso">${esc(pre.nota)}</div>` : ''}${rep ? '<p style="color:var(--cinza)">Não consegue atender? Ofereça para a rede e mantenha seu cliente bem atendido.</p>' : ''}
   <form id="fN" novalidate>
     <div class="linha2">
-      <div><label for="no">Buscar em</label><input id="no" name="origem" list="dlCidades" value="${esc(S.perfil.cidade)}" required></div>
-      <div><label for="nd">Levar para</label><input id="nd" name="destino" list="dlCidades" required></div>
+      <div><label for="no">Buscar em</label><input id="no" name="origem" list="dlCidades" value="${esc(pre.origem || S.perfil.cidade)}" required></div>
+      <div><label for="nd">Levar para</label><input id="nd" name="destino" list="dlCidades" value="${esc(pre.destino || '')}" required></div>
     </div>
     <label for="nvt">Tipo de veículo</label>
     <select id="nvt" name="veiculo_tipo">${Object.entries(VEICULO).map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select>
@@ -376,8 +381,8 @@ function telaNovoPedido(tipo) {
     <label for="npl">Placa (opcional)</label><input id="npl" name="placa" maxlength="8" style="text-transform:uppercase" placeholder="ABC1D23">
     <label>Condição</label>
     <div class="seg">${Object.entries(CONDICAO).map(([v, t], i) => `<label><input type="radio" name="condicao" value="${v}" ${i === 1 ? 'checked' : ''}><span>${t}</span></label>`).join('')}</div>
-    <label for="nt">Quando</label><input id="nt" name="data_servico" type="date" min="${hoje}" value="${hoje}">
-    <label for="nb">Detalhes (opcional)</label><textarea id="nb" name="obs" maxlength="1000" placeholder="Ponto de referência, roda travada, subsolo, horário… Não coloque endereço completo: ele é combinado com o guincheiro escolhido."></textarea>
+    <label for="nt">Quando</label><input id="nt" name="data_servico" type="date" min="${hoje}" value="${pre.data && pre.data > hoje ? pre.data : hoje}">
+    <label for="nb">Detalhes (opcional)</label><textarea id="nb" name="obs" maxlength="1000" placeholder="Ponto de referência, roda travada, subsolo, horário… Não coloque endereço completo: ele é combinado com o guincheiro escolhido.">${esc(pre.obs || '')}</textarea>
     <p id="nkm" style="color:var(--cinza);font-size:15px"></p>
     <button class="btn full" style="margin-top:10px">${rep ? 'Publicar repasse' : 'Publicar pedido'}</button>
   </form>`;
@@ -459,7 +464,14 @@ async function inicioGuincheiro() {
     <h3 class="sec-t">Próximos de ${esc(S.perfil.cidade)}</h3>
     ${chips('raio', [['20', '20 km'], ['50', '50 km'], ['100', '100 km'], ['150', '150 km']], S.raio)}
     ${perto.length ? perto.slice(0, 10).map(p => cardPedidoAberto(p, `${p.dist} km de você`)).join('') : '<div class="vazio">Nenhum pedido aberto neste raio agora.<br>Aumente o raio ou anuncie sua rota de volta.</div>'}
-    <div class="acoes"><a class="btn full" href="#rotas/nova">Anunciar rota ou vaga</a><a class="btn fant full" href="#repasse/novo">Repassar um serviço para a rede</a></div>`;
+    <h3 class="sec-t">Parceiros da rede</h3>
+    <ul class="menu-lista duas" aria-label="Parceiros">
+      ${[['#rotas/nova', IC.rota, 'Tenho vaga no caminhão', 'Anuncie a rota: quem estiver nela manda veículo'],
+         ['#caminhoes/novo', IC.caminhao, 'Ceder meu caminhão', 'Com ou sem motorista, para colegas da região'],
+         ['#rotas', IC.busca, 'Ver vagas e caminhões', 'De colegas que estão na sua rota'],
+         ['#repasse/novo', IC.lista, 'Repassar um serviço', 'A rede atende seu cliente quando você não pode']].map(([h, i, t, d]) =>
+        `<li><a href="${h}">${svg(i)}<span><b>${t}</b><small>${d}</small></span><span class="seta">${svg(IC.seta)}</span></a></li>`).join('')}
+    </ul>`;
   ligaChips('raio', v => { S.raio = v; rota(); });
   $('#disp').onchange = async e => {
     const el = e.currentTarget, v = el.checked;
@@ -496,12 +508,29 @@ async function telaRotas() {
     <div class="meta">${dataHora(x.saida)} · ${esc(x.equipamento)} · ${x.vagas} vaga${x.vagas > 1 ? 's' : ''}${!meu && x.g ? ' · ' + esc(x.g.nome) : ''}</div>
     <div class="tags"><span class="tag ${x.sentido === 'retorno' ? 'am' : ''}">${x.sentido === 'retorno' ? 'Retorno' : 'Ida'}</span>
       ${meu ? `<span class="tag">${x.status === 'ativo' ? 'Ativa' : 'Encerrada'}</span>` : ''}</div></a>`;
-  V.innerHTML = `<a class="btn full" href="#rotas/nova">Anunciar rota ou vaga</a>
+  V.innerHTML = `${abasParceiros('rotas')}<a class="btn full" href="#rotas/nova">Anunciar rota ou vaga no caminhão</a>
     <h3 class="sec-t">Minhas rotas</h3>
     ${m.length ? m.map(x => card(x, true)).join('') : '<div class="vazio">Anuncie de onde sai e para onde volta. O GF mostra os pedidos que cabem no caminho.</div>'}
     <h3 class="sec-t">Vagas na rede</h3>
-    <p style="color:var(--cinza);font-size:15px;margin-top:0">Colegas com caminhão saindo. Útil para repassar serviço.</p>
+    <p style="color:var(--cinza);font-size:15px;margin-top:0">Colegas com espaço no caminhão. Abra a vaga para mandar um veículo ou chamar o colega.</p>
     ${r.length ? r.map(x => card(x, false)).join('') : '<div class="vazio">Nenhuma vaga anunciada por colegas agora.</div>'}`;
+  ligaAbasParceiros();
+}
+function abasParceiros(atual) { return chips('parc', [['rotas', 'Vagas em rotas'], ['caminhoes', 'Caminhões cedidos']], atual); }
+function ligaAbasParceiros() { ligaChips('parc', v => { location.hash = v; }); }
+async function botaoParceiro(tipo, id, msg) {
+  const bt = $('#btZapParc'); if (!bt) return;
+  bt.onclick = () => comBotao(bt, async () => {
+    try {
+      const c = await rpc('gf_falar_com_parceiro', { p_tipo: tipo, p_id: id });
+      const link = linkZap(c.whatsapp, `Olá ${c.nome.split(' ')[0]}! Sou ${S.perfil.nome}, do GF. ${msg}`);
+      if (!link) return toast('O colega não tem WhatsApp válido no cadastro.', true);
+      const w = window.open(link, '_blank');
+      if (w) { w.opener = null; return; }
+      const a = document.createElement('a'); a.className = bt.className; a.href = link; a.target = '_blank'; a.rel = 'noopener';
+      a.textContent = 'Abrir conversa no WhatsApp'; bt.replaceWith(a); // navegador bloqueou a janela: o toque no link abre
+    } catch (er) { falha(er); }
+  });
 }
 function telaNovaRota() {
   titulo('Anunciar rota');
@@ -551,8 +580,20 @@ async function telaRota(id) {
     ${meu ? `<h3 class="sec-t">Pedidos que cabem na rota (${lista.length})</h3>
       ${lista.length ? lista.map(p => cardPedidoAberto(p, `desvio ~${p.desvio} km`)).join('') : '<div class="vazio">Nenhum pedido aberto nessa rota agora.<br>Deixe a rota ativa: novos pedidos aparecem aqui.</div>'}
       <div class="acoes"><button class="btn fant full" id="btEnc">${r.status === 'ativo' ? 'Encerrar rota' : 'Reativar rota'}</button>
-      <button class="btn perigo full" id="btDel">Excluir rota</button></div>` : '<p style="color:var(--cinza)">Para combinar um repasse com este colega, publique o serviço em “Repassar” e ele recebe na busca.</p>'}`;
-  if (!meu) return;
+      <button class="btn perigo full" id="btDel">Excluir rota</button></div>` : `${r.status === 'ativo' ? `<div class="acoes"><button class="btn full" id="btMandar">Mandar veículo nessa vaga</button>
+      <button class="btn zap full" id="btZapParc">Chamar ${esc((r.g?.nome || 'colega').split(' ')[0])} no WhatsApp</button></div>
+      <p style="color:var(--cinza);font-size:14px">“Mandar veículo” abre um repasse já com a rota preenchida. O colega recebe o aviso e manda a proposta; o valor e a entrega vocês combinam pelo WhatsApp.</p>`
+      : '<div class="vazio">Esta vaga foi encerrada.</div>'}`}`;
+  if (!meu) {
+    if (r.status !== 'ativo') return;
+    $('#btMandar').onclick = () => {
+      S.prefill = { origem: r.origem, destino: r.destino, data: r.saida.slice(0, 10),
+        obs: `Para a vaga de ${r.g?.nome || 'colega'} (${r.origem} › ${r.destino}, saída ${dataHora(r.saida)}).`,
+        nota: `Repasse para a vaga de ${r.g?.nome || 'colega'}: ${r.origem} › ${r.destino}, saída ${dataHora(r.saida)}.` };
+      location.hash = 'repasse/novo';
+    };
+    return botaoParceiro('vaga', r.id, `Vi sua vaga ${r.origem} › ${r.destino} (saída ${dataHora(r.saida)}) e tenho um veículo para mandar.`);
+  }
   aoVivo();
   $('#btEnc').onclick = e => comBotao(e.currentTarget, async () => {
     try { ok(await sb.from('gf_retornos').update({ status: r.status === 'ativo' ? 'encerrado' : 'ativo' }).eq('id', id)); toast('Rota atualizada.'); rota(); }
@@ -561,6 +602,105 @@ async function telaRota(id) {
   $('#btDel').onclick = async () => {
     if (!await perguntar({ titulo: 'Excluir esta rota?', ok: 'Excluir', perigo: true })) return;
     try { ok(await sb.from('gf_retornos').delete().eq('id', id)); toast('Rota excluída.'); location.hash = 'rotas'; }
+    catch (er) { falha(er); }
+  };
+}
+const COBRANCA = { dia: 'por dia', viagem: 'por viagem', km: 'por km', combinar: 'a combinar' };
+const precoCaminhao = x => x.valor ? `${brl(x.valor)} ${COBRANCA[x.cobranca]}` : 'Valor a combinar';
+const periodoCaminhao = x => `de ${dataCurta(x.disponivel_de)}${x.disponivel_ate ? ' até ' + dataCurta(x.disponivel_ate) : ' em diante'}`;
+async function telaCaminhoes() {
+  titulo('Caminhões cedidos');
+  if (!aprovado()) { V.innerHTML = blocoProgresso(); return; }
+  const hoje = new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+  const [minhas, rede] = await Promise.all([
+    sb.from('gf_caminhoes').select('*').eq('guincheiro_id', S.user.id).order('criado_em', { ascending: false }).limit(50),
+    sb.from('gf_caminhoes').select('*, g:gf_perfis!gf_caminhoes_guincheiro_id_fkey(nome,cidade)').neq('guincheiro_id', S.user.id)
+      .eq('status', 'ativo').or(`disponivel_ate.is.null,disponivel_ate.gte.${hoje}`).limit(100)]);
+  const m = ok(minhas);
+  const r = ok(rede).map(x => ({ ...x, dist: x.cidade === S.perfil.cidade ? 0 : GF_GEO.km(S.perfil.cidade, x.cidade) }))
+    .sort((a, b) => (a.dist ?? 9999) - (b.dist ?? 9999));
+  const card = (x, meu) => `<a class="item ${x.status === 'ativo' ? 'quente' : ''}" href="#caminhao/${x.id}">
+    <div class="tit">${esc(x.equipamento)} em ${esc(x.cidade)}</div>
+    <div class="meta">${periodoCaminhao(x)} · atende até ${x.raio_km} km${!meu && x.g ? ' · ' + esc(x.g.nome) : ''}${!meu && x.dist ? ' · ' + kmTxt(x.dist) + ' de você' : ''}</div>
+    <div class="tags"><span class="tag ${x.com_motorista ? 'az' : 'am'}">${x.com_motorista ? 'Com motorista' : 'Só o caminhão'}</span>
+      <span class="tag">${precoCaminhao(x)}</span>${meu ? `<span class="tag">${x.status === 'ativo' ? 'Ativo' : 'Encerrado'}</span>` : ''}</div></a>`;
+  V.innerHTML = `${abasParceiros('caminhoes')}<a class="btn full" href="#caminhoes/novo">Ceder meu caminhão</a>
+    <h3 class="sec-t">Meus caminhões cedidos</h3>
+    ${m.length ? m.map(x => card(x, true)).join('') : '<div class="vazio">Caminhão parado? Deixe à disposição de colegas da região, com ou sem motorista.</div>'}
+    <h3 class="sec-t">Disponíveis na rede</h3>
+    <p style="color:var(--cinza);font-size:15px;margin-top:0">Caminhões de colegas, do mais perto ao mais longe de ${esc(S.perfil.cidade)}.</p>
+    ${r.length ? r.map(x => card(x, false)).join('') : '<div class="vazio">Nenhum caminhão cedido por colegas agora.</div>'}`;
+  ligaAbasParceiros();
+}
+function telaNovoCaminhao() {
+  titulo('Ceder caminhão');
+  if (!aprovado()) { V.innerHTML = blocoProgresso(); return; }
+  const hoje = new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+  V.innerHTML = `<p style="color:var(--cinza);margin-top:0">Seu caminhão fica visível só para guincheiros aprovados. Quem tiver interesse chama você no WhatsApp e vocês combinam tudo direto.</p>
+  <form id="fC" novalidate>
+    <div class="seg c2" role="radiogroup" aria-label="Motorista"><label><input type="radio" name="motorista" value="sim" checked><span>Com motorista</span></label>
+      <label><input type="radio" name="motorista" value="nao"><span>Só o caminhão</span></label></div>
+    <div class="linha2">
+      <div><label for="cc">Cidade do caminhão</label><input id="cc" name="cidade" list="dlCidades" value="${esc(S.perfil.cidade)}" required></div>
+      <div><label for="cr">Atende até</label><select id="cr" name="raio_km">${[50, 100, 200, 300, 500].map(k => `<option value="${k}" ${k === 100 ? 'selected' : ''}>${k} km</option>`).join('')}</select></div>
+    </div>
+    <label for="ce">Equipamento</label><select id="ce" name="equipamento">${EQUIPAMENTOS.map(e => `<option ${S.perfil.equipamento === e ? 'selected' : ''}>${e}</option>`).join('')}</select>
+    <div class="linha2">
+      <div><label for="cd">Disponível a partir de</label><input id="cd" name="de" type="date" min="${hoje}" value="${hoje}" required></div>
+      <div><label for="ca">Até (opcional)</label><input id="ca" name="ate" type="date" min="${hoje}"></div>
+    </div>
+    <div class="linha2">
+      <div><label for="cv">Valor (opcional)</label><input id="cv" name="valor" inputmode="decimal" placeholder="Ex.: 600"></div>
+      <div><label for="cb">Cobrança</label><select id="cb" name="cobranca">${['dia', 'viagem', 'km'].map(v => `<option value="${v}">${COBRANCA[v]}</option>`).join('')}</select></div>
+    </div>
+    <label for="co">Observação (opcional)</label><textarea id="co" name="obs" maxlength="500" placeholder="Ex.: caminhão revisado, motorista com experiência em pesados, combustível por conta de quem pega"></textarea>
+    <button class="btn full" style="margin-top:16px">Ceder caminhão para a rede</button>
+  </form>`;
+  $('#fC').onsubmit = e => {
+    e.preventDefault(); const d = Object.fromEntries(new FormData(e.target));
+    if (!cidadeOk(d.cidade)) return toast('Escolha a cidade na lista de sugestões.', true);
+    if (!d.de) return toast('Informe a partir de quando.', true);
+    if (d.ate && d.ate < d.de) return toast('A data final precisa ser depois da inicial.', true);
+    const valor = d.valor.trim() ? valorDigitado(d.valor) : null;
+    if (d.valor.trim() && !(valor >= 1 && valor <= 100000)) return toast('Valor inválido. Deixe em branco para combinar.', true);
+    comBotao(e.target.querySelector('button'), async () => {
+      try {
+        const r = ok(await sb.from('gf_caminhoes').insert({ guincheiro_id: S.user.id, cidade: d.cidade, raio_km: Number(d.raio_km), equipamento: d.equipamento,
+          com_motorista: d.motorista === 'sim', disponivel_de: d.de, disponivel_ate: d.ate || null, valor, cobranca: valor ? d.cobranca : 'combinar',
+          obs: d.obs.trim() || null }).select('id').single());
+        toast('Caminhão disponível para a rede.'); location.hash = 'caminhao/' + r.id;
+      } catch (er) { falha(er, 'Não foi possível anunciar o caminhão.'); }
+    });
+  };
+}
+async function telaCaminhao(id) {
+  const x = ok(await sb.from('gf_caminhoes').select('*, g:gf_perfis!gf_caminhoes_guincheiro_id_fkey(nome,cidade,empresa)').eq('id', id).maybeSingle());
+  if (!x) { V.innerHTML = '<div class="vazio"><h2>Anúncio não encontrado</h2><a href="#caminhoes">Voltar</a></div>'; return; }
+  titulo('Caminhão cedido');
+  const meu = x.guincheiro_id === S.user.id;
+  const hoje = new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+  const vale = x.status === 'ativo' && (!x.disponivel_ate || x.disponivel_ate >= hoje);
+  V.innerHTML = `<div class="item quente destaque">
+    <div class="tit">${esc(x.equipamento)} em ${esc(x.cidade)}</div>
+    <div class="meta">${periodoCaminhao(x)} · atende até ${x.raio_km} km</div>
+    <div class="tags"><span class="tag ${x.com_motorista ? 'az' : 'am'}">${x.com_motorista ? 'Com motorista' : 'Só o caminhão'}</span><span class="tag">${precoCaminhao(x)}</span>
+      ${vale ? '' : '<span class="tag vm">Encerrado</span>'}</div>
+    ${!meu && x.g ? `<div class="meta">${esc(x.g.nome)}${x.g.empresa ? ' · ' + esc(x.g.empresa) : ''} · ${esc(x.g.cidade)}</div>` : ''}
+    ${x.obs ? `<div class="meta">${esc(x.obs)}</div>` : ''}</div>
+    ${meu ? `<div class="acoes"><button class="btn fant full" id="btEnc">${x.status === 'ativo' ? 'Encerrar anúncio' : 'Reativar anúncio'}</button>
+      <button class="btn perigo full" id="btDel">Excluir anúncio</button></div>
+      <p style="color:var(--cinza);font-size:14px">Você recebe um aviso quando um colega pedir o contato.</p>`
+    : vale ? `<button class="btn zap full" id="btZapParc">Chamar ${esc((x.g?.nome || 'colega').split(' ')[0])} no WhatsApp</button>
+      <p style="color:var(--cinza);font-size:14px">Valor, combustível, seguro e entrega do caminhão são combinados entre vocês. O GF só aproxima os parceiros.</p>`
+    : '<div class="vazio">Este anúncio foi encerrado.</div>'}`;
+  if (!meu) return vale && botaoParceiro('caminhao', x.id, `Vi seu caminhão (${x.equipamento}, ${x.cidade}) cedido na rede. Ainda está disponível?`);
+  $('#btEnc').onclick = e => comBotao(e.currentTarget, async () => {
+    try { ok(await sb.from('gf_caminhoes').update({ status: x.status === 'ativo' ? 'encerrado' : 'ativo' }).eq('id', id)); toast('Anúncio atualizado.'); rota(); }
+    catch (er) { falha(er); }
+  });
+  $('#btDel').onclick = async () => {
+    if (!await perguntar({ titulo: 'Excluir este anúncio?', ok: 'Excluir', perigo: true })) return;
+    try { ok(await sb.from('gf_caminhoes').delete().eq('id', id)); toast('Anúncio excluído.'); location.hash = 'caminhoes'; }
     catch (er) { falha(er); }
   };
 }
