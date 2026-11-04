@@ -147,6 +147,7 @@ test('app cliente: login, perfil, pedido e persistência após recarregar', asyn
   await page.locator('#fP').waitFor();
   assert.equal(await page.locator('#bG').isHidden(), true, 'campos de guincheiro escondidos para cliente');
   await foto(page, '3-perfil');
+  assert.deepEqual(await page.locator('#fP .seg span').allInnerTexts(), ['Preciso transportar', 'Sou guincheiro']);
   await page.fill('#pn', 'Maria Cliente'); await page.fill('#pc', 'Alegrete'); await page.fill('#pz', '55999990001');
   await page.locator('#fP button').click();
   await page.waitForFunction(() => /privacidade/.test(document.querySelector('#toast').textContent));
@@ -235,12 +236,7 @@ test('app guincheiro: validação de placa e cadastro em análise', async () => 
   await page.locator('#nav a[data-r=buscar]').click();
   await page.locator('.aviso.am').waitFor();
   await page.locator('#nav a[data-r=servicos]').click();
-  await page.locator('[data-chips=aba] button[data-v=quanto]').click();
-  await page.locator('#fC').waitFor();
-  await page.fill('#cv', '850'); await page.fill('#ck', '320');
-  await page.waitForFunction(() => /R\$\s*111,00/.test(document.querySelector('#cRes').textContent));
-  assert.match(await page.locator('#cRes').innerText(), /sobra estimada/);
-  await foto(page, '9-calculadora');
+  assert.equal(await page.locator('[data-chips=aba] button[data-v=quanto]').count(), 0, 'sem a aba Quanto sobra?');
   assert.ok(!api.db.chamadas.some(c => c.startsWith('POST /rest/v1/rpc/gf_enviar_proposta')));
   // antecipação de recebíveis
   await page.locator('[data-chips=aba] button[data-v=antecipar]').click();

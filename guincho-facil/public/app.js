@@ -3,7 +3,7 @@
 // banco (rpc gf_*), que validam papel, estado e dados. A tela só orienta.
 const { STATUS, ETAPAS, ATIVOS, PROXIMO, ACAO_PRESTADOR, CONDICAO, VEICULO, EQUIPAMENTOS, CAPACIDADE, APROVACAO, OCORRENCIA,
   esc, brl, dataHora, dataCurta, soNum, zapValido, mascaraZap, linkZap, linkMaps, placaValida, valorDigitado,
-  dentroDoPeriodo, totalRegistrado, progressoCadastro, calcularResultado, ANTECIPACAO } = window.GF;
+  dentroDoPeriodo, totalRegistrado, progressoCadastro, ANTECIPACAO } = window.GF;
 const CFG = window.GF_CONFIG;
 const sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey);
 const $ = s => document.querySelector(s);
@@ -290,9 +290,9 @@ function telaPerfil(novo) {
   </ul>` : ''}
   ${!novo ? '<h3 class="sec-t">Seus dados</h3>' : ''}
   <form id="fP" novalidate ${novo ? '' : 'class="bloco"'}>
-    <div class="seg" role="radiogroup" aria-label="Tipo de conta">
-      ${[['cliente', 'Preciso transportar'], ['guincheiro', 'Sou guincheiro'], ['empresa', 'Empresa']].map(([v, t]) =>
-        `<label><input type="radio" name="tipo" value="${v}" ${p.tipo === v ? 'checked' : ''}><span>${t}</span></label>`).join('')}
+    <div class="seg c2" role="radiogroup" aria-label="Tipo de conta">
+      ${[['cliente', 'Preciso transportar'], ['guincheiro', 'Sou guincheiro']].map(([v, t]) =>
+        `<label><input type="radio" name="tipo" value="${v}" ${(p.tipo === 'guincheiro' ? 'guincheiro' : 'cliente') === v ? 'checked' : ''}><span>${t}</span></label>`).join('')}
     </div>
     <label for="pn">Nome</label><input id="pn" name="nome" value="${esc(p.nome)}" autocomplete="name" maxlength="80" required>
     <label for="pe">Empresa (opcional)</label><input id="pe" name="empresa" value="${esc(p.empresa)}" maxlength="80" autocomplete="organization">
@@ -564,12 +564,11 @@ async function telaRota(id) {
     catch (er) { falha(er); }
   };
 }
-const ABAS_SERV = [['andamento', 'Em andamento'], ['historico', 'Histórico e valores'], ['propostas', 'Propostas'], ['quanto', 'Quanto sobra?'], ['antecipar', 'Antecipar']];
+const ABAS_SERV = [['andamento', 'Em andamento'], ['historico', 'Histórico e valores'], ['propostas', 'Propostas'], ['antecipar', 'Antecipar']];
 async function telaServicos() {
   titulo('Meus serviços');
   const aba = decodeURIComponent(location.hash).split('/')[1] || 'andamento';
   const f = S.filtros.servicos ||= { dias: '30' };
-  if (aba === 'quanto') return telaCalculadora(decodeURIComponent(location.hash).split('/')[2] || null);
   if (aba === 'antecipar') return telaAntecipar();
   let html = chips('aba', ABAS_SERV, aba);
   if (aba === 'propostas') {
@@ -598,8 +597,7 @@ async function telaServicos() {
           <div><b>${notas.length ? (notas.reduce((s, p) => s + p.nota, 0) / notas.length).toFixed(1) : '–'}</b>nota média</div><div><b>R$ 0,00</b>pago pelo GF</div></div>
         <p class="aviso" style="font-size:15px"><b>Valor registrado</b> é o combinado com o cliente na proposta aceita. O pagamento é acertado direto entre vocês: o GF não processa nem garante pagamentos nesta fase.</p>` +
         (conc.length ? conc.map(p => `<div class="item"><a href="#pedido/${p.id}" style="color:inherit;text-decoration:none">${trajeto(p.origem, p.destino)}
-          <div class="meta">${esc(p.veiculo)} · ${dataHora(p.concluido_em)} · ${brl(p.valor_combinado)} registrado${p.nota ? ' · ' + '★'.repeat(p.nota) : ''}</div></a>
-          <a class="btn sec peq" style="margin-top:12px" href="#servicos/quanto/${p.id}">Quanto sobrou?</a></div>`).join('')
+          <div class="meta">${esc(p.veiculo)} · ${dataHora(p.concluido_em)} · ${brl(p.valor_combinado)} registrado${p.nota ? ' · ' + '★'.repeat(p.nota) : ''}</div></a></div>`).join('')
           : '<div class="vazio">Nenhum serviço concluído neste período.</div>');
     }
   }
@@ -663,71 +661,6 @@ async function telaAntecipar() {
     try { await rpc('gf_cancelar_antecipacao', { p_id: b.dataset.cant }); toast('Pedido cancelado.'); rota(); } catch (er) { falha(er); }
   });
 }
-// ───────────── "Quanto realmente sobra?" (estimativa feita no próprio celular) ─────────────
-const PREF_CALC = 'gf_calc_pref';
-function prefCalc() { try { return JSON.parse(localStorage.getItem(PREF_CALC)) || {}; } catch (e) { return {}; } }
-async function telaCalculadora(pedidoId) {
-  titulo('Quanto sobra?');
-  const pref = prefCalc();
-  let ped = null, kmSug = '';
-  if (pedidoId) {
-    ped = ok(await sb.from('gf_pedidos').select('id,origem,destino,veiculo,valor_combinado,prestador_id').eq('id', pedidoId).maybeSingle());
-    if (ped) {
-      const base = S.perfil.cidade, t = [GF_GEO.km(base, ped.origem), GF_GEO.km(ped.origem, ped.destino), GF_GEO.km(ped.destino, base)];
-      if (t.every(x => x != null)) kmSug = String(t.reduce((a, b) => a + b, 0));
-    }
-  }
-  const v = (k, d = '') => esc(String(pref[k] ?? d)).replace('.', ',');
-  V.innerHTML = `${chips('aba', ABAS_SERV, 'quanto')}
-  <div class="aviso"><b>Quanto realmente sobra?</b> Coloque o que recebeu e o que gastou. A conta é feita aqui no seu celular e não é enviada a ninguém.</div>
-  ${ped ? `<div class="item quente">${trajeto(ped.origem, ped.destino)}<div class="meta">${esc(ped.veiculo)}${kmSug ? ` · ~${kmSug} km ida e volta desde ${esc(S.perfil.cidade)} (estimativa, ajuste se precisar)` : ''}</div></div>` : ''}
-  <form id="fC" novalidate>
-    <div class="linha2">
-      <div><label for="cv">Valor recebido (R$)</label><input id="cv" name="valor" inputmode="decimal" value="${ped?.valor_combinado != null ? String(ped.valor_combinado).replace('.', ',') : ''}" placeholder="Ex.: 850"></div>
-      <div><label for="ck">Km rodados</label><input id="ck" name="km" inputmode="decimal" value="${esc(kmSug)}" placeholder="Ex.: 320"></div>
-    </div>
-    <div class="linha2">
-      <div><label for="cc">Consumo (km por litro)</label><input id="cc" name="consumo" inputmode="decimal" value="${v('consumo', '4')}"></div>
-      <div><label for="cd">Diesel (R$ por litro)</label><input id="cd" name="diesel" inputmode="decimal" value="${v('diesel', '6,20')}"></div>
-    </div>
-    <div class="linha2">
-      <div><label for="cm">Manutenção (R$ por km)</label><input id="cm" name="manutencaoKm" inputmode="decimal" value="${v('manutencaoKm', '0,60')}"></div>
-      <div><label for="ci">Impostos (% do valor)</label><input id="ci" name="impostosPct" inputmode="decimal" value="${v('impostosPct', '6')}"></div>
-    </div>
-    <div class="linha2">
-      <div><label for="cp">Pedágios (R$)</label><input id="cp" name="pedagios" inputmode="decimal" placeholder="0"></div>
-      <div><label for="co">Outros custos (R$)</label><input id="co" name="outros" inputmode="decimal" placeholder="Ajudante, alimentação…"></div>
-    </div>
-  </form>
-  <div id="cRes" aria-live="polite"></div>
-  <p style="color:var(--cinza);font-size:13px">Estimativa simplificada: não inclui depreciação do caminhão, custos fixos do mês nem todos os tributos. Consumo, diesel, manutenção e impostos ficam guardados neste celular para a próxima conta.</p>`;
-  ligaChips('aba', x => location.hash = 'servicos/' + x);
-  const f = $('#fC');
-  const conta = () => {
-    const d = Object.fromEntries(new FormData(f));
-    try { localStorage.setItem(PREF_CALC, JSON.stringify({ consumo: d.consumo, diesel: d.diesel, manutencaoKm: d.manutencaoKm, impostosPct: d.impostosPct })); } catch (e) { }
-    const r = calcularResultado(d);
-    if (!r.receita) { $('#cRes').innerHTML = '<div class="vazio">Digite o valor recebido para ver o resultado.</div>'; return; }
-    const linha = (t, x) => x ? `<tr><td>${t}</td><td style="text-align:right">${brl(x)}</td></tr>` : '';
-    $('#cRes').innerHTML = `<div class="resumo" style="margin-top:16px">
-        <div><b>${brl(r.receita)}</b>recebido</div><div><b>${brl(r.custos)}</b>custos</div>
-        <div style="grid-column:1/-1;border-color:${r.resultado >= 0 ? 'var(--gf-success)' : 'var(--gf-danger)'}"><b style="color:${r.resultado >= 0 ? 'var(--gf-success)' : 'var(--gf-danger)'}">${brl(r.resultado)}</b>
-          sobra estimada${r.margem != null ? ` · ${String(r.margem).replace('.', ',')}% do valor` : ''}${r.porKm != null ? ` · ${brl(r.porKm)} por km` : ''}</div></div>
-      <div class="rolar"><table><tbody>${linha('Combustível', r.combustivel)}${linha('Manutenção', r.manutencao)}${linha('Impostos', r.impostos)}${linha('Pedágios', r.pedagios)}${linha('Outros', r.outros)}</tbody></table></div>`;
-  };
-  f.addEventListener('input', conta); f.onsubmit = e => e.preventDefault(); conta();
-}
-
-async function avancar(bt, pedidoId, novo) {
-  const txt = { a_caminho: 'Confirmar que saiu para o atendimento?', no_local: 'Confirmar que chegou no local?',
-    em_transporte: 'Confirmar que o veículo está carregado?', concluido: 'Confirmar que entregou o veículo no destino?' }[novo];
-  if (!await perguntar({ titulo: txt, texto: 'O cliente acompanha cada etapa no app.', ok: 'Confirmar' })) return;
-  comBotao(bt, async () => {
-    try { await rpc('gf_atualizar_status', { p_pedido: pedidoId, p_status: novo, p_detalhe: null }); toast('Atualizado: ' + STATUS[novo] + '.'); rota(); contadores(); }
-    catch (er) { falha(er); }
-  });
-}
-
 // ───────────────────────── detalhe do pedido ─────────────────────────
 function linhaDoTempo(p) {
   if (p.status === 'cancelado') return `<div class="aviso"><b>Pedido cancelado.</b>${p.cancelado_motivo ? ' Motivo: ' + esc(p.cancelado_motivo) : ''}</div>`;
@@ -804,7 +737,6 @@ async function telaPedido(id) {
       ${p.status !== 'concluido' ? await botaoContato(p, 'prestador') : ''}</div>
       ${PROXIMO[p.status] ? `<button class="btn full" style="margin-top:14px;min-height:64px;font-size:20px" id="btAv">${ACAO_PRESTADOR[p.status]}</button>` : ''}
       ${['aceito', 'a_caminho'].includes(p.status) ? '<button class="btn perigo full" style="margin-top:12px" id="btDesist">Não vou conseguir atender</button>' : ''}`;
-    if (p.status === 'concluido') html += `<a class="btn sec full" style="margin-top:12px" href="#servicos/quanto/${p.id}">Quanto sobrou neste serviço?</a>`;
     if (p.nota) html += `<p style="color:var(--placa);font-size:20px">Avaliação do cliente: ${'★'.repeat(p.nota)}</p>${p.avaliacao_comentario ? `<p>${esc(p.avaliacao_comentario)}</p>` : ''}`;
   } else {
     const mine = ok(await sb.from('gf_propostas').select('*').eq('pedido_id', id).eq('guincheiro_id', S.user.id).maybeSingle());
