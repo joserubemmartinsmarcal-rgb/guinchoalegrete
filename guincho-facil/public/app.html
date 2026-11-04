@@ -98,6 +98,76 @@ th{color:var(--gf-muted);font-size:12px}
 .boas-vindas{padding:10px 2px 18px}
 .boas-vindas h2{font-size:34px}
 .boas-vindas p{color:var(--gf-ink-2);margin:0}
+/* ── acabamento (nov/2026): visual de produto, mesma paleta ── */
+body{background:#f3f7fb}
+#v{padding:16px 16px 28px}
+.barra{gap:10px;padding:8px 12px 8px 16px;padding-top:calc(8px + env(safe-area-inset-top,0px));border-bottom:0}
+.barra img{height:22px}
+.barra h1{font-size:18px;font-weight:700;letter-spacing:-.01em}
+#btSair{display:none!important}
+.nav{border-top:1px solid rgba(255,255,255,.06)}
+.nav a{font-weight:600;font-size:11.5px;letter-spacing:.01em}
+[data-tema="claro"]{--gf-muted:#566a80;--gf-line:#e1e8f0}
+.item,.prop,.passos,.historico,.troca,.vazio,.bloco,.menu-lista{box-shadow:0 1px 2px rgba(15,36,64,.05)}
+.item{border-radius:16px;padding:16px;margin-bottom:10px;border-color:#e1e8f0}
+a.item{transition:border-color .15s}
+a.item:active{background:#f8fbfe}
+.item.quente{box-shadow:0 1px 2px rgba(15,36,64,.05);border-color:#bcd6f5}
+.item .meta{font-size:13.5px;margin-top:8px}
+.item .tags{margin-top:10px}
+/* trajeto como rota: origem ● ┆ ● destino */
+.trajeto{position:relative;display:grid;gap:10px;padding-left:22px}
+.trajeto::before{content:"";position:absolute;left:5px;top:11px;bottom:11px;border-left:2px dotted #9fb3c8}
+.trajeto .parada{position:relative;font:700 17px/1.2 var(--gf-font);letter-spacing:-.01em;color:var(--gf-ink)}
+.trajeto .parada::before{content:"";position:absolute;left:-22px;top:4px;width:8px;height:8px;border-radius:50%;border:2px solid var(--gf-ink);background:#fff}
+.trajeto .parada.d::before{background:var(--gf-brand-blue);border-color:var(--gf-brand-blue)}
+.item.destaque .trajeto .parada{font-size:21px}
+.tag{border:0;padding:4px 10px 4px 9px;font-size:12px;background:#edf2f7;color:var(--gf-ink-2);display:inline-flex;align-items:center;gap:6px}
+.tag.am,.tag.vd,.tag.vm,.tag.az{border:0}
+.tag.am::before,.tag.vd::before,.tag.vm::before,.tag.az::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.sec-t{font:700 16px var(--gf-font);letter-spacing:-.01em;text-transform:none;color:var(--gf-ink);margin:26px 2px 10px}
+.resumo{gap:1px;background:#e1e8f0;border:1px solid #e1e8f0;border-radius:16px;overflow:hidden;margin:4px 0 18px}
+.resumo a,.resumo div{border:0;border-radius:0;background:#fff;padding:14px 16px;box-shadow:none}
+.resumo b{font-size:24px;font-weight:700}
+.chips{gap:6px;margin-bottom:10px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chips button{min-height:34px;padding:0 13px;border:0;background:#e6edf5;color:var(--gf-ink-2);font-size:13.5px}
+.chips button[aria-pressed=true]{background:var(--gf-ink);color:#fff}
+.seg{background:#e6edf5;padding:4px;gap:4px}
+.seg span{min-height:40px;color:var(--gf-ink-2)}
+.seg input:checked+span{background:#fff;color:var(--gf-ink);box-shadow:0 1px 3px rgba(15,36,64,.18)}
+#v input:not([type=checkbox]):not([type=radio]),#v select,#v textarea{background:#fff;border:1px solid #cfdae6;border-radius:12px;min-height:50px;font-size:16px}
+#v input:focus,#v select:focus,#v textarea:focus{outline:none;border-color:var(--gf-brand-blue);box-shadow:0 0 0 3px rgba(30,143,255,.18)}
+#v label{color:var(--gf-ink-2);font-size:13.5px}
+#v .btn{border-radius:12px}
+#v .btn.fant{background:#fff;border-color:#d5dfea;color:var(--gf-ink)}
+#v .btn.sec{background:var(--gf-accent-soft);border-color:transparent;color:var(--gf-accent)}
+.vazio{border:1px solid #e1e8f0;padding:28px 18px;line-height:1.5}
+.aviso{border-radius:14px}
+.bloco{background:#fff;border:1px solid #e1e8f0;border-radius:16px;padding:16px}
+.menu-lista:first-child{margin-top:0}
+/* início do cliente */
+.chamada{display:block;position:relative;overflow:hidden;border-radius:20px;padding:22px 20px 20px;color:#fff;text-decoration:none;
+  background:#050b16 url(/assets/estrada-luz.jpg) center bottom/cover no-repeat}
+.chamada::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#050b16 25%,rgba(5,11,22,.55) 70%,rgba(5,11,22,.2))}
+.chamada>*{position:relative}
+.chamada h2{font-size:26px;line-height:1.1;letter-spacing:-.02em;margin:0 0 6px;max-width:16ch}
+.chamada p{color:#c9d4e3;font-size:14.5px;margin:0 0 18px;max-width:34ch}
+.chamada .btn{background:var(--gf-brand-blue);border-color:var(--gf-brand-blue);color:#04101f}
+/* menu do perfil */
+.menu-lista{list-style:none;margin:16px 0 0;padding:0;background:#fff;border:1px solid #e1e8f0;border-radius:16px;overflow:hidden}
+.menu-lista li+li{border-top:1px solid #edf1f6}
+.menu-lista a,.menu-lista button{display:flex;align-items:center;gap:12px;width:100%;min-height:54px;padding:0 16px;background:none;border:0;color:var(--gf-ink);font:600 15px var(--gf-font);text-decoration:none;cursor:pointer;text-align:left}
+.menu-lista svg{width:20px;height:20px;flex:none;color:var(--gf-muted)}
+.menu-lista .seta{margin-left:auto;color:#a7b6c6}
+.menu-lista .sair{color:#c2362b}.menu-lista .sair svg{color:#c2362b}
+.item .tit{font:700 17px/1.25 var(--gf-font);letter-spacing:-.01em}
+.aviso.instalar{display:flex;align-items:center;gap:12px;padding:12px 12px 12px 16px;font-size:14px;line-height:1.35;background:#fff;border:1px solid #e1e8f0}
+.aviso.instalar[hidden]{display:none}
+.aviso.instalar .btn{width:auto;min-height:40px;margin:0!important;flex:none;padding:0 16px;font-size:14px}
+.resumo.c4{grid-template-columns:repeat(4,1fr)}
+.resumo.c4 div{padding:12px 8px;text-align:center;font-size:11.5px;line-height:1.25}
+.resumo.c4 b{font-size:20px;margin-bottom:2px}
+.aviso-item{padding:14px 16px}.aviso-item b{font-size:15px}
 </style>
 </head>
 <body data-tema="claro">

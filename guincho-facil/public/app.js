@@ -46,6 +46,8 @@ const ehGuincho = () => S.perfil?.tipo === 'guincheiro';
 const aprovado = () => S.perfil?.aprovacao === 'aprovado';
 const cidadeOk = c => !!GF_CIDADES[c];
 const kmTxt = n => n == null ? '' : `~${n} km`;
+// trajeto em forma de rota: origem ● ┆ ● destino
+const trajeto = (o, d) => `<div class="trajeto" aria-label="De ${esc(o)} para ${esc(d)}"><span class="parada o">${esc(o)}</span><span class="parada d">${esc(d)}</span></div>`;
 function tagStatus(st) {
   const cls = { aberto: 'am', concluido: 'vd', cancelado: 'vm' }[st] || (ATIVOS.includes(st) ? 'az' : '');
   return `<span class="tag ${cls}">${esc(STATUS[st] || st)}</span>`;
@@ -110,7 +112,13 @@ const IC = {
   busca: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
   caminhao: '<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>',
-  admin: '<path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/>'
+  admin: '<path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/>',
+  sino: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  alerta: '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>',
+  cadeado: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+  celular: '<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
+  sair: '<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/>',
+  seta: '<path d="m9 6 6 6-6 6"/>'
 };
 const svg = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">${p}</svg>`;
 function montaNav() {
@@ -270,7 +278,18 @@ function telaPerfil(novo) {
   V.innerHTML = `
   ${novo ? '<h2 style="font-size:34px">Como você vai usar o GF?</h2>' : ''}
   ${!novo && ehGuincho() ? blocoProgresso() : ''}
-  <form id="fP" novalidate>
+  ${!novo ? `<ul class="menu-lista" aria-label="Conta">
+    ${[ehGuincho() ? ['#pedidos', IC.lista, 'Meus repasses'] : null,
+       ['#avisos', IC.sino, 'Avisos no celular'],
+       ['#ocorrencias', IC.alerta, 'Minhas ocorrências'],
+       S.perfil?.is_admin ? ['#admin', IC.admin, 'Painel da administração'] : null,
+       ['/privacidade', IC.cadeado, 'Privacidade e dados']].filter(Boolean).map(([h, i, t]) =>
+      `<li><a href="${h}">${svg(i)}${t}<span class="seta">${svg(IC.seta)}</span></a></li>`).join('')}
+    ${instalado() ? '' : `<li><button type="button" id="btInst">${svg(IC.celular)}Instalar app no celular<span class="seta">${svg(IC.seta)}</span></button></li>`}
+    <li><button type="button" class="sair" id="btSair2">${svg(IC.sair)}Sair da conta</button></li>
+  </ul>` : ''}
+  ${!novo ? '<h3 class="sec-t">Seus dados</h3>' : ''}
+  <form id="fP" novalidate ${novo ? '' : 'class="bloco"'}>
     <div class="seg" role="radiogroup" aria-label="Tipo de conta">
       ${[['cliente', 'Preciso transportar'], ['guincheiro', 'Sou guincheiro'], ['empresa', 'Empresa']].map(([v, t]) =>
         `<label><input type="radio" name="tipo" value="${v}" ${p.tipo === v ? 'checked' : ''}><span>${t}</span></label>`).join('')}
@@ -289,17 +308,12 @@ function telaPerfil(novo) {
     <p style="color:var(--cinza);font-size:14px">Seu WhatsApp só aparece para quem fecha serviço com você.</p>
     <button class="btn full">${novo ? 'Começar a usar' : 'Salvar perfil'}</button>
   </form>
-  ${!novo ? `<div class="acoes" style="margin-top:22px">
-    ${ehGuincho() ? '<a class="btn fant full" href="#pedidos">Meus repasses</a>' : ''}
-    <a class="btn fant full" href="#avisos">Avisos no celular</a>
-    <a class="btn fant full" href="#ocorrencias">Minhas ocorrências</a>
-    ${S.perfil?.is_admin ? '<a class="btn sec full" href="#admin">Painel da administração</a>' : ''}
-    <button class="btn fant full" id="btInst">Instalar app no celular</button>
-    <a class="btn fant full" href="/privacidade">Privacidade e dados</a>
-  </div>` : ''}`;
+  ${novo ? '<button type="button" class="btn fant full" id="btSair2" style="margin-top:10px">Sair da conta</button>' : ''}
+`;
   const zap = $('#pz'); zap.addEventListener('input', () => zap.value = mascaraZap(zap.value));
   const f = $('#fP'); const tg = () => $('#bG').hidden = f.tipo.value !== 'guincheiro'; tg(); f.addEventListener('change', tg);
   if ($('#btInst')) $('#btInst').onclick = instalar;
+  if ($('#btSair2')) $('#btSair2').onclick = () => $('#btSair').click();
   f.onsubmit = e => {
     e.preventDefault();
     const d = Object.fromEntries(new FormData(f));
@@ -327,7 +341,7 @@ function telaPerfil(novo) {
 function cardPedidoMeu(p) {
   const n = (p.gf_propostas || []).filter(x => x.status === 'enviada').length;
   return `<a class="item ${n || ATIVOS.includes(p.status) ? 'quente' : ''}" href="#pedido/${p.id}">
-    <div class="trajeto">${esc(p.origem)} › ${esc(p.destino)}</div>
+    ${trajeto(p.origem, p.destino)}
     <div class="meta">${esc(VEICULO[p.veiculo_tipo] || '')} · ${esc(p.veiculo)} · ${dataHora(p.criado_em)}</div>
     <div class="tags">${p.status === 'aberto' && n ? `<span class="tag am">${n} proposta${n > 1 ? 's' : ''} nova${n > 1 ? 's' : ''}</span>` : tagStatus(p.status)}
       ${p.tipo === 'repasse' ? '<span class="tag">Repasse</span>' : ''}${p.valor_combinado != null ? `<span class="tag">${brl(p.valor_combinado)}</span>` : ''}</div></a>`;
@@ -337,8 +351,9 @@ async function inicioCliente() {
   const d = ok(await sb.from('gf_pedidos').select('id,origem,destino,veiculo,veiculo_tipo,tipo,status,valor_combinado,criado_em,gf_propostas(status)')
     .eq('autor_id', S.user.id).not('status', 'in', '(concluido,cancelado)').order('criado_em', { ascending: false }).limit(20));
   V.innerHTML = `${blocoInstalar()}
-    <a class="btn full" href="#pedido/novo" style="min-height:64px;font-size:20px">Pedir transporte de veículo</a>
-    <p style="color:var(--cinza);font-size:15px;margin:10px 0 0">Guincheiros da região e quem está voltando pela sua rota recebem o pedido e mandam propostas. Você escolhe.</p>
+    <div class="chamada"><h2>Precisa levar um veículo?</h2>
+      <p>Guincheiros da região e quem está voltando pela sua rota mandam propostas. Você escolhe.</p>
+      <a class="btn full" href="#pedido/novo">Pedir transporte de veículo</a></div>
     <h3 class="sec-t">Em andamento</h3>
     ${d.length ? d.map(cardPedidoMeu).join('') : '<div class="vazio">Nenhum pedido em andamento.<br>Quando pedir, as propostas aparecem aqui.</div>'}
     ${S.perfil.is_admin ? '<a class="btn sec full" style="margin-top:8px" href="#admin">Painel da administração</a>' : ''}`;
@@ -396,7 +411,7 @@ async function telaMeusPedidos() {
   const lista = noPeriodo.filter(grupo[f.st]);
   const cont = k => noPeriodo.filter(grupo[k]).length;
   V.innerHTML = `<a class="btn full" href="#${ehGuincho() ? 'repasse' : 'pedido'}/novo">${ehGuincho() ? 'Repassar serviço' : 'Pedir transporte'}</a>
-    <div class="resumo" style="margin-top:14px"><div><b>${cont('todos')}</b>no período</div><div><b>${cont('andamento')}</b>em andamento</div>
+    <div class="resumo c4" style="margin-top:14px"><div><b>${cont('todos')}</b>no período</div><div><b>${cont('andamento')}</b>em andamento</div>
       <div><b>${cont('concluido')}</b>concluídos</div><div><b>${cont('cancelado')}</b>cancelados</div></div>
     ${chips('st', [['todos', 'Todos'], ['andamento', 'Em andamento'], ['concluido', 'Concluídos'], ['cancelado', 'Cancelados']], f.st)}
     ${chips('dias', [['7', '7 dias'], ['30', '30 dias'], ['90', '90 dias'], ['0', 'Tudo']], f.dias)}
@@ -407,7 +422,7 @@ async function telaMeusPedidos() {
 // ───────────────────────── guincheiro ─────────────────────────
 function cardPedidoAberto(p, extra) {
   return `<a class="item ${p.tipo === 'repasse' ? 'quente' : ''}" href="#pedido/${p.id}">
-    <div class="trajeto">${esc(p.origem)} › ${esc(p.destino)}</div>
+    ${trajeto(p.origem, p.destino)}
     <div class="meta">${esc(VEICULO[p.veiculo_tipo] || '')} · ${esc(p.veiculo)} · ${esc(CONDICAO[p.condicao] || p.condicao)} · ${dataCurta(p.data_servico)}</div>
     <div class="tags">${p.tipo === 'repasse' ? '<span class="tag am">Repasse de colega</span>' : ''}${extra ? `<span class="tag">${esc(extra)}</span>` : ''}
       ${GF_GEO.km(p.origem, p.destino) ? `<span class="tag">trajeto ${kmTxt(GF_GEO.km(p.origem, p.destino))}</span>` : ''}</div></a>`;
@@ -477,7 +492,7 @@ async function telaRotas() {
       .neq('guincheiro_id', S.user.id).eq('status', 'ativo').gte('saida', new Date(Date.now() - 864e5).toISOString()).order('saida').limit(50)]);
   const m = ok(minhas), r = ok(rede);
   const card = (x, meu) => `<a class="item ${x.status === 'ativo' || !meu ? 'quente' : ''}" href="#rota/${x.id}">
-    <div class="trajeto">${esc(x.origem)} › ${esc(x.destino)}</div>
+    ${trajeto(x.origem, x.destino)}
     <div class="meta">${dataHora(x.saida)} · ${esc(x.equipamento)} · ${x.vagas} vaga${x.vagas > 1 ? 's' : ''}${!meu && x.g ? ' · ' + esc(x.g.nome) : ''}</div>
     <div class="tags"><span class="tag ${x.sentido === 'retorno' ? 'am' : ''}">${x.sentido === 'retorno' ? 'Retorno' : 'Ida'}</span>
       ${meu ? `<span class="tag">${x.status === 'ativo' ? 'Ativa' : 'Encerrada'}</span>` : ''}</div></a>`;
@@ -529,7 +544,7 @@ async function telaRota(id) {
   const meu = r.guincheiro_id === S.user.id;
   const lista = (await pedidosAbertos()).map(p => ({ ...p, desvio: GF_GEO.desvio(r.origem, r.destino, p.origem, p.destino) }))
     .filter(p => p.desvio != null && p.desvio <= 120).sort((a, b) => a.desvio - b.desvio);
-  V.innerHTML = `<div class="item quente"><div class="trajeto">${esc(r.origem)} › ${esc(r.destino)}</div>
+  V.innerHTML = `<div class="item quente">${trajeto(r.origem, r.destino)}
     <div class="meta">${r.sentido === 'retorno' ? 'Retorno' : 'Ida'} · ${dataHora(r.saida)} · ${esc(r.equipamento)} · ${r.vagas} vaga(s) · ${kmTxt(GF_GEO.km(r.origem, r.destino))}</div>
     ${!meu && r.g ? `<div class="meta">${esc(r.g.nome)}${r.g.empresa ? ' · ' + esc(r.g.empresa) : ''} · ${esc(r.g.cidade)}</div>` : ''}
     ${r.obs ? `<div class="meta">${esc(r.obs)}</div>` : ''}</div>
@@ -562,7 +577,7 @@ async function telaServicos() {
       .order('atualizado_em', { ascending: false }).limit(100));
     const rot = { enviada: 'Aguardando o cliente', aceita: 'Aceita', recusada: 'Não escolhida', cancelada: 'Retirada' };
     html += d.length ? d.map(x => `<a class="item ${x.status === 'aceita' ? 'quente' : ''}" href="#pedido/${x.p?.id}">
-      <div class="trajeto">${esc(x.p?.origem)} › ${esc(x.p?.destino)}</div><div class="meta">${esc(x.p?.veiculo)} · ${brl(x.valor)} · ${dataHora(x.atualizado_em)}</div>
+      ${trajeto(x.p?.origem, x.p?.destino)}<div class="meta">${esc(x.p?.veiculo)} · ${brl(x.valor)} · ${dataHora(x.atualizado_em)}</div>
       <div class="tags"><span class="tag ${x.status === 'aceita' ? 'vd' : x.status === 'recusada' ? 'vm' : ''}">${rot[x.status]}</span></div></a>`).join('')
       : '<div class="vazio"><h2>Nenhuma proposta ainda</h2><a href="#buscar">Ver pedidos abertos</a></div>';
   } else {
@@ -571,7 +586,7 @@ async function telaServicos() {
     if (aba === 'andamento') {
       const at = d.filter(p => ATIVOS.includes(p.status));
       html += at.length ? at.map(p => `<div class="item quente"><a href="#pedido/${p.id}" style="color:inherit;text-decoration:none">
-        <div class="trajeto">${esc(p.origem)} › ${esc(p.destino)}</div><div class="meta">${esc(p.veiculo)} · ${brl(p.valor_combinado)}</div>
+        ${trajeto(p.origem, p.destino)}<div class="meta">${esc(p.veiculo)} · ${brl(p.valor_combinado)}</div>
         <div class="tags">${tagStatus(p.status)}</div></a>
         <button class="btn full" style="margin-top:12px" data-av="${p.id}" data-st="${PROXIMO[p.status]}">${ACAO_PRESTADOR[p.status]}</button></div>`).join('')
         : '<div class="vazio">Nenhum serviço em andamento.<br>Quando um cliente aceitar sua proposta, ele aparece aqui.</div>';
@@ -582,7 +597,7 @@ async function telaServicos() {
         `<div class="resumo"><div><b>${conc.length}</b>serviços concluídos</div><div><b>${brl(totalRegistrado(conc))}</b>valores registrados</div>
           <div><b>${notas.length ? (notas.reduce((s, p) => s + p.nota, 0) / notas.length).toFixed(1) : '–'}</b>nota média</div><div><b>R$ 0,00</b>pago pelo GF</div></div>
         <p class="aviso" style="font-size:15px"><b>Valor registrado</b> é o combinado com o cliente na proposta aceita. O pagamento é acertado direto entre vocês: o GF não processa nem garante pagamentos nesta fase.</p>` +
-        (conc.length ? conc.map(p => `<div class="item"><a href="#pedido/${p.id}" style="color:inherit;text-decoration:none"><div class="trajeto">${esc(p.origem)} › ${esc(p.destino)}</div>
+        (conc.length ? conc.map(p => `<div class="item"><a href="#pedido/${p.id}" style="color:inherit;text-decoration:none">${trajeto(p.origem, p.destino)}
           <div class="meta">${esc(p.veiculo)} · ${dataHora(p.concluido_em)} · ${brl(p.valor_combinado)} registrado${p.nota ? ' · ' + '★'.repeat(p.nota) : ''}</div></a>
           <a class="btn sec peq" style="margin-top:12px" href="#servicos/quanto/${p.id}">Quanto sobrou?</a></div>`).join('')
           : '<div class="vazio">Nenhum serviço concluído neste período.</div>');
@@ -596,7 +611,7 @@ async function telaServicos() {
 }
 // ───────────── antecipação de recebíveis (parceira JK Invest; o GF só encaminha) ─────────────
 function blocoAntecipar() {
-  return `<a class="item quente antecipa" href="#servicos/antecipar"><div class="trajeto">Fez o serviço? Receba na hora.</div>
+  return `<a class="item quente antecipa" href="#servicos/antecipar"><div class="tit">Fez o serviço? Receba na hora.</div>
     <div class="meta">Antecipe o que você tem a receber de seguradora, empresa, cartão ou Pix a prazo com a ${ANTECIPACAO.parceira}. Dinheiro em até 3 horas após a aprovação.</div>
     <div class="tags"><span class="tag az">Antecipar recebíveis ›</span></div></a>`;
 }
@@ -665,7 +680,7 @@ async function telaCalculadora(pedidoId) {
   const v = (k, d = '') => esc(String(pref[k] ?? d)).replace('.', ',');
   V.innerHTML = `${chips('aba', ABAS_SERV, 'quanto')}
   <div class="aviso"><b>Quanto realmente sobra?</b> Coloque o que recebeu e o que gastou. A conta é feita aqui no seu celular e não é enviada a ninguém.</div>
-  ${ped ? `<div class="item quente"><div class="trajeto">${esc(ped.origem)} › ${esc(ped.destino)}</div><div class="meta">${esc(ped.veiculo)}${kmSug ? ` · ~${kmSug} km ida e volta desde ${esc(S.perfil.cidade)} (estimativa, ajuste se precisar)` : ''}</div></div>` : ''}
+  ${ped ? `<div class="item quente">${trajeto(ped.origem, ped.destino)}<div class="meta">${esc(ped.veiculo)}${kmSug ? ` · ~${kmSug} km ida e volta desde ${esc(S.perfil.cidade)} (estimativa, ajuste se precisar)` : ''}</div></div>` : ''}
   <form id="fC" novalidate>
     <div class="linha2">
       <div><label for="cv">Valor recebido (R$)</label><input id="cv" name="valor" inputmode="decimal" value="${ped?.valor_combinado != null ? String(ped.valor_combinado).replace('.', ',') : ''}" placeholder="Ex.: 850"></div>
@@ -744,7 +759,7 @@ async function telaPedido(id) {
   titulo(p.tipo === 'repasse' ? 'Repasse' : 'Pedido');
   const papel = p.autor_id === S.user.id ? 'cliente' : p.prestador_id === S.user.id ? 'prestador' : 'outro';
   const km = GF_GEO.km(p.origem, p.destino);
-  let html = `<div class="item quente"><div class="trajeto">${esc(p.origem)} › ${esc(p.destino)}</div>
+  let html = `<div class="item quente destaque">${trajeto(p.origem, p.destino)}
     <div class="meta">${esc(VEICULO[p.veiculo_tipo] || '')} · ${esc(p.veiculo)}${p.placa && papel !== 'outro' ? ' · ' + esc(p.placa) : ''} · ${esc(CONDICAO[p.condicao] || p.condicao)}</div>
     <div class="meta">${dataCurta(p.data_servico)}${km ? ' · trajeto ' + kmTxt(km) : ''}${papel !== 'cliente' && p.autor ? ' · pedido por ' + esc(p.autor.nome.split(' ')[0]) : ''}</div>
     ${p.obs ? `<div class="meta">${esc(p.obs)}</div>` : ''}
@@ -956,7 +971,7 @@ async function telaAdmin(aba) {
     dados = ok(await q);
     html += chips('pst', [['ativos', 'Em aberto/andamento'], ['concluido', 'Concluídos'], ['cancelado', 'Cancelados'], ['todos', 'Todos']], f.st) +
       `<button class="btn sec full" id="btCsv">Baixar CSV</button><div style="height:12px"></div>` +
-      (dados.length ? dados.map(p => `<div class="item"><div class="trajeto">${esc(p.origem)} › ${esc(p.destino)}</div>
+      (dados.length ? dados.map(p => `<div class="item">${trajeto(p.origem, p.destino)}
         <div class="meta">${esc(p.veiculo)} · ${dataHora(p.criado_em)} · cliente ${esc(p.autor?.nome || '')}${p.prestador ? ' · guincheiro ' + esc(p.prestador.nome) : ''}${p.valor_combinado != null ? ' · ' + brl(p.valor_combinado) : ''}</div>
         <div class="tags">${tagStatus(p.status)}${p.tipo === 'repasse' ? '<span class="tag">Repasse</span>' : ''}</div>
         ${!['concluido', 'cancelado'].includes(p.status) ? `<button class="btn perigo peq" style="margin-top:10px" data-canc="${p.id}">Cancelar (admin)</button>` : ''}</div>`).join('')
@@ -1042,8 +1057,8 @@ const instalado = () => matchMedia('(display-mode: standalone)').matches || navi
 const ios = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
 function blocoInstalar() {
   if (instalado()) return '';
-  return `<div class="aviso instalar" ${promptInst || ios() ? '' : 'hidden'}><b>Instale o GF no celular.</b> Fica com ícone na tela e abre em tela cheia.
-    <button class="btn full" style="margin-top:10px" data-inst>Instalar</button></div>`;
+  return `<div class="aviso instalar" ${promptInst || ios() ? '' : 'hidden'}><span><b>Instale o GF no celular.</b> Abre em tela cheia e recebe avisos.</span>
+    <button class="btn" data-inst>Instalar</button></div>`;
 }
 function ligaInstalar() { V.querySelectorAll('[data-inst]').forEach(b => b.onclick = instalar); }
 async function instalar() {

@@ -172,7 +172,7 @@ test('app cliente: login, perfil, pedido e persistência após recarregar', asyn
 
   await page.waitForURL(/#pedido\//);
   await page.locator('.trajeto').waitFor();
-  assert.match(await page.locator('.trajeto').innerText(), /Alegrete › Santa Maria/);
+  assert.match(await page.locator('.trajeto').innerText(), /Alegrete\s*Santa Maria/);
   assert.match(await page.locator('#v').innerText(), /Ainda sem propostas/);
   assert.match(await page.locator('.passos li.atual').innerText(), /Aguardando propostas/);
   await foto(page, '6-pedido');
@@ -183,7 +183,7 @@ test('app cliente: login, perfil, pedido e persistência após recarregar', asyn
 
   await page.reload();
   await page.locator('.trajeto').waitFor();
-  assert.match(await page.locator('.trajeto').innerText(), /Alegrete › Santa Maria/, 'pedido continua após recarregar');
+  assert.match(await page.locator('.trajeto').innerText(), /Alegrete\s*Santa Maria/, 'pedido continua após recarregar');
   await page.locator('#nav a[data-r=pedidos]').click();
   await page.locator('.item .trajeto').waitFor();
   assert.match(await page.locator('.resumo').innerText(), /1\s*no período/);
@@ -206,6 +206,10 @@ test('app cliente: login, perfil, pedido e persistência após recarregar', asyn
   await foto(page, '7b-avisos');
   await page.locator('.aviso-item').click();
   await page.waitForURL(/#pedido\//);
+  await page.locator('#nav a[data-r=perfil]').click();
+  await page.locator('.menu-lista').waitFor();
+  assert.match(await page.locator('.menu-lista').innerText(), /Sair da conta/);
+  await foto(page, '7c-perfil');
   assert.deepEqual(erros, []);
   await ctx.close();
 });
