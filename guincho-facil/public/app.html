@@ -146,13 +146,18 @@ a.item:active{background:#f8fbfe}
 .bloco{background:#fff;border:1px solid #e1e8f0;border-radius:16px;padding:16px}
 .menu-lista:first-child{margin-top:0}
 /* início do cliente */
-.chamada{display:block;position:relative;overflow:hidden;border-radius:20px;padding:22px 20px 20px;color:#fff;text-decoration:none;
-  background:#050b16 url(/assets/estrada-luz.jpg) center bottom/cover no-repeat}
-.chamada::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#050b16 25%,rgba(5,11,22,.55) 70%,rgba(5,11,22,.2))}
+.chamada{display:block;position:relative;overflow:hidden;border-radius:22px;padding:28px 22px 22px;color:#fff;text-decoration:none;min-height:250px;
+  background:#050b16 url(/assets/estrada-luz.jpg) center bottom/cover no-repeat;box-shadow:0 14px 34px rgba(5,11,22,.28)}
+.chamada::before{content:"";position:absolute;inset:0;background:radial-gradient(360px 220px at 100% 0,rgba(30,143,255,.42),transparent 70%),linear-gradient(180deg,#050b16 22%,rgba(5,11,22,.5) 68%,rgba(5,11,22,.1))}
 .chamada>*{position:relative}
-.chamada h2{font-size:26px;line-height:1.1;letter-spacing:-.02em;margin:0 0 6px;max-width:16ch}
-.chamada p{color:#c9d4e3;font-size:14.5px;margin:0 0 18px;max-width:34ch}
-.chamada .btn{background:var(--gf-brand-blue);border-color:var(--gf-brand-blue);color:#04101f}
+.chamada h2{font-size:32px;line-height:1.02;letter-spacing:-.03em;font-weight:800;margin:0 0 10px;max-width:14ch}
+.chamada p{color:#dbe5f2;font-size:15.5px;margin:0 0 22px;max-width:32ch}
+/* botões principais: azul vivo, texto branco, brilho */
+#v .btn:not(.fant):not(.sec):not(.zap):not(.perigo),.aviso.instalar .btn{background:linear-gradient(180deg,#2e9dff,#0b6fe8);border-color:#0b6fe8;color:#fff;font-weight:800;
+  box-shadow:0 8px 20px rgba(11,111,232,.38),inset 0 1px 0 rgba(255,255,255,.28);text-shadow:0 1px 1px rgba(0,40,100,.25)}
+#v .btn:not(.fant):not(.sec):not(.zap):not(.perigo):active{transform:translateY(1px);box-shadow:0 4px 10px rgba(11,111,232,.35)}
+.chamada .btn{min-height:56px;font-size:17px;box-shadow:0 10px 28px rgba(30,143,255,.55),inset 0 1px 0 rgba(255,255,255,.3)!important}
+#v .btn.zap{background:#12a150;border-color:#12a150;color:#fff;font-weight:800;box-shadow:0 8px 20px rgba(18,161,80,.32)}
 /* menu do perfil */
 .menu-lista{list-style:none;margin:16px 0 0;padding:0;background:#fff;border:1px solid #e1e8f0;border-radius:16px;overflow:hidden}
 .menu-lista li+li{border-top:1px solid #edf1f6}

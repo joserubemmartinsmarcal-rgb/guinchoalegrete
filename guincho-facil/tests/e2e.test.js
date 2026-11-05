@@ -99,7 +99,7 @@ test.before(async () => {
 test.after(async () => { await navegador?.close(); servidor?.close(); });
 
 async function abrir(api) {
-  const ctx = await navegador.newContext({ ...devices['iPhone 13'], serviceWorkers: 'block' });
+  const ctx = await navegador.newContext({ ...devices['iPhone 13'], locale: 'pt-BR', timezoneId: 'America/Sao_Paulo', serviceWorkers: 'block' });
   await ctx.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/*', route => {
     const nome = path.basename(new URL(route.request().url()).pathname).replace('supabase.min.js', 'supabase.js');
     route.fulfill({ status: 200, contentType: 'application/javascript', body: fs.readFileSync(path.join(UMD, nome)) });
@@ -315,6 +315,7 @@ test('app guincheiro aprovado: vaga na rota e caminhão cedido', async () => {
   await page.locator('#fC').waitFor();
   await page.locator('#fC .seg').getByText('Só o caminhão').click();
   await page.fill('#cv', '600'); await page.selectOption('#cb', 'dia');
+  await page.fill('#ca', new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10));
   await foto(page, '15-ceder-caminhao');
   await page.locator('#fC button').click();
   await page.waitForURL(/#caminhao\//);
