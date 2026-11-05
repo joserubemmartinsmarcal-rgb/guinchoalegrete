@@ -1,0 +1,171 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#cfd6df;font-family:'Inter Tight',system-ui,sans-serif;padding:30px;display:flex;gap:30px}
+.tela{width:390px;height:844px;position:relative;overflow:hidden;border-radius:44px;flex:none}
+svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.nav{position:absolute;left:0;right:0;bottom:0;height:84px;display:flex;justify-content:space-around;padding-top:12px;font:600 11px 'Inter Tight'}
+.nav a{display:flex;flex-direction:column;align-items:center;gap:4px;text-decoration:none}
+.stat-bar{height:44px;display:flex;justify-content:space-between;align-items:center;padding:0 28px;font:700 15px 'Inter Tight'}
+
+/* ───────── A · Estrada à noite (giroflex) ───────── */
+.A{background:#050b16;color:#fff}
+.A .glow{position:absolute;inset:0;background:radial-gradient(300px 200px at 100% 0,rgba(255,176,32,.16),transparent 70%),radial-gradient(320px 260px at 0 30%,rgba(30,143,255,.14),transparent 70%)}
+.A .cab{position:relative;display:flex;align-items:center;justify-content:space-between;padding:6px 20px 14px}
+.A .cab h1{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.A .on{display:flex;align-items:center;gap:8px;background:rgba(22,201,106,.14);border:1px solid rgba(22,201,106,.5);color:#3ee08a;border-radius:999px;padding:7px 12px;font:800 13px 'Inter Tight'}
+.A .on i{width:9px;height:9px;border-radius:50%;background:#3ee08a;box-shadow:0 0 0 4px rgba(62,224,138,.2)}
+.A .corpo{position:relative;padding:0 16px;display:grid;gap:12px}
+.A .novo{border-radius:22px;padding:16px;background:linear-gradient(135deg,#ffb020,#ff8a00);color:#1a0d00;box-shadow:0 10px 30px rgba(255,150,0,.35)}
+.A .novo .t{display:flex;justify-content:space-between;align-items:center;font:900 12px 'Inter Tight';letter-spacing:.14em;text-transform:uppercase}
+.A .novo .t span{background:#1a0d00;color:#ffb020;border-radius:999px;padding:4px 10px;letter-spacing:.04em;font-size:12px}
+.A .novo h2{font-size:22px;font-weight:900;letter-spacing:-.02em;margin:8px 0 2px}
+.A .novo .m{font:600 14px 'Inter Tight';opacity:.85}
+.A .novo .v{display:flex;align-items:flex-end;justify-content:space-between;margin-top:12px}
+.A .novo .v b{font-size:36px;font-weight:900;letter-spacing:-.03em;line-height:1}
+.A .novo .v u{text-decoration:none;background:#1a0d00;color:#fff;border-radius:14px;padding:13px 18px;font:800 15px 'Inter Tight'}
+.A .and{border-radius:22px;padding:16px;background:#0d1a30;border:1px solid #1f3a63}
+.A .rot{font:800 11px 'Inter Tight';letter-spacing:.14em;text-transform:uppercase;color:#5aa9ff}
+.A .and h3{font-size:18px;margin:6px 0 10px;font-weight:800}
+.A .eta{display:flex;gap:6px;margin-bottom:12px}
+.A .eta i{flex:1;height:6px;border-radius:9px;background:#1f3a63}.A .eta i.f{background:#1e8fff}
+.A .bt{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border-radius:16px;padding:16px;font:900 17px 'Inter Tight';color:#fff;background:linear-gradient(180deg,#2e9dff,#0b6fe8);box-shadow:0 8px 22px rgba(11,111,232,.45)}
+.A .sec{display:flex;justify-content:space-between;align-items:baseline;margin-top:4px}
+.A .sec h4{font-size:17px;font-weight:800}.A .sec span{font:600 13px 'Inter Tight';color:#8ea3c0}
+.A .ped{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;border-radius:18px;padding:13px 14px;background:#0a1528;border:1px solid #1a2e4f}
+.A .ped b{font-size:16px;font-weight:800}.A .ped .p{font:600 13px 'Inter Tight';color:#8ea3c0}
+.A .ped .r{grid-row:span 2;text-align:right}.A .ped .r strong{display:block;font-size:22px;font-weight:900;color:#3ee08a;letter-spacing:-.02em}
+.A .ped .r small{font:700 11px 'Inter Tight';color:#ffb020}
+.A .mes{display:flex;justify-content:space-between;border-radius:18px;padding:13px 16px;background:linear-gradient(90deg,#0d1a30,#0a1528);border:1px solid #1a2e4f}
+.A .mes div{text-align:center}.A .mes b{display:block;font-size:20px;font-weight:900}.A .mes span{font:600 11px 'Inter Tight';color:#8ea3c0}
+.A .nav{background:#030812;border-top:1px solid #12233d;color:#6f84a3}.A .nav a{color:#6f84a3}.A .nav a.ativo{color:#ffb020}
+
+/* ───────── B · Mapa primeiro ───────── */
+.B{background:#e9eef4;color:#0a1528}
+.B .mapa{position:absolute;inset:0 0 auto 0;height:430px;background:#dfe7ef}
+.B .topo{position:absolute;top:44px;left:16px;right:16px;display:flex;gap:10px;align-items:center}
+.B .busca{flex:1;background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 6px 18px rgba(10,21,40,.14);font:700 14px 'Inter Tight';display:flex;gap:8px;align-items:center}
+.B .busca small{display:block;font:600 11px 'Inter Tight';color:#5b6f8a}
+.B .sw{background:#0a1528;color:#3ee08a;border-radius:16px;padding:12px;font:800 12px 'Inter Tight';box-shadow:0 6px 18px rgba(10,21,40,.2);display:flex;gap:6px;align-items:center}
+.B .sw i{width:8px;height:8px;border-radius:50%;background:#3ee08a}
+.B .pin{position:absolute;transform:translate(-50%,-100%);background:#fff;border-radius:12px;padding:6px 9px;font:900 13px 'Inter Tight';box-shadow:0 4px 12px rgba(10,21,40,.22);white-space:nowrap}
+.B .pin::after{content:"";position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);border:6px solid transparent;border-top-color:#fff;border-bottom:0}
+.B .pin.verde{background:#12a150;color:#fff}.B .pin.verde::after{border-top-color:#12a150}
+.B .folha{position:absolute;left:0;right:0;top:390px;bottom:0;background:#fff;border-radius:28px 28px 0 0;box-shadow:0 -10px 30px rgba(10,21,40,.12);padding:10px 16px 0}
+.B .alca{width:42px;height:5px;border-radius:9px;background:#d3dbe5;margin:0 auto 12px}
+.B .ft{display:flex;justify-content:space-between;align-items:baseline}
+.B .ft h4{font-size:19px;font-weight:900;letter-spacing:-.02em}.B .ft span{font:700 13px 'Inter Tight';color:#12a150}
+.B .ft2{font:600 13px 'Inter Tight';color:#5b6f8a;margin:2px 0 12px}
+.B .card{display:flex;gap:12px;align-items:center;border:1px solid #e3e9f0;border-radius:18px;padding:12px;margin-bottom:10px}
+.B .card .vl{min-width:84px;text-align:center;background:#e8f7ee;border-radius:14px;padding:9px 6px}
+.B .card .vl b{display:block;font-size:20px;font-weight:900;color:#0e7a3c;letter-spacing:-.02em}
+.B .card .vl small{font:700 11px 'Inter Tight';color:#0e7a3c}
+.B .card .tx{flex:1}.B .card .tx b{font-size:15px;font-weight:800;display:block}.B .card .tx span{font:600 12.5px 'Inter Tight';color:#5b6f8a}
+.B .card .go{width:40px;height:40px;border-radius:12px;background:linear-gradient(180deg,#2e9dff,#0b6fe8);color:#fff;display:grid;place-items:center;box-shadow:0 6px 14px rgba(11,111,232,.35)}
+.B .selo{display:flex;align-items:center;gap:10px;background:#0a1528;color:#fff;border-radius:16px;padding:11px 14px;margin-top:2px}
+.B .selo b{font-size:14px}.B .selo span{font:600 12px 'Inter Tight';color:#9fb3cf}
+.B .selo .e{margin-left:auto;font:900 15px 'Inter Tight';color:#ffc533}
+.B .nav{background:#fff;border-top:1px solid #e3e9f0;color:#8495ab}.B .nav a{color:#8495ab}.B .nav a.ativo{color:#0b6fe8}
+
+/* ───────── C · Painel de caminhão ───────── */
+.C{background:#14181f;color:#f2f4f7}
+.C .cab{display:flex;justify-content:space-between;align-items:center;padding:4px 18px 12px}
+.C .cab h1{font-size:15px;font-weight:700;color:#9aa4b2}.C .cab h1 b{display:block;font-size:24px;color:#fff;font-weight:900;letter-spacing:-.02em}
+.C .disp{background:#22c55e;color:#06210f;border-radius:14px;padding:10px 14px;font:900 13px 'Inter Tight'}
+.C .corpo{padding:0 14px;display:grid;gap:10px}
+.C .grande{background:#1c222c;border:1px solid #2a323f;border-radius:20px;padding:16px;display:flex;justify-content:space-between;align-items:flex-end}
+.C .grande small{font:800 11px 'Inter Tight';letter-spacing:.14em;text-transform:uppercase;color:#9aa4b2}
+.C .grande b{display:block;font-size:44px;font-weight:900;letter-spacing:-.04em;color:#22c55e;line-height:1;margin-top:6px}
+.C .grande .meta{font:700 12px 'Inter Tight';color:#9aa4b2;text-align:right}
+.C .barra{height:8px;border-radius:9px;background:#2a323f;margin-top:8px;width:120px}.C .barra i{display:block;height:100%;width:72%;border-radius:9px;background:#22c55e}
+.C .tres{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.C .tres div{background:#1c222c;border:1px solid #2a323f;border-radius:18px;padding:12px;text-align:left}
+.C .tres b{display:block;font-size:26px;font-weight:900;letter-spacing:-.03em}.C .tres span{font:700 11px 'Inter Tight';color:#9aa4b2}
+.C .tres .y b{color:#facc15}.C .tres .z b{color:#38bdf8}
+.C .agora{background:#facc15;color:#1a1500;border-radius:20px;padding:14px 16px}
+.C .agora small{font:900 11px 'Inter Tight';letter-spacing:.14em;text-transform:uppercase}
+.C .agora h3{font-size:19px;font-weight:900;margin:4px 0 10px}
+.C .agora .bts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.C .agora .bts span{background:#1a1500;color:#facc15;border-radius:14px;padding:14px 8px;text-align:center;font:900 15px 'Inter Tight'}
+.C .agora .bts span.out{background:transparent;border:2px solid #1a1500;color:#1a1500}
+.C .h{display:flex;justify-content:space-between;font:800 13px 'Inter Tight';color:#9aa4b2;letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.C .linha{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;background:#1c222c;border:1px solid #2a323f;border-radius:16px;padding:12px 14px}
+.C .linha .km{width:52px;height:52px;border-radius:14px;background:#2a323f;display:grid;place-items:center;text-align:center;font:900 16px/1 'Inter Tight'}
+.C .linha .km small{display:block;font:700 10px 'Inter Tight';color:#9aa4b2;margin-top:2px}
+.C .linha b{font-size:16px;font-weight:800}.C .linha span{display:block;font:600 12.5px 'Inter Tight';color:#9aa4b2}
+.C .linha strong{font-size:22px;font-weight:900;color:#22c55e}
+.C .nav{background:#0e1116;border-top:1px solid #232a35;color:#7c8696}.C .nav a{color:#7c8696}.C .nav a.ativo{color:#facc15}
+
+.rot-t{position:absolute;bottom:-34px;left:0;font:800 14px 'Inter Tight';color:#0a1528}
+.col{display:flex;flex-direction:column;gap:14px}
+.col h5{font:900 20px 'Inter Tight';color:#0a1528}.col p{font:600 13px 'Inter Tight';color:#3b4a5e;max-width:390px}
+</style></head><body>
+
+<!-- A -->
+<div class="col"><h5>A · Estrada à noite (giroflex)</h5>
+<div class="tela A"><div class="glow"></div>
+<div class="stat-bar" style="position:relative">9:41<span>●●● 5G</span></div>
+<div class="cab"><h1>Boa noite, João</h1><span class="on"><i></i>Disponível</span></div>
+<div class="corpo">
+  <div class="novo"><div class="t">Pedido novo no seu caminho<span>agora</span></div>
+    <h2>Rosário do Sul › Alegrete</h2><div class="m">Gol 2015 · roda travada · desvio de 8 km</div>
+    <div class="v"><b>R$ 380</b><u>Ver e propor</u></div></div>
+  <div class="and"><div class="rot">Em andamento · etapa 2 de 4</div><h3>Cacequi › Santa Maria · S10 2019</h3>
+    <div class="eta"><i class="f"></i><i class="f"></i><i></i><i></i></div>
+    <div class="bt">Cheguei no local</div></div>
+  <div class="sec"><h4>No meu caminho</h4><span>volta hoje 16h · Alegrete › S. Maria</span></div>
+  <div class="ped"><b>Cacequi › São Pedro</b><div class="r"><strong>R$ 450</strong><small>+12 km</small></div><span class="p">Onix 2020 · amanhã cedo</span></div>
+  <div class="ped"><b>Alegrete › Santa Maria</b><div class="r"><strong>R$ 620</strong><small>no caminho</small></div><span class="p">Moto CG 160 · hoje</span></div>
+  <div class="mes"><div><b style="color:#3ee08a">R$ 3.200</b><span>no mês</span></div><div><b>9</b><span>serviços</span></div><div><b style="color:#ffb020">4</b><span>voltas pagas</span></div><div><b>★ 4,9</b><span>sua nota</span></div></div>
+</div>
+<nav class="nav"><a class="ativo"><svg class="i" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3z"/></svg>Início</a><a><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>Buscar</a><a><svg class="i" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a4 4 0 0 0 0-8h-4a4 4 0 0 1 0-8h6"/></svg>Rotas</a><a><svg class="i" viewBox="0 0 24 24"><rect x="2" y="7" width="13" height="10" rx="1"/><path d="M15 10h4l3 3v4h-7"/></svg>Serviços</a><a><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Perfil</a></nav>
+</div>
+<p>Escuro como padrão (não cega à noite). Âmbar de giroflex só para o que é urgente. Dinheiro sempre em verde. Etapa do serviço muda com um toque.</p></div>
+
+<!-- B -->
+<div class="col"><h5>B · Mapa primeiro</h5>
+<div class="tela B">
+<svg class="mapa" viewBox="0 0 390 430" preserveAspectRatio="none">
+  <rect width="390" height="430" fill="#e4ebf2"/>
+  <g stroke="#ffffff" stroke-width="9" fill="none" stroke-linecap="round"><path d="M-10 120 L120 160 L220 120 L400 170"/><path d="M60 440 L110 300 L170 230 L220 120"/><path d="M300 440 L280 300 L330 200 L400 190"/></g>
+  <g stroke="#cfd9e4" stroke-width="2" fill="none"><path d="M0 60 L390 40"/><path d="M0 250 L390 280"/><path d="M150 0 L170 430"/></g>
+  <path d="M60 360 C120 320 130 250 175 225 S260 170 330 110" stroke="#0b6fe8" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <path d="M60 360 C120 320 130 250 175 225 S260 170 330 110" stroke="#7fc0ff" stroke-width="2" fill="none" stroke-dasharray="2 10" stroke-linecap="round"/>
+  <circle cx="60" cy="360" r="11" fill="#0a1528"/><circle cx="60" cy="360" r="5" fill="#fff"/>
+  <circle cx="330" cy="110" r="11" fill="#0b6fe8"/><circle cx="330" cy="110" r="5" fill="#fff"/>
+</svg>
+<div class="stat-bar" style="position:relative">9:41<span>●●● 5G</span></div>
+<div class="topo"><div class="busca"><svg class="i" viewBox="0 0 24 24" style="color:#0b6fe8"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a4 4 0 0 0 0-8h-4a4 4 0 0 1 0-8h6"/></svg><div>Alegrete › Santa Maria<small>sua volta · hoje 16h</small></div></div><span class="sw"><i></i>Online</span></div>
+<span class="pin verde" style="left:178px;top:215px">R$ 450</span>
+<span class="pin verde" style="left:268px;top:160px">R$ 620</span>
+<span class="pin" style="left:110px;top:300px">R$ 290</span>
+<div class="folha"><div class="alca"></div>
+  <div class="ft"><h4>3 pedidos na sua volta</h4><span>R$ 1.360 possíveis</span></div>
+  <div class="ft2">Do menor ao maior desvio</div>
+  <div class="card"><div class="vl"><b>R$ 620</b><small>no caminho</small></div><div class="tx"><b>Alegrete › Santa Maria</b><span>Moto CG 160 · hoje · ★ 5,0 cliente</span></div><div class="go"><svg class="i" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></div></div>
+  <div class="card"><div class="vl"><b>R$ 450</b><small>+12 km</small></div><div class="tx"><b>Cacequi › São Pedro</b><span>Onix 2020 · amanhã cedo</span></div><div class="go"><svg class="i" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></div></div>
+  <div class="selo"><svg class="i" viewBox="0 0 24 24" style="color:#3ee08a"><path d="M12 2 4 6v6c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V6z"/><path d="m9 12 2 2 4-4"/></svg><div><b>Conferido pela GF</b><br><span>37 serviços · R$ 3.200 este mês</span></div><span class="e">★ 4,9</span></div>
+</div>
+<nav class="nav"><a class="ativo"><svg class="i" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3z"/></svg>Início</a><a><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>Buscar</a><a><svg class="i" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a4 4 0 0 0 0-8h-4a4 4 0 0 1 0-8h6"/></svg>Rotas</a><a><svg class="i" viewBox="0 0 24 24"><rect x="2" y="7" width="13" height="10" rx="1"/><path d="M15 10h4l3 3v4h-7"/></svg>Serviços</a><a><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Perfil</a></nav>
+</div>
+<p>Abre na sua rota de volta com o valor de cada pedido no mapa. Mostra na hora a ideia do GF: a volta paga. Selo de confiança sempre à vista.</p></div>
+
+<!-- C -->
+<div class="col"><h5>C · Painel de caminhão</h5>
+<div class="tela C">
+<div class="stat-bar">9:41<span>●●● 5G</span></div>
+<div class="cab"><h1>Olá<b>João Guincho</b></h1><span class="disp">● DISPONÍVEL</span></div>
+<div class="corpo">
+  <div class="grande"><div><small>Ganho no mês</small><b>R$ 3.200</b></div><div class="meta">meta R$ 4.500<div class="barra"><i></i></div></div></div>
+  <div class="tres"><div><b>9</b><span>serviços</span></div><div class="y"><b>4</b><span>voltas pagas</span></div><div class="z"><b>★4,9</b><span>sua nota</span></div></div>
+  <div class="agora"><small>Agora · S10 2019</small><h3>Cacequi › Santa Maria</h3><div class="bts"><span>Cheguei no local</span><span class="out">Ligar cliente</span></div></div>
+  <div class="h"><span>No meu caminho</span><span>volta 16h</span></div>
+  <div class="linha"><div class="km">0<small>km</small></div><div><b>Alegrete › S. Maria</b><span>Moto CG 160 · hoje</span></div><strong>R$ 620</strong></div>
+  <div class="linha"><div class="km">12<small>km</small></div><div><b>Cacequi › São Pedro</b><span>Onix 2020 · amanhã</span></div><strong>R$ 450</strong></div>
+  <div class="linha"><div class="km">31<small>km</small></div><div><b>Rosário › Alegrete</b><span>Gol 2015 · hoje</span></div><strong>R$ 380</strong></div>
+</div>
+<nav class="nav"><a class="ativo"><svg class="i" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3z"/></svg>Início</a><a><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>Buscar</a><a><svg class="i" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a4 4 0 0 0 0-8h-4a4 4 0 0 1 0-8h6"/></svg>Rotas</a><a><svg class="i" viewBox="0 0 24 24"><rect x="2" y="7" width="13" height="10" rx="1"/><path d="M15 10h4l3 3v4h-7"/></svg>Serviços</a><a><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Perfil</a></nav>
+</div>
+<p>Números enormes, como painel de instrumentos: ganho do mês, desvio em km e valor. O mais fácil de ler no sol, com luva e com uma mão só.</p></div>
+</body></html>
