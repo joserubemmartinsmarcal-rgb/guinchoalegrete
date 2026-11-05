@@ -62,8 +62,9 @@ function backend() {
         return json(route, 201, objeto ? { id: p.id } : [{ id: p.id }]);
       }
       if (m === 'HEAD') return route.fulfill({ status: 200, headers: { 'content-range': '*/0', 'access-control-allow-origin': '*', 'access-control-expose-headers': 'content-range' } });
-      const id = url.searchParams.get('id'); let rows = db.pedidos;
+      const id = url.searchParams.get('id'), st = url.searchParams.get('status'); let rows = db.pedidos;
       if (id) rows = rows.filter(p => `eq.${p.id}` === id);
+      if (st && st.startsWith('eq.')) rows = rows.filter(p => (p.status || 'aberto') === st.slice(3));
       return json(route, 200, objeto ? rows[0] || null : rows);
     }
     if (url.pathname === '/rest/v1/gf_retornos' || url.pathname === '/rest/v1/gf_caminhoes') {
@@ -80,6 +81,8 @@ function backend() {
       return json(route, 200, objeto ? rows[0] || null : rows);
     }
     if (url.pathname === '/rest/v1/rpc/gf_atualizar_status') { const p = db.pedidos.find(x => x.id === corpo.p_pedido); if (p) p.status = corpo.p_status; return json(route, 200, null); }
+    if (url.pathname === '/rest/v1/rpc/gf_rede_numeros') return json(route, 200, { guincheiros: 42, disponiveis: 17, rotas_ativas: 18, caminhoes: 3, pedidos_7d: 26 });
+    if (url.pathname === '/rest/v1/rpc/gf_alcance_pedido') return json(route, 200, { avisados: 12, propostas: 0, minutos_tipicos: 18 });
     if (url.pathname === '/rest/v1/rpc/gf_falar_com_parceiro') { db.contatos = (db.contatos || 0) + 1; return json(route, 200, { nome: 'Pedro Parceiro', whatsapp: '55999991002' }); }
     if (url.pathname === '/rest/v1/gf_lista_espera') { db.lista.push(corpo); return route.fulfill({ status: 201, headers: { 'access-control-allow-origin': '*' } }); }
     if (url.pathname.startsWith('/rest/v1/')) {
@@ -198,7 +201,10 @@ test('app cliente: login, perfil, pedido e persistência após recarregar', asyn
   await page.waitForURL(/#pedido\//);
   await page.locator('.trajeto').waitFor();
   assert.match(await page.locator('.trajeto').innerText(), /Alegrete\s*Santa Maria/);
-  assert.match(await page.locator('#v').innerText(), /Ainda sem propostas/);
+  await page.locator('.radar').waitFor();
+  assert.match(await page.locator('.radar').innerText(), /Procurando guincheiros/);
+  assert.match(await page.locator('.radar').innerText(), /Avisamos 12 guincheiros/);
+  assert.match(await page.locator('.radar').innerText(), /~18 min/);
   assert.match(await page.locator('.passos li.atual').innerText(), /Aguardando propostas/);
   await foto(page, '6-pedido');
   const enviado = api.db.pedidos[0];
@@ -297,6 +303,9 @@ test('app guincheiro aprovado: vaga na rota e caminhão cedido', async () => {
   await page.fill('#em', 'g@teste.dev'); await page.fill('#se', 'segredo123'); await page.locator('#btL').click();
   await page.locator('.menu-lista.duas').waitFor();
   assert.deepEqual(await page.locator('.menu-lista.duas b').allInnerTexts(), ['Tenho vaga no caminhão', 'Ceder meu caminhão', 'Ver vagas e caminhões', 'Repassar um serviço']);
+  assert.match(await page.locator('.anunciar').innerText(), /Anunciar minha volta de hoje/, 'sem rota própria: convite para anunciar');
+  assert.match(await page.locator('.rede-faixa').innerText(), /42\s*guincheiros na rede/);
+  assert.match(await page.locator('.mes').innerText(), /no mês/);
   await foto(page, '11-inicio-parceiros');
   await page.locator('#btTema').click(); await foto(page, '11b-inicio-guincheiro-escuro'); await page.locator('#btTema').click();
   // vaga de colega: mandar veículo abre repasse preenchido
@@ -342,6 +351,38 @@ test('app guincheiro aprovado: vaga na rota e caminhão cedido', async () => {
   await page.locator('#dlg button[value=ok]').click();
   await page.waitForFunction(() => /Atualizado/.test(document.querySelector('#toast').textContent));
   assert.equal(api.db.pedidos.at(-1).status, 'a_caminho');
+  assert.deepEqual(erros, []);
+  await ctx.close();
+});
+
+test('app guincheiro: início com pedido em destaque, serviço em andamento, rota e mês', async () => {
+  const api = backend(); const { ctx, page, erros } = await abrir(api);
+  const OUTRO = '44444444-4444-4444-8444-444444444444', agora = new Date().toISOString();
+  api.db.perfil = { id: UID, tipo: 'guincheiro', nome: 'João Guincho', cidade: 'Santa Maria', whatsapp: '55999990002', equipamento: 'Plataforma',
+    raio_km: 150, placa: 'ABC1D23', aprovacao: 'aprovado', disponivel: true, is_admin: false, criado_em: agora };
+  api.db.pedidos = [
+    { id: '81111111-1111-4111-8111-111111111111', autor_id: OUTRO, status: 'aberto', tipo: 'cliente', origem: 'São Pedro do Sul', destino: 'Alegrete',
+      veiculo: 'Gol 2015', veiculo_tipo: 'carro', condicao: 'nao_anda', data_servico: agora.slice(0, 10), criado_em: agora },
+    { id: '82222222-2222-4222-8222-222222222222', autor_id: OUTRO, prestador_id: UID, status: 'a_caminho', tipo: 'cliente', origem: 'Cacequi', destino: 'Santa Maria',
+      veiculo: 'S10 2019', valor_combinado: 450, criado_em: agora },
+    { id: '83333333-3333-4333-8333-333333333333', autor_id: OUTRO, prestador_id: UID, status: 'concluido', tipo: 'cliente', origem: 'Alegrete', destino: 'Uruguaiana',
+      veiculo: 'Onix 2020', valor_combinado: 620, nota: 5, concluido_em: agora, criado_em: agora }];
+  api.db.retornos = [{ id: '84444444-4444-4444-8444-444444444444', guincheiro_id: UID, sentido: 'retorno', origem: 'Alegrete', destino: 'Santa Maria',
+    saida: new Date(Date.now() + 4 * 36e5).toISOString(), equipamento: 'Plataforma', vagas: 1, status: 'ativo' }];
+  await page.goto(base + '/app');
+  await page.fill('#em', 'g@teste.dev'); await page.fill('#se', 'segredo123'); await page.locator('#btL').click();
+  await page.locator('.novo-pedido').waitFor();
+  assert.match(await page.locator('.novo-pedido').innerText(), /São Pedro do Sul › Alegrete/);
+  assert.match(await page.locator('.andamento').innerText(), /etapa 2 de 4/i);
+  assert.match(await page.locator('.andamento button').innerText(), /Cheguei no local/);
+  assert.match(await page.locator('.sec-l').innerText(), /No meu caminho/);
+  assert.match(await page.locator('.mes').innerText(), /R\$\s*620/);
+  await foto(page, '12-inicio-guincheiro-cheio');
+  await page.locator('#btTema').click(); await foto(page, '12b-inicio-guincheiro-cheio-escuro');
+  await page.locator('.andamento button').click();
+  await page.locator('#dlg button[value=ok]').click();
+  await page.waitForFunction(() => /Atualizado/.test(document.querySelector('#toast').textContent));
+  assert.equal(api.db.pedidos[1].status, 'no_local');
   assert.deepEqual(erros, []);
   await ctx.close();
 });

@@ -450,6 +450,13 @@ async function pedidosAbertos() {
     .eq('status', 'aberto').neq('autor_id', S.user.id).order('criado_em', { ascending: false }).limit(300))
     .map(p => ({ ...p, dist: GF_GEO.km(S.perfil.cidade, p.origem) }));
 }
+// números agregados da rede (se a função ainda não existir no banco, a faixa some)
+async function numerosRede() { try { return await rpc('gf_rede_numeros'); } catch { return null; } }
+function faixaRede(n) {
+  if (!n) return '';
+  const it = [[n.guincheiros, 'guincheiros na rede'], [n.rotas_ativas, 'rotas anunciadas'], [n.pedidos_7d, 'pedidos na semana']];
+  return `<div class="rede-faixa" aria-label="Rede GF agora">${it.map(([v, t]) => `<div><b>${v ?? 0}</b><span>${t}</span></div>`).join('')}</div>`;
+}
 async function inicioGuincheiro() {
   titulo('Olá, ' + S.perfil.nome.split(' ')[0]);
   if (!aprovado()) {
@@ -457,26 +464,54 @@ async function inicioGuincheiro() {
     return ligaInstalar();
   }
   S.raio ||= String([20, 50, 100, 150].reduce((m, r) => r <= (S.perfil.raio_km || 100) ? r : m, 20));
-  const [abertos, propsR, servR, retR] = await Promise.all([
+  const inicioMes = new Date(); inicioMes.setDate(1); inicioMes.setHours(0, 0, 0, 0);
+  const [abertos, propsR, meusR, retR, rede] = await Promise.all([
     pedidosAbertos(),
     sb.from('gf_propostas').select('id', { count: 'exact', head: true }).eq('guincheiro_id', S.user.id).eq('status', 'enviada'),
-    sb.from('gf_pedidos').select('id', { count: 'exact', head: true }).eq('prestador_id', S.user.id).in('status', ATIVOS),
-    sb.from('gf_retornos').select('id', { count: 'exact', head: true }).eq('guincheiro_id', S.user.id).eq('status', 'ativo')]);
-  [propsR, servR, retR].forEach(ok);
+    sb.from('gf_pedidos').select('id,origem,destino,veiculo,status,valor_combinado,nota,concluido_em').eq('prestador_id', S.user.id)
+      .or(`status.in.(${ATIVOS.join(',')}),concluido_em.gte.${inicioMes.toISOString()}`).order('atualizado_em', { ascending: false }).limit(200),
+    sb.from('gf_retornos').select('id,origem,destino,saida').eq('guincheiro_id', S.user.id).eq('status', 'ativo')
+      .gte('saida', new Date(Date.now() - 864e5).toISOString()).order('saida').limit(5),
+    numerosRede()]);
+  const meus = ok(meusR), rotas = ok(retR); ok(propsR);
+  const emAndamento = meus.filter(p => ATIVOS.includes(p.status));
+  const doMes = meus.filter(p => p.status === 'concluido');
+  const notas = doMes.filter(p => p.nota);
   const perto = abertos.filter(p => p.dist != null && p.dist <= Number(S.raio)).sort((a, b) => a.dist - b.dist);
+  const destaque = perto[0];
+  const rotaAtual = rotas[0];
+  const naRota = rotaAtual ? abertos.map(p => ({ ...p, desvio: GF_GEO.desvio(rotaAtual.origem, rotaAtual.destino, p.origem, p.destino) }))
+    .filter(p => p.desvio != null && p.desvio <= 120).sort((a, b) => a.desvio - b.desvio) : [];
+  const etapa = st => ETAPAS.indexOf(st); // aceito 1 … em_transporte 4
   V.innerHTML = `${blocoInstalar()}
-    <div class="troca"><div><b>${S.perfil.disponivel ? 'Disponível para serviços' : 'Indisponível'}</b><br>
-      <span style="color:var(--cinza);font-size:14px">${S.perfil.disponivel ? 'Clientes e colegas sabem que você está atendendo.' : 'Ative quando puder pegar serviço.'}</span></div>
-      <input type="checkbox" role="switch" id="disp" aria-label="Disponível para serviços" ${S.perfil.disponivel ? 'checked' : ''}></div>
-    <div class="resumo">
-      <a href="#buscar"><b>${abertos.length}</b>pedidos abertos</a>
-      <a href="#servicos"><b>${servR.count ?? 0}</b>serviços em andamento</a>
-      <a href="#servicos/propostas"><b>${propsR.count ?? 0}</b>propostas aguardando</a>
-      <a href="#rotas"><b>${retR.count ?? 0}</b>rotas ativas</a>
-    </div>${blocoAntecipar()}
-    <h3 class="sec-t">Próximos de ${esc(S.perfil.cidade)}</h3>
+    <label class="disp ${S.perfil.disponivel ? 'on' : ''}"><span><b>${S.perfil.disponivel ? 'Disponível para serviços' : 'Indisponível'}</b>
+      <small>${S.perfil.disponivel ? 'Clientes e colegas sabem que você está atendendo.' : 'Ative quando puder pegar serviço.'}</small></span>
+      <input type="checkbox" role="switch" id="disp" aria-label="Disponível para serviços" ${S.perfil.disponivel ? 'checked' : ''}></label>
+    ${destaque ? `<a class="novo-pedido" href="#pedido/${destaque.id}">
+        <div class="np-t"><span>${destaque.tipo === 'repasse' ? 'Repasse de colega' : 'Pedido perto de você'}</span><i>${destaque.dist} km</i></div>
+        <div class="np-r">${esc(destaque.origem)} › ${esc(destaque.destino)}</div>
+        <div class="np-m">${esc(VEICULO[destaque.veiculo_tipo] || '')} · ${esc(destaque.veiculo)} · ${esc(CONDICAO[destaque.condicao] || '')}</div>
+        <div class="np-b"><b>${kmTxt(GF_GEO.km(destaque.origem, destaque.destino)) || '–'}<small>de trajeto</small></b><u>Ver e mandar proposta</u></div></a>` : ''}
+    ${emAndamento.map(p => `<div class="andamento">
+        <a href="#pedido/${p.id}" class="and-t"><span>Em andamento · etapa ${etapa(p.status)} de 4</span><b>${esc(p.origem)} › ${esc(p.destino)}</b>
+          <small>${esc(p.veiculo)} · ${brl(p.valor_combinado)}</small></a>
+        <div class="etapas">${[1, 2, 3, 4].map(i => `<i class="${i <= etapa(p.status) ? 'f' : ''}"></i>`).join('')}</div>
+        <button class="btn full grande" data-av="${p.id}" data-st="${PROXIMO[p.status]}">${ACAO_PRESTADOR[p.status]}</button></div>`).join('')}
+    ${rotaAtual ? `<div class="sec-l"><h3 class="sec-t">No meu caminho</h3><a href="#rota/${rotaAtual.id}">${esc(rotaAtual.origem)} › ${esc(rotaAtual.destino)} · ${dataHora(rotaAtual.saida)}</a></div>
+      ${naRota.length ? naRota.slice(0, 4).map(p => `<a class="linha-ped" href="#pedido/${p.id}"><span><b>${esc(p.origem)} › ${esc(p.destino)}</b>
+        <small>${esc(p.veiculo)} · ${dataCurta(p.data_servico)}</small></span><em>${p.desvio <= 5 ? 'no caminho' : '+' + p.desvio + ' km'}</em></a>`).join('')
+        : '<div class="vazio">Nenhum pedido na sua rota ainda. Ela fica ativa: quando aparecer um, você recebe aviso.</div>'}`
+    : `<a class="anunciar" href="#rotas/nova"><b>Anunciar minha volta de hoje</b><span>Diga de onde sai e para onde volta. O GF mostra os pedidos que cabem no caminho.</span></a>`}
+    <div class="mes" aria-label="Seu mês no GF">
+      <div><b>${brl(totalRegistrado(doMes))}</b><span>no mês</span></div>
+      <div><b>${doMes.length}</b><span>serviços</span></div>
+      <a href="#servicos/propostas"><b>${propsR.count ?? 0}</b><span>propostas</span></a>
+      <div><b>${notas.length ? '★ ' + (notas.reduce((s, p) => s + p.nota, 0) / notas.length).toFixed(1).replace('.', ',') : '–'}</b><span>sua nota</span></div></div>
+    ${faixaRede(rede)}
+    <h3 class="sec-t">Pedidos perto de ${esc(S.perfil.cidade)}</h3>
     ${chips('raio', [['20', '20 km'], ['50', '50 km'], ['100', '100 km'], ['150', '150 km']], S.raio)}
-    ${perto.length ? perto.slice(0, 10).map(p => cardPedidoAberto(p, `${p.dist} km de você`)).join('') : '<div class="vazio">Nenhum pedido aberto neste raio agora.<br>Aumente o raio ou anuncie sua rota de volta.</div>'}
+    ${perto.length > 1 ? perto.slice(1, 8).map(p => cardPedidoAberto(p, `${p.dist} km de você`)).join('')
+      : perto.length ? '' : `<div class="vazio">Nenhum pedido aberto até ${S.raio} km agora.<br>Aumente o raio ou anuncie sua volta: os pedidos novos chegam como aviso no celular.</div>`}
     <h3 class="sec-t">Parceiros da rede</h3>
     <ul class="menu-lista duas" aria-label="Parceiros">
       ${[['#rotas/nova', IC.rota, 'Tenho vaga no caminhão', 'Anuncie a rota: quem estiver nela manda veículo'],
@@ -484,8 +519,10 @@ async function inicioGuincheiro() {
          ['#rotas', IC.busca, 'Ver vagas e caminhões', 'De colegas que estão na sua rota'],
          ['#repasse/novo', IC.lista, 'Repassar um serviço', 'A rede atende seu cliente quando você não pode']].map(([h, i, t, d]) =>
         `<li><a href="${h}">${svg(i)}<span><b>${t}</b><small>${d}</small></span><span class="seta">${svg(IC.seta)}</span></a></li>`).join('')}
-    </ul>`;
+    </ul>
+    ${blocoAntecipar()}`;
   ligaChips('raio', v => { S.raio = v; rota(); });
+  V.querySelectorAll('[data-av]').forEach(bt => bt.onclick = () => avancar(bt, bt.dataset.av, bt.dataset.st));
   $('#disp').onchange = async e => {
     const el = e.currentTarget, v = el.checked;
     try { await rpc('gf_definir_disponivel', { p_disponivel: v }); S.perfil.disponivel = v; toast(v ? 'Você está disponível.' : 'Você está indisponível.'); rota(true); }
@@ -824,6 +861,16 @@ async function telaAntecipar() {
     try { await rpc('gf_cancelar_antecipacao', { p_id: b.dataset.cant }); toast('Pedido cancelado.'); rota(); } catch (er) { falha(er); }
   });
 }
+// "radar" do pedido aberto: mostra que a rede está vendo, sem inventar números
+function radarPedido(p, alc, nProps) {
+  const min = Math.max(1, Math.round((Date.now() - new Date(p.criado_em)) / 6e4));
+  const quando = min < 60 ? `há ${min} min` : min < 1440 ? `há ${Math.round(min / 60)} h` : `há ${Math.round(min / 1440)} dia(s)`;
+  const av = alc?.avisados || 0;
+  return `<div class="radar ${nProps ? 'com' : ''}"><div class="pulso" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div><b>${nProps ? `${nProps} proposta${nProps > 1 ? 's' : ''} recebida${nProps > 1 ? 's' : ''}` : 'Procurando guincheiros…'}</b>
+    <span>${av ? `Avisamos ${av} guincheiro${av > 1 ? 's' : ''} da rede no celular` : 'Seu pedido está visível para os guincheiros da rede'} · publicado ${quando}.</span>
+    ${!nProps ? `<span>${alc?.minutos_tipicos ? `A primeira proposta costuma chegar em ~${alc.minutos_tipicos} min. ` : ''}Você recebe um aviso quando chegar.</span>` : ''}</div></div>`;
+}
 // ───────────────────────── detalhe do pedido ─────────────────────────
 function linhaDoTempo(p) {
   if (p.status === 'cancelado') return `<div class="aviso"><b>Pedido cancelado.</b>${p.cancelado_motivo ? ' Motivo: ' + esc(p.cancelado_motivo) : ''}</div>`;
@@ -862,7 +909,7 @@ async function telaPedido(id) {
     <div class="tags">${p.tipo === 'repasse' ? '<span class="tag am">Repasse</span>' : ''}${tagStatus(p.status)}</div>
     <div id="mapa" role="img" aria-label="Mapa aproximado de ${esc(p.origem)} até ${esc(p.destino)}"></div>
     <a class="btn fant full" style="margin-top:10px" target="_blank" rel="noopener" href="${linkMaps(p.origem, p.destino)}">Ver rota no Google Maps</a></div>
-    ${papel !== 'outro' ? linhaDoTempo(p) : ''}`;
+    <!--radar-->${papel !== 'outro' ? linhaDoTempo(p) : ''}`;
 
   if (papel === 'cliente') {
     if (p.status === 'aberto') {
@@ -870,6 +917,8 @@ async function telaPedido(id) {
         .eq('pedido_id', id).eq('status', 'enviada').order('valor'));
       const rep = props.length ? ok(await sb.rpc('gf_reputacao', { p_ids: props.map(x => x.guincheiro_id) })) : [];
       const repDe = gid => rep.find(r => r.perfil_id === gid);
+      let alc = null; try { alc = await rpc('gf_alcance_pedido', { p_pedido: id }); } catch { /* função ainda não publicada */ }
+      html = html.replace('<!--radar-->', radarPedido(p, alc, props.length));
       html += `<h3 class="sec-t">Propostas (${props.length})</h3>` + (props.length ? props.map(x => {
         const r = repDe(x.guincheiro_id);
         return `<div class="prop"><div class="valor">${brl(x.valor)}</div>
@@ -878,7 +927,7 @@ async function telaPedido(id) {
           <div style="color:var(--cinza);font-size:15px">${r ? `★ ${r.media ?? '–'} · ${r.concluidos} serviço${r.concluidos > 1 ? 's' : ''} pelo GF` : 'Novo no GF'}</div>
           ${x.mensagem ? `<div style="margin-top:6px">${esc(x.mensagem)}</div>` : ''}
           <button class="btn full" style="margin-top:12px" data-ac="${x.id}" data-v="${x.valor}">Aceitar esta proposta</button></div>`;
-      }).join('') : '<div class="vazio">Ainda sem propostas. Guincheiros da região e com rota passando por aqui já estão vendo seu pedido. Esta tela atualiza sozinha.</div>');
+      }).join('') : '<div class="vazio">As propostas aparecem aqui, da mais barata para a mais cara. Esta tela atualiza sozinha.</div>');
     } else if (p.prestador_id) {
       html += `<h3 class="sec-t">Seu guincheiro</h3><div class="prop"><div class="valor">${brl(p.valor_combinado)}</div>
         <div><b>${esc(p.prestador?.nome || '')}</b>${p.prestador?.empresa ? ' · ' + esc(p.prestador.empresa) : ''}</div>
@@ -922,6 +971,7 @@ async function telaPedido(id) {
     html += `<a class="btn fant full" style="margin-top:12px" href="#ocorrencia/nova/${p.id}">Abrir ocorrência</a>`;
     html += await historico(id);
   }
+  if (!decodeURIComponent(location.hash).includes(id)) return; // a pessoa já foi para outra tela enquanto carregava
   V.innerHTML = html;
   mapaRota(p.origem, p.destino);
 
