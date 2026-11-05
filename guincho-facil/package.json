@@ -1,0 +1,14 @@
+{
+  "name": "guincho-facil",
+  "version": "2.0.0",
+  "private": true,
+  "description": "GF · Guincho Fácil — site, app (PWA) e banco Supabase",
+  "scripts": {
+    "test": "node --test tests/lib.test.js",
+    "test:e2e": "node --test tests/e2e.test.js",
+    "dev": "node tests/servidor.js"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "2.45.4"
+  }
+}

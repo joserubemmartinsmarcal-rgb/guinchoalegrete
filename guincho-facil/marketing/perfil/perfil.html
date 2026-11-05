@@ -1,0 +1,30 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>
+*{box-sizing:border-box;margin:0}body{background:#333;font-family:'Inter Tight',system-ui,sans-serif}
+.foto{width:1080px;height:1080px;position:relative;overflow:hidden;display:grid;place-items:center;
+  background:radial-gradient(520px 520px at 50% 46%,rgba(30,143,255,.28),transparent 70%),linear-gradient(180deg,#081428,#050b16)}
+.foto::after{content:"";position:absolute;inset:0;background:url(../../public/assets/estrada-luz.jpg) center bottom/100% auto no-repeat;opacity:.55;
+  -webkit-mask:linear-gradient(180deg,transparent 55%,#000 100%);mask:linear-gradient(180deg,transparent 55%,#000 100%)}
+.foto img{width:720px;position:relative;z-index:1;filter:drop-shadow(0 10px 40px rgba(30,143,255,.35));margin-top:-40px}
+.capa{width:1080px;height:1920px;display:grid;place-items:center;position:relative;overflow:hidden;
+  background:radial-gradient(600px 600px at 50% 50%,rgba(30,143,255,.22),transparent 70%),linear-gradient(180deg,#081428,#050b16)}
+.circ{width:940px;height:940px;border-radius:50%;display:grid;place-items:center;border:10px solid #1e8fff;
+  box-shadow:0 0 80px rgba(30,143,255,.45),inset 0 0 60px rgba(30,143,255,.18);background:#071225}
+.circ svg{width:560px;height:560px;stroke:#fff;stroke-width:7;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.circ svg .az{stroke:#1e8fff}
+.circ img{width:680px}
+</style></head><body>
+<section class="foto"><img src="../../public/assets/gf-mark.png" alt=""></section>
+<!-- Sobre o GF -->
+<section class="capa"><div class="circ"><img src="../../public/assets/gf-mark.png" alt=""></div></section>
+<!-- Como funciona: rota com pinos -->
+<section class="capa"><div class="circ"><svg viewBox="0 0 100 100"><path d="M18 78 C 40 78, 30 50, 52 50 S 66 22, 84 22" class="az" stroke-dasharray="7 7"/><circle cx="18" cy="78" r="7"/><path d="M84 8 a9 9 0 0 1 9 9 c0 8-9 16-9 16 s-9-8-9-16 a9 9 0 0 1 9-9z"/><circle cx="84" cy="17" r="2.5"/></svg></div></section>
+<!-- Antecipe: cifrão com relógio -->
+<section class="capa"><div class="circ"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="34" class="az"/><path d="M60 37 c-3-4-8-5-12-5 c-6 0-10 3-10 8 c0 11 23 6 23 18 c0 5-5 9-12 9 c-5 0-10-2-13-6"/><path d="M50 24 v8 M50 68 v8"/></svg></div></section>
+<!-- Guincheiro: caminhão plataforma -->
+<section class="capa"><div class="circ"><svg viewBox="0 0 100 100"><path d="M8 64 h52 v-26 h14 l12 14 v12 h-6"/><path d="M8 52 l46-10" class="az"/><circle cx="26" cy="68" r="7"/><circle cx="72" cy="68" r="7"/><path d="M33 64 h32"/><path d="M64 44 h8 l6 8 h-14z"/></svg></div></section>
+<!-- Motorista: carro com localização -->
+<section class="capa"><div class="circ"><svg viewBox="0 0 100 100"><path d="M14 66 v-12 l8-16 h44 l8 16 v12 z"/><path d="M22 54 h44" class="az"/><circle cx="28" cy="68" r="6"/><circle cx="60" cy="68" r="6"/><path d="M80 18 a8 8 0 0 1 8 8 c0 7-8 14-8 14 s-8-7-8-14 a8 8 0 0 1 8-8z" class="az"/></svg></div></section>
+<!-- Contato: balão de conversa -->
+<section class="capa"><div class="circ"><svg viewBox="0 0 100 100"><path d="M18 24 h64 a6 6 0 0 1 6 6 v34 a6 6 0 0 1-6 6 h-36 l-16 14 v-14 h-12 a6 6 0 0 1-6-6 v-34 a6 6 0 0 1 6-6z"/><path d="M32 42 h36 M32 54 h22" class="az"/></svg></div></section>
+</body></html>
