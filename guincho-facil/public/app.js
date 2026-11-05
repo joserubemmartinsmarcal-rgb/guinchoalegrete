@@ -355,7 +355,7 @@ async function inicioCliente() {
   const d = ok(await sb.from('gf_pedidos').select('id,origem,destino,veiculo,veiculo_tipo,tipo,status,valor_combinado,criado_em,gf_propostas(status)')
     .eq('autor_id', S.user.id).not('status', 'in', '(concluido,cancelado)').order('criado_em', { ascending: false }).limit(20));
   V.innerHTML = `${blocoInstalar()}
-    <div class="chamada"><h2>Precisa levar um veículo?</h2>
+    <div class="chamada"><h2>Precisa mandar um veículo?</h2>
       <p>Guincheiros da região e quem está voltando pela sua rota mandam propostas. Você escolhe.</p>
       <a class="btn full" href="#pedido/novo">Pedir transporte de veículo</a></div>
     <h3 class="sec-t">Em andamento</h3>
