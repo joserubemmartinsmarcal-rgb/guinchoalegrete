@@ -100,6 +100,7 @@ function backend() {
       return json(route, 200, objeto ? rows[0] || null : rows);
     }
     if (url.pathname === '/rest/v1/rpc/gf_enviar_proposta') { (db.propostas ||= []).push(corpo); return json(route, 200, 'p' + db.propostas.length); }
+    if (url.pathname === '/rest/v1/rpc/gf_pegar_chamado') { const p = db.pedidos.find(x => x.id === corpo.p_pedido); p.status = 'aceito'; p.prestador_id = UID; p.valor_combinado = p.valor_oferecido; return json(route, 200, null); }
     if (url.pathname === '/rest/v1/rpc/gf_rede_numeros') return json(route, 200, { guincheiros: 42, disponiveis: 17, rotas_ativas: 18, caminhoes: 3, pedidos_7d: 26 });
     if (url.pathname === '/rest/v1/rpc/gf_alcance_pedido') return json(route, 200, { avisados: 12, propostas: 0, minutos_tipicos: 18 });
     if (url.pathname === '/rest/v1/rpc/gf_falar_com_parceiro') { db.contatos = (db.contatos || 0) + 1; return json(route, 200, { nome: 'Pedro Parceiro', whatsapp: '55999991002' }); }
@@ -473,6 +474,28 @@ test('vistoria: fotos, avarias, assinatura, sem sinal e termo', async () => {
   assert.match(await page.locator('#v').innerText(), /Estepe/);
   await foto(page, '14-termo-vistoria');
   assert.deepEqual(erros.filter(e => !/Failed to fetch|NetworkError/.test(e)), []);
+  await ctx.close();
+});
+
+test('despacho: chamado urgente toca alarme e o guincheiro pega', async () => {
+  const api = backend(); const { ctx, page, erros } = await abrir(api);
+  const OUTRO = '44444444-4444-4444-8444-444444444444', PED = 'a1111111-1111-4111-8111-111111111111', agora = new Date().toISOString();
+  api.db.perfil = { id: UID, tipo: 'guincheiro', nome: 'João Guincho', cidade: 'Alegrete', whatsapp: '55999990002', equipamento: 'Plataforma',
+    raio_km: 150, placa: 'ABC1D23', aprovacao: 'aprovado', disponivel: true, is_admin: false, criado_em: agora };
+  api.db.pedidos = [{ id: PED, autor_id: OUTRO, status: 'aberto', tipo: 'cliente', origem: 'Alegrete', destino: 'Uruguaiana', veiculo: 'Gol 2015',
+    veiculo_tipo: 'carro', condicao: 'nao_anda', valor_oferecido: 300, despacho_ate: new Date(Date.now() + 150e3).toISOString(), criado_em: agora }];
+  await page.goto(base + '/app');
+  await page.fill('#em', 'g@teste.dev'); await page.fill('#se', 'segredo123'); await page.locator('#btL').click();
+  await page.locator('#chamado').waitFor({ timeout: 12000 });
+  assert.match(await page.locator('#chamado').innerText(), /Alegrete › Uruguaiana/);
+  assert.match(await page.locator('#chOk').innerText(), /Aceitar por R\$\s*300/);
+  await foto(page, '15-chamado-urgente');
+  await page.locator('#chOk').click();
+  await page.waitForURL(/#pedido\//);
+  assert.equal(api.db.pedidos[0].status, 'aceito');
+  assert.equal(await page.locator('#chamado').count(), 0);
+  assert.ok(api.db.chamadas.includes('POST /rest/v1/rpc/gf_pegar_chamado'));
+  assert.deepEqual(erros, []);
   await ctx.close();
 });
 

@@ -273,6 +273,23 @@ body[data-tema="escuro"] .rede-faixa{background:var(--ap-soft)}
   body[data-tema]{--ap-card:#fff;--ap-bg:#fff;--gf-ink:#0F172A;--gf-ink-2:#334155;--gf-muted:#475569;--ap-soft:#f1f5f9;--ap-line:#cbd5e1}
   .vs-galeria{grid-template-columns:repeat(4,1fr)}.item{box-shadow:none!important}}
 .oferta{display:flex;align-items:baseline;gap:10px;margin:12px 0 2px}.oferta b{font:800 30px/1 var(--gf-font);letter-spacing:-.03em;color:#16a34a}.oferta span{font-size:13.5px;color:var(--gf-muted)}
+/* ── chamado urgente ── */
+.urgente{display:flex!important;gap:12px;align-items:flex-start;margin:14px 0 0!important;padding:14px;border-radius:14px;border:1px solid var(--ap-line);background:var(--ap-card);cursor:pointer}
+.urgente input{width:24px;height:24px;flex:none;margin-top:2px;accent-color:#dc2626}.urgente b{display:block;font-size:15.5px;color:var(--gf-ink)}.urgente small{display:block;font-size:13px;color:var(--gf-muted);margin-top:2px;font-weight:500}
+.urgente:has(input:checked){border-color:#dc2626;box-shadow:inset 4px 0 0 #dc2626}
+.radar.urg{border-color:#fca5a5}.radar.urg .pulso i{border-color:#dc2626}.radar.urg .pulso::after{background:#dc2626}
+#chamado{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;background:rgba(15,23,42,.88)}
+.ch-caixa{width:min(100%,420px);border-radius:26px;padding:26px 22px 20px;text-align:center;color:#fff;background:linear-gradient(160deg,#b91c1c,#7f1d1d);box-shadow:0 20px 60px rgba(0,0,0,.5);position:relative;overflow:hidden}
+.ch-pulso{position:absolute;inset:-40%;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 55%);animation:chp 1.2s ease-out infinite}
+@keyframes chp{0%{transform:scale(.6);opacity:1}100%{transform:scale(1.2);opacity:0}}
+@media (prefers-reduced-motion:reduce){.ch-pulso{animation:none}}
+.ch-caixa>*{position:relative}
+.ch-t{font:900 14px var(--gf-font);letter-spacing:.2em;text-transform:uppercase;margin:0;color:#fecaca}
+.ch-r{font:800 26px/1.15 var(--gf-font);letter-spacing:-.02em;margin:12px 0 4px}.ch-m{font-size:15px;color:#fecaca}
+.ch-v{font:900 52px/1 var(--gf-font);letter-spacing:-.04em;margin:16px 0 6px}
+.ch-tempo{font-size:14px;color:#fee2e2;margin-bottom:18px}.ch-tempo b{font-size:18px;color:#fff}
+.ch-ok{display:block;width:100%;min-height:64px;border:0;border-radius:18px;background:#fff;color:#7f1d1d;font:900 20px var(--gf-font);cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.ch-nao{display:block;width:100%;min-height:50px;margin-top:10px;border:2px solid rgba(255,255,255,.6);border-radius:16px;background:transparent;color:#fff;font:700 16px var(--gf-font);cursor:pointer}
 .barra .tema{background:none;border:0;color:#fff;display:grid;place-items:center;width:40px;height:40px;min-height:0;padding:0;border-radius:999px;cursor:pointer}
 .barra .tema svg{width:22px;height:22px}
 .barra .tema:focus-visible{outline:2px solid #60a5fa}
@@ -291,6 +308,7 @@ body[data-tema="escuro"] .rede-faixa{background:var(--ap-soft)}
 <script src="/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/vistoria.js"></script>
+<script src="/despacho.js"></script>
 <script src="/app.js"></script>
 </body>
 </html>

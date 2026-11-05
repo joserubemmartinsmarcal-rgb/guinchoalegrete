@@ -401,6 +401,7 @@ function telaNovoPedido(tipo) {
     <label for="nvo">${rep ? 'Quanto você paga pelo repasse' : 'Quanto você paga'} (opcional)</label>
     <input id="nvo" name="valor_oferecido" inputmode="decimal" placeholder="Ex.: 380 · em branco = a combinar">
     <p style="color:var(--cinza);font-size:13.5px;margin:6px 0 0">Com valor, o guincheiro pode aceitar na hora ou negociar. Sem valor, os guincheiros mandam propostas.</p>
+    <label class="urgente"><input type="checkbox" name="urgente" id="nurg"><span><b>Chamado urgente</b><small>Dispara alarme para a rede toda. O primeiro guincheiro que aceitar pelo seu valor leva. Se ninguém pegar em 3 minutos, segue recebendo propostas.</small></span></label>
     <label for="nt">Quando</label><input id="nt" name="data_servico" type="date" min="${hoje}" value="${pre.data && pre.data > hoje ? pre.data : hoje}">
     <label for="nb">Detalhes (opcional)</label><textarea id="nb" name="obs" maxlength="1000" placeholder="Ponto de referência, roda travada, subsolo, horário… Não coloque endereço completo: ele é combinado com o guincheiro escolhido.">${esc(pre.obs || '')}</textarea>
     <p id="nkm" style="color:var(--cinza);font-size:15px"></p>
@@ -418,11 +419,12 @@ function telaNovoPedido(tipo) {
     if (!placaValida(d.placa)) { f.placa.focus(); return toast('Placa inválida. Use ABC1234 ou ABC1D23.', true); }
     const vo = d.valor_oferecido.trim() ? valorDigitado(d.valor_oferecido) : null;
     if (d.valor_oferecido.trim() && !(vo >= 1 && vo <= 100000)) { f.valor_oferecido.focus(); return toast('Valor entre R$ 1 e R$ 100.000, ou deixe em branco para combinar.', true); }
+    if (d.urgente && !vo) { f.valor_oferecido.focus(); return toast('Para chamado urgente, informe quanto você paga.', true); }
     comBotao(f.querySelector('button'), async () => {
       try {
         const p = ok(await sb.from('gf_pedidos').insert({ tipo, origem: d.origem, destino: d.destino, veiculo: d.veiculo.trim(), veiculo_tipo: d.veiculo_tipo,
           placa: d.placa || null, condicao: d.condicao, data_servico: d.data_servico || null, obs: d.obs.trim() || null,
-          ...(vo ? { valor_oferecido: vo } : {}) }).select('id').single());
+          ...(vo ? { valor_oferecido: vo } : {}), ...(d.urgente ? { despacho_ate: new Date().toISOString() } : {}) }).select('id').single());
         toast(rep ? 'Repasse publicado.' : 'Pedido publicado. Avisamos quando chegar proposta.');
         location.hash = 'pedido/' + p.id;
       } catch (er) { falha(er, mensagemErro(er)); }
@@ -452,11 +454,11 @@ function cardPedidoAberto(p, extra) {
   return `<a class="item ${p.tipo === 'repasse' ? 'quente' : ''}" href="#pedido/${p.id}">
     ${trajeto(p.origem, p.destino)}
     <div class="meta">${esc(VEICULO[p.veiculo_tipo] || '')} · ${esc(p.veiculo)} · ${esc(CONDICAO[p.condicao] || p.condicao)} · ${dataCurta(p.data_servico)}</div>
-    <div class="tags">${p.valor_oferecido ? `<span class="tag vd">Paga ${reais(p.valor_oferecido)}</span>` : '<span class="tag">A combinar</span>'}${p.tipo === 'repasse' ? '<span class="tag am">Repasse de colega</span>' : ''}${extra ? `<span class="tag">${esc(extra)}</span>` : ''}
+    <div class="tags">${p.despacho_ate && new Date(p.despacho_ate) > Date.now() ? '<span class="tag vm">Urgente</span>' : ''}${p.valor_oferecido ? `<span class="tag vd">Paga ${reais(p.valor_oferecido)}</span>` : '<span class="tag">A combinar</span>'}${p.tipo === 'repasse' ? '<span class="tag am">Repasse de colega</span>' : ''}${extra ? `<span class="tag">${esc(extra)}</span>` : ''}
       ${GF_GEO.km(p.origem, p.destino) ? `<span class="tag">trajeto ${kmTxt(GF_GEO.km(p.origem, p.destino))}</span>` : ''}</div></a>`;
 }
 async function pedidosAbertos() {
-  return ok(await sb.from('gf_pedidos').select('id,origem,destino,veiculo,veiculo_tipo,condicao,data_servico,tipo,criado_em,valor_oferecido')
+  return ok(await sb.from('gf_pedidos').select('id,origem,destino,veiculo,veiculo_tipo,condicao,data_servico,tipo,criado_em,valor_oferecido,despacho_ate')
     .eq('status', 'aberto').neq('autor_id', S.user.id).order('criado_em', { ascending: false }).limit(300))
     .map(p => ({ ...p, dist: GF_GEO.km(S.perfil.cidade, p.origem) }));
 }
@@ -887,6 +889,12 @@ function radarPedido(p, alc, nProps) {
   const min = Math.max(1, Math.round((Date.now() - new Date(p.criado_em)) / 6e4));
   const quando = min < 60 ? `há ${min} min` : min < 1440 ? `há ${Math.round(min / 60)} h` : `há ${Math.round(min / 1440)} dia(s)`;
   const av = alc?.avisados || 0;
+  if (!nProps && p.despacho_ate && new Date(p.despacho_ate) > Date.now()) {
+    const s = Math.round((new Date(p.despacho_ate) - Date.now()) / 1000);
+    return `<div class="radar urg"><div class="pulso" aria-hidden="true"><i></i><i></i><i></i></div><div><b>Chamado urgente na rede</b>
+      <span>${av ? `Alarme tocando para ${av} guincheiro${av > 1 ? 's' : ''}` : 'Alarme tocando para os guincheiros disponíveis'}. O primeiro que aceitar ${reais(p.valor_oferecido)} leva.</span>
+      <span>Faltam ~${Math.max(1, Math.ceil(s / 60))} min. Depois, segue recebendo propostas.</span></div></div>`;
+  }
   return `<div class="radar ${nProps ? 'com' : ''}"><div class="pulso" aria-hidden="true"><i></i><i></i><i></i></div>
     <div><b>${nProps ? `${nProps} proposta${nProps > 1 ? 's' : ''} recebida${nProps > 1 ? 's' : ''}` : 'Procurando guincheiros…'}</b>
     <span>${av ? `Avisamos ${av} guincheiro${av > 1 ? 's' : ''} da rede no celular` : 'Seu pedido está visível para os guincheiros da rede'} · publicado ${quando}.</span>
@@ -1332,7 +1340,7 @@ sb.auth.onAuthStateChange((ev, session) => {
     S.user = novo;
     if (!S.user) { S.perfil = null; $('#nav').hidden = true; return rota(); }
     if (mudou || ev === 'INITIAL_SESSION') {
-      try { await carregaPerfil(); rota(); contadores(); sincronizarPush(); sincronizarVistorias(); } catch (e) { telaErro(e); }
+      try { await carregaPerfil(); rota(); contadores(); sincronizarPush(); sincronizarVistorias(); despIniciar(); } catch (e) { telaErro(e); }
     }
   }, 0);
 });
