@@ -172,6 +172,15 @@ test('app cliente: login, perfil, pedido e persistência após recarregar', asyn
   assert.match(await page.locator('#titulo').innerText(), /Olá, Maria/);
   assert.equal(await page.locator('#nav a').count(), 4);
   await foto(page, '4-inicio-cliente');
+  // tom escuro: troca no botão do topo e continua depois de recarregar
+  assert.equal(await page.evaluate(() => document.body.dataset.tema), 'claro');
+  await page.locator('#btTema').click();
+  assert.equal(await page.evaluate(() => document.body.dataset.tema), 'escuro');
+  await page.reload(); await page.locator('.chamada').waitFor();
+  assert.equal(await page.evaluate(() => document.body.dataset.tema), 'escuro');
+  await foto(page, '4b-inicio-cliente-escuro');
+  await page.locator('#btTema').click();
+  assert.equal(await page.evaluate(() => document.body.dataset.tema), 'claro');
   assert.ok(await semRolagemLateral(page));
 
   await page.getByRole('link', { name: 'Pedir transporte de veículo' }).click();
@@ -289,6 +298,7 @@ test('app guincheiro aprovado: vaga na rota e caminhão cedido', async () => {
   await page.locator('.menu-lista.duas').waitFor();
   assert.deepEqual(await page.locator('.menu-lista.duas b').allInnerTexts(), ['Tenho vaga no caminhão', 'Ceder meu caminhão', 'Ver vagas e caminhões', 'Repassar um serviço']);
   await foto(page, '11-inicio-parceiros');
+  await page.locator('#btTema').click(); await foto(page, '11b-inicio-guincheiro-escuro'); await page.locator('#btTema').click();
   // vaga de colega: mandar veículo abre repasse preenchido
   await page.locator('.menu-lista.duas a[href="#rotas"]').click();
   await page.locator('[data-chips=parc]').waitFor();
