@@ -189,6 +189,8 @@ async function rota(silencioso) {
     if (a === 'rotas' && b === 'nova') return telaNovaRota();
     if (a === 'rotas') return await telaRotas();
     if (a === 'rota') return await telaRota(b);
+    if (a === 'vistoria' && b === 'nova') return await telaVistoriaNova(c);
+    if (a === 'vistoria') return await telaVistoria(b);
     if (a === 'caminhoes' && b === 'novo') return telaNovoCaminhao();
     if (a === 'caminhoes') return await telaCaminhoes();
     if (a === 'caminhao') return await telaCaminhao(b);
@@ -496,7 +498,8 @@ async function inicioGuincheiro() {
         <a href="#pedido/${p.id}" class="and-t"><span>Em andamento · etapa ${etapa(p.status)} de 4</span><b>${esc(p.origem)} › ${esc(p.destino)}</b>
           <small>${esc(p.veiculo)} · ${brl(p.valor_combinado)}</small></a>
         <div class="etapas">${[1, 2, 3, 4].map(i => `<i class="${i <= etapa(p.status) ? 'f' : ''}"></i>`).join('')}</div>
-        <button class="btn full grande" data-av="${p.id}" data-st="${PROXIMO[p.status]}">${ACAO_PRESTADOR[p.status]}</button></div>`).join('')}
+        <button class="btn full grande" data-av="${p.id}" data-st="${PROXIMO[p.status]}">${ACAO_PRESTADOR[p.status]}</button>
+        ${['a_caminho', 'no_local'].includes(p.status) ? `<a class="btn fant full" style="margin-top:8px" href="#vistoria/nova/${p.id}">Vistoria do veículo</a>` : ''}</div>`).join('')}
     ${rotaAtual ? `<div class="sec-l"><h3 class="sec-t">No meu caminho</h3><a href="#rota/${rotaAtual.id}">${esc(rotaAtual.origem)} › ${esc(rotaAtual.destino)} · ${dataHora(rotaAtual.saida)}</a></div>
       ${naRota.length ? naRota.slice(0, 4).map(p => `<a class="linha-ped" href="#pedido/${p.id}"><span><b>${esc(p.origem)} › ${esc(p.destino)}</b>
         <small>${esc(p.veiculo)} · ${dataCurta(p.data_servico)}</small></span><em>${p.desvio <= 5 ? 'no caminho' : '+' + p.desvio + ' km'}</em></a>`).join('')
@@ -861,6 +864,15 @@ async function telaAntecipar() {
     try { await rpc('gf_cancelar_antecipacao', { p_id: b.dataset.cant }); toast('Pedido cancelado.'); rota(); } catch (er) { falha(er); }
   });
 }
+// vistoria do atendimento: fazer (guincheiro) ou ver o termo (os dois)
+async function blocoVistoria(p, papel) {
+  let v = null; try { v = ok(await sb.from('gf_vistorias').select('id,feita_em').eq('pedido_id', p.id).maybeSingle()); } catch { /* tabela ainda não publicada */ }
+  if (v) return `<a class="vs-cta feita" href="#vistoria/${v.id}"><b>Termo de vistoria</b><span>Fotos, avarias e assinatura · ${dataHora(v.feita_em)}</span></a>`;
+  if (papel !== 'prestador' || !['aceito', 'a_caminho', 'no_local', 'em_transporte'].includes(p.status)) return '';
+  const pend = (typeof vistPendentes === 'function' ? await vistPendentes() : []).some(x => x.pedido_id === p.id);
+  return pend ? `<a class="vs-cta" href="#vistoria/nova/${p.id}"><b>Vistoria salva no celular</b><span>Será enviada quando o sinal voltar. Toque para enviar agora.</span></a>`
+    : `<a class="vs-cta fazer" href="#vistoria/nova/${p.id}"><b>Fazer vistoria do veículo</b><span>Fotos, avarias e assinatura do cliente. Protege você contra reclamação de dano.</span></a>`;
+}
 // "radar" do pedido aberto: mostra que a rede está vendo, sem inventar números
 function radarPedido(p, alc, nProps) {
   const min = Math.max(1, Math.round((Date.now() - new Date(p.criado_em)) / 6e4));
@@ -936,6 +948,7 @@ async function telaPedido(id) {
         ${p.status !== 'concluido' ? await botaoContato(p, 'cliente') : ''}</div>`;
       if (p.status === 'em_transporte') html += '<button class="btn full" style="margin-top:14px" id="btReceb">Recebi o veículo</button>';
     }
+    if (p.prestador_id) html += await blocoVistoria(p, 'cliente');
     if (p.status === 'concluido') {
       html += p.nota ? `<h3 class="sec-t">Sua avaliação</h3><p style="font-size:22px;margin:0;color:var(--placa)">${'★'.repeat(p.nota)}${'☆'.repeat(5 - p.nota)}</p>${p.avaliacao_comentario ? `<p>${esc(p.avaliacao_comentario)}</p>` : ''}`
         : `<h3 class="sec-t">Como foi o serviço?</h3><form id="fAv"><div class="seg c5" role="radiogroup" aria-label="Nota">${[1, 2, 3, 4, 5].map(n =>
@@ -945,6 +958,7 @@ async function telaPedido(id) {
     }
     if (['aberto', 'aceito', 'a_caminho'].includes(p.status)) html += '<button class="btn perigo full" style="margin-top:18px" id="btCanc">Cancelar pedido</button>';
   } else if (papel === 'prestador') {
+    html += await blocoVistoria(p, 'prestador');
     html += `<div class="prop"><div class="valor">${brl(p.valor_combinado)}</div><div style="color:var(--cinza);font-size:15px">Valor combinado (registrado). Pagamento direto com o cliente.</div>
       ${p.status !== 'concluido' ? await botaoContato(p, 'prestador') : ''}</div>
       ${PROXIMO[p.status] ? `<button class="btn full" style="margin-top:14px;min-height:64px;font-size:20px" id="btAv">${ACAO_PRESTADOR[p.status]}</button>` : ''}
@@ -1294,7 +1308,7 @@ sb.auth.onAuthStateChange((ev, session) => {
     S.user = novo;
     if (!S.user) { S.perfil = null; $('#nav').hidden = true; return rota(); }
     if (mudou || ev === 'INITIAL_SESSION') {
-      try { await carregaPerfil(); rota(); contadores(); sincronizarPush(); } catch (e) { telaErro(e); }
+      try { await carregaPerfil(); rota(); contadores(); sincronizarPush(); sincronizarVistorias(); } catch (e) { telaErro(e); }
     }
   }, 0);
 });

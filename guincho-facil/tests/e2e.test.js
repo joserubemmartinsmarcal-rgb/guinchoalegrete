@@ -81,6 +81,22 @@ function backend() {
       return json(route, 200, objeto ? rows[0] || null : rows);
     }
     if (url.pathname === '/rest/v1/rpc/gf_atualizar_status') { const p = db.pedidos.find(x => x.id === corpo.p_pedido); if (p) p.status = corpo.p_status; return json(route, 200, null); }
+    if (url.pathname.startsWith('/storage/v1/object/sign/gf-vistorias')) {
+      return json(route, 200, corpo.paths.map(p => ({ path: p, signedURL: '/object/sign/gf-vistorias/' + p + '?token=t', error: null })));
+    }
+    if (url.pathname.startsWith('/storage/v1/object/gf-vistorias/')) {
+      (db.arquivos ||= []).push(decodeURIComponent(url.pathname.replace('/storage/v1/object/gf-vistorias/', '')));
+      return json(route, 200, { Key: 'gf-vistorias/x', Id: 'x' });
+    }
+    if (url.pathname === '/rest/v1/rpc/gf_salvar_vistoria') {
+      const v = { ...corpo.p, guincheiro_id: UID, tipo: 'retirada', recebida_em: new Date().toISOString() };
+      db.vistorias = [v]; return json(route, 200, v.id);
+    }
+    if (url.pathname === '/rest/v1/gf_vistorias') {
+      const id = url.searchParams.get('id'), ped = url.searchParams.get('pedido_id');
+      const rows = (db.vistorias || []).filter(v => (!id || id === 'eq.' + v.id) && (!ped || ped === 'eq.' + v.pedido_id));
+      return json(route, 200, objeto ? rows[0] || null : rows);
+    }
     if (url.pathname === '/rest/v1/rpc/gf_rede_numeros') return json(route, 200, { guincheiros: 42, disponiveis: 17, rotas_ativas: 18, caminhoes: 3, pedidos_7d: 26 });
     if (url.pathname === '/rest/v1/rpc/gf_alcance_pedido') return json(route, 200, { avisados: 12, propostas: 0, minutos_tipicos: 18 });
     if (url.pathname === '/rest/v1/rpc/gf_falar_com_parceiro') { db.contatos = (db.contatos || 0) + 1; return json(route, 200, { nome: 'Pedro Parceiro', whatsapp: '55999991002' }); }
@@ -384,6 +400,66 @@ test('app guincheiro: início com pedido em destaque, serviço em andamento, rot
   await page.waitForFunction(() => /Atualizado/.test(document.querySelector('#toast').textContent));
   assert.equal(api.db.pedidos[1].status, 'no_local');
   assert.deepEqual(erros, []);
+  await ctx.close();
+});
+
+test('vistoria: fotos, avarias, assinatura, sem sinal e termo', async () => {
+  const api = backend(); const { ctx, page, erros } = await abrir(api);
+  const OUTRO = '44444444-4444-4444-8444-444444444444', PED = '91111111-1111-4111-8111-111111111111', agora = new Date().toISOString();
+  api.db.perfil = { id: UID, tipo: 'guincheiro', nome: 'João Guincho', cidade: 'Santa Maria', whatsapp: '55999990002', equipamento: 'Plataforma',
+    raio_km: 150, placa: 'ABC1D23', aprovacao: 'aprovado', disponivel: true, is_admin: false, criado_em: agora };
+  api.db.pedidos = [{ id: PED, autor_id: OUTRO, prestador_id: UID, status: 'no_local', tipo: 'cliente', origem: 'Cacequi', destino: 'Santa Maria',
+    veiculo: 'S10 2019', veiculo_tipo: 'caminhonete', placa: 'IYZ1234', valor_combinado: 450, condicao: 'nao_anda', criado_em: agora }];
+  await page.goto(base + '/app');
+  await page.fill('#em', 'g@teste.dev'); await page.fill('#se', 'segredo123'); await page.locator('#btL').click();
+  await page.locator('.andamento').waitFor();
+  await page.locator('.andamento a[href^="#vistoria/nova/"]').click();
+  await page.locator('.vs-fotos').waitFor();
+  // sem fotos não conclui
+  await page.locator('#vsConcluir').click();
+  await page.waitForFunction(() => /Tire as fotos/.test(document.querySelector('#toast').textContent));
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVR4nGP8z8Dwn4GBgYGJAQoAHxcCAp1BYVYAAAAASUVORK5CYII=', 'base64');
+  for (const slot of ['frente', 'traseira', 'esquerda', 'direita']) {
+    await page.locator(`.vs-foto[data-slot=${slot}] input`).setInputFiles({ name: slot + '.png', mimeType: 'image/png', buffer: png });
+    await page.locator(`.vs-foto[data-slot=${slot}].ok img`).waitFor();
+  }
+  // avaria no desenho e checklist
+  await page.locator('#vsCarro').scrollIntoViewIfNeeded();
+  const carro = await page.locator('#vsCarro').boundingBox();
+  await page.mouse.click(carro.x + carro.width * 0.3, carro.y + carro.height * 0.2);
+  assert.equal(await page.locator('#vsPins .pin').count(), 1);
+  await page.locator('.vs-item[data-item=estepe]').click();
+  await page.locator('.seg span', { hasText: '1/2' }).click();
+  await page.fill('#vsNome', 'Maria Silva');
+  // assinatura com o dedo
+  await page.locator('#vsCanvas').scrollIntoViewIfNeeded();
+  const ass = await page.locator('#vsCanvas').boundingBox();
+  await page.mouse.move(ass.x + 20, ass.y + 40); await page.mouse.down();
+  await page.mouse.move(ass.x + 120, ass.y + 90, { steps: 8 }); await page.mouse.move(ass.x + 200, ass.y + 50, { steps: 8 }); await page.mouse.up();
+  await foto(page, '13-vistoria');
+  // sem sinal: fica salva no celular
+  await ctx.setOffline(true);
+  await page.locator('#vsConcluir').click();
+  await page.waitForFunction(() => /salva no celular/.test(document.querySelector('#toast').textContent));
+  assert.equal(api.db.vistorias, undefined, 'nada enviado sem sinal');
+  assert.equal(await page.evaluate(async () => (await vistPendentes()).length), 1);
+  // sinal volta: envia sozinha
+  await ctx.setOffline(false);
+  if (process.env.GF_DEBUG) { await page.waitForTimeout(3000); console.log('DEBUG', await page.evaluate(async () => { try { const it = (await vistPendentes())[0]; const r = await sb.storage.from('gf-vistorias').upload('x/y/z.jpg', it.fotos[0].blob, { upsert: true, contentType: 'image/jpeg' }); return JSON.stringify({ r, on: navigator.onLine, toast: document.querySelector('#toast').textContent, ch: 0 }); } catch (e) { return 'ERR ' + e.message; } }), JSON.stringify(api.db.chamadas.slice(-6))); }
+  await page.waitForFunction(() => /Vistoria enviada/.test(document.querySelector('#toast').textContent), null, { timeout: 15000 });
+  const v = api.db.vistorias[0];
+  assert.equal(v.pedido_id, PED); assert.equal(v.fotos.length, 4); assert.equal(v.avarias.length, 1);
+  assert.equal(v.responsavel_nome, 'Maria Silva'); assert.equal(v.checklist.estepe, true); assert.equal(v.checklist.combustivel, '1/2');
+  assert.ok(api.db.arquivos.includes(`${PED}/${v.id}/assinatura.png`) && api.db.arquivos.includes(`${PED}/${v.id}/frente.jpg`), 'fotos e assinatura enviadas');
+  assert.equal(await page.evaluate(async () => (await vistPendentes()).length), 0);
+  // termo
+  await page.goto(base + '/app#vistoria/' + v.id);
+  await page.locator('.vs-galeria img').first().waitFor();
+  assert.equal(await page.locator('.vs-galeria img').count(), 4);
+  assert.match(await page.locator('#v').innerText(), /Maria Silva/);
+  assert.match(await page.locator('#v').innerText(), /Estepe/);
+  await foto(page, '14-termo-vistoria');
+  assert.deepEqual(erros.filter(e => !/Failed to fetch|NetworkError/.test(e)), []);
   await ctx.close();
 });
 
