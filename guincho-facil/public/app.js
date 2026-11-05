@@ -59,6 +59,8 @@ const ehGuincho = () => S.perfil?.tipo === 'guincheiro';
 const aprovado = () => S.perfil?.aprovacao === 'aprovado';
 const cidadeOk = c => !!GF_CIDADES[c];
 const kmTxt = n => n == null ? '' : `~${n} km`;
+// valor em destaque sem centavos quando redondo: R$ 380 / R$ 380,50
+const reais = v => v == null ? '' : 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: Number(v) % 1 ? 2 : 0, maximumFractionDigits: 2 });
 // trajeto em forma de rota: origem ● ┆ ● destino
 const trajeto = (o, d) => `<div class="trajeto" aria-label="De ${esc(o)} para ${esc(d)}"><span class="parada o">${esc(o)}</span><span class="parada d">${esc(d)}</span></div>`;
 function tagStatus(st) {
@@ -363,11 +365,11 @@ function cardPedidoMeu(p) {
     ${trajeto(p.origem, p.destino)}
     <div class="meta">${esc(VEICULO[p.veiculo_tipo] || '')} · ${esc(p.veiculo)} · ${dataHora(p.criado_em)}</div>
     <div class="tags">${p.status === 'aberto' && n ? `<span class="tag am">${n} proposta${n > 1 ? 's' : ''} nova${n > 1 ? 's' : ''}</span>` : tagStatus(p.status)}
-      ${p.tipo === 'repasse' ? '<span class="tag">Repasse</span>' : ''}${p.valor_combinado != null ? `<span class="tag">${brl(p.valor_combinado)}</span>` : ''}</div></a>`;
+      ${p.tipo === 'repasse' ? '<span class="tag">Repasse</span>' : ''}${p.valor_combinado != null ? `<span class="tag">${brl(p.valor_combinado)}</span>` : p.valor_oferecido ? `<span class="tag">Você paga ${reais(p.valor_oferecido)}</span>` : ''}</div></a>`;
 }
 async function inicioCliente() {
   titulo('Olá, ' + S.perfil.nome.split(' ')[0]);
-  const d = ok(await sb.from('gf_pedidos').select('id,origem,destino,veiculo,veiculo_tipo,tipo,status,valor_combinado,criado_em,gf_propostas(status)')
+  const d = ok(await sb.from('gf_pedidos').select('id,origem,destino,veiculo,veiculo_tipo,tipo,status,valor_combinado,valor_oferecido,criado_em,gf_propostas(status)')
     .eq('autor_id', S.user.id).not('status', 'in', '(concluido,cancelado)').order('criado_em', { ascending: false }).limit(20));
   V.innerHTML = `${blocoInstalar()}
     <div class="chamada"><h2>Precisa mandar um veículo?</h2>
@@ -396,6 +398,9 @@ function telaNovoPedido(tipo) {
     <label for="npl">Placa (opcional)</label><input id="npl" name="placa" maxlength="8" style="text-transform:uppercase" placeholder="ABC1D23">
     <label>Condição</label>
     <div class="seg">${Object.entries(CONDICAO).map(([v, t], i) => `<label><input type="radio" name="condicao" value="${v}" ${i === 1 ? 'checked' : ''}><span>${t}</span></label>`).join('')}</div>
+    <label for="nvo">${rep ? 'Quanto você paga pelo repasse' : 'Quanto você paga'} (opcional)</label>
+    <input id="nvo" name="valor_oferecido" inputmode="decimal" placeholder="Ex.: 380 · em branco = a combinar">
+    <p style="color:var(--cinza);font-size:13.5px;margin:6px 0 0">Com valor, o guincheiro pode aceitar na hora ou negociar. Sem valor, os guincheiros mandam propostas.</p>
     <label for="nt">Quando</label><input id="nt" name="data_servico" type="date" min="${hoje}" value="${pre.data && pre.data > hoje ? pre.data : hoje}">
     <label for="nb">Detalhes (opcional)</label><textarea id="nb" name="obs" maxlength="1000" placeholder="Ponto de referência, roda travada, subsolo, horário… Não coloque endereço completo: ele é combinado com o guincheiro escolhido.">${esc(pre.obs || '')}</textarea>
     <p id="nkm" style="color:var(--cinza);font-size:15px"></p>
@@ -411,10 +416,13 @@ function telaNovoPedido(tipo) {
     if (d.origem === d.destino) return toast('Origem e destino precisam ser diferentes.', true);
     if (d.veiculo.trim().length < 2) { f.veiculo.focus(); return toast('Informe o modelo do veículo.', true); }
     if (!placaValida(d.placa)) { f.placa.focus(); return toast('Placa inválida. Use ABC1234 ou ABC1D23.', true); }
+    const vo = d.valor_oferecido.trim() ? valorDigitado(d.valor_oferecido) : null;
+    if (d.valor_oferecido.trim() && !(vo >= 1 && vo <= 100000)) { f.valor_oferecido.focus(); return toast('Valor entre R$ 1 e R$ 100.000, ou deixe em branco para combinar.', true); }
     comBotao(f.querySelector('button'), async () => {
       try {
         const p = ok(await sb.from('gf_pedidos').insert({ tipo, origem: d.origem, destino: d.destino, veiculo: d.veiculo.trim(), veiculo_tipo: d.veiculo_tipo,
-          placa: d.placa || null, condicao: d.condicao, data_servico: d.data_servico || null, obs: d.obs.trim() || null }).select('id').single());
+          placa: d.placa || null, condicao: d.condicao, data_servico: d.data_servico || null, obs: d.obs.trim() || null,
+          ...(vo ? { valor_oferecido: vo } : {}) }).select('id').single());
         toast(rep ? 'Repasse publicado.' : 'Pedido publicado. Avisamos quando chegar proposta.');
         location.hash = 'pedido/' + p.id;
       } catch (er) { falha(er, mensagemErro(er)); }
@@ -424,7 +432,7 @@ function telaNovoPedido(tipo) {
 async function telaMeusPedidos() {
   titulo(ehGuincho() ? 'Meus repasses' : 'Meus pedidos');
   const f = S.filtros.pedidos ||= { st: 'todos', dias: '30' };
-  const d = ok(await sb.from('gf_pedidos').select('id,origem,destino,veiculo,veiculo_tipo,tipo,status,valor_combinado,criado_em,gf_propostas(status)')
+  const d = ok(await sb.from('gf_pedidos').select('id,origem,destino,veiculo,veiculo_tipo,tipo,status,valor_combinado,valor_oferecido,criado_em,gf_propostas(status)')
     .eq('autor_id', S.user.id).order('criado_em', { ascending: false }).limit(300));
   const noPeriodo = d.filter(p => dentroDoPeriodo(p.criado_em, Number(f.dias)));
   const grupo = { todos: () => true, andamento: p => !['concluido', 'cancelado'].includes(p.status), concluido: p => p.status === 'concluido', cancelado: p => p.status === 'cancelado' };
@@ -444,11 +452,11 @@ function cardPedidoAberto(p, extra) {
   return `<a class="item ${p.tipo === 'repasse' ? 'quente' : ''}" href="#pedido/${p.id}">
     ${trajeto(p.origem, p.destino)}
     <div class="meta">${esc(VEICULO[p.veiculo_tipo] || '')} · ${esc(p.veiculo)} · ${esc(CONDICAO[p.condicao] || p.condicao)} · ${dataCurta(p.data_servico)}</div>
-    <div class="tags">${p.tipo === 'repasse' ? '<span class="tag am">Repasse de colega</span>' : ''}${extra ? `<span class="tag">${esc(extra)}</span>` : ''}
+    <div class="tags">${p.valor_oferecido ? `<span class="tag vd">Paga ${reais(p.valor_oferecido)}</span>` : '<span class="tag">A combinar</span>'}${p.tipo === 'repasse' ? '<span class="tag am">Repasse de colega</span>' : ''}${extra ? `<span class="tag">${esc(extra)}</span>` : ''}
       ${GF_GEO.km(p.origem, p.destino) ? `<span class="tag">trajeto ${kmTxt(GF_GEO.km(p.origem, p.destino))}</span>` : ''}</div></a>`;
 }
 async function pedidosAbertos() {
-  return ok(await sb.from('gf_pedidos').select('id,origem,destino,veiculo,veiculo_tipo,condicao,data_servico,tipo,criado_em')
+  return ok(await sb.from('gf_pedidos').select('id,origem,destino,veiculo,veiculo_tipo,condicao,data_servico,tipo,criado_em,valor_oferecido')
     .eq('status', 'aberto').neq('autor_id', S.user.id).order('criado_em', { ascending: false }).limit(300))
     .map(p => ({ ...p, dist: GF_GEO.km(S.perfil.cidade, p.origem) }));
 }
@@ -493,7 +501,8 @@ async function inicioGuincheiro() {
         <div class="np-t"><span>${destaque.tipo === 'repasse' ? 'Repasse de colega' : 'Pedido perto de você'}</span><i>${destaque.dist} km</i></div>
         <div class="np-r">${esc(destaque.origem)} › ${esc(destaque.destino)}</div>
         <div class="np-m">${esc(VEICULO[destaque.veiculo_tipo] || '')} · ${esc(destaque.veiculo)} · ${esc(CONDICAO[destaque.condicao] || '')}</div>
-        <div class="np-b"><b>${kmTxt(GF_GEO.km(destaque.origem, destaque.destino)) || '–'}<small>de trajeto</small></b><u>Ver e mandar proposta</u></div></a>` : ''}
+        <div class="np-b">${destaque.valor_oferecido ? `<b>${reais(destaque.valor_oferecido)}<small>${kmTxt(GF_GEO.km(destaque.origem, destaque.destino))} de trajeto</small></b>`
+          : `<b>${kmTxt(GF_GEO.km(destaque.origem, destaque.destino)) || '–'}<small>valor a combinar</small></b>`}<u>Ver e mandar proposta</u></div></a>` : ''}
     ${emAndamento.map(p => `<div class="andamento">
         <a href="#pedido/${p.id}" class="and-t"><span>Em andamento · etapa ${etapa(p.status)} de 4</span><b>${esc(p.origem)} › ${esc(p.destino)}</b>
           <small>${esc(p.veiculo)} · ${brl(p.valor_combinado)}</small></a>
@@ -502,7 +511,7 @@ async function inicioGuincheiro() {
         ${['a_caminho', 'no_local'].includes(p.status) ? `<a class="btn fant full" style="margin-top:8px" href="#vistoria/nova/${p.id}">Vistoria do veículo</a>` : ''}</div>`).join('')}
     ${rotaAtual ? `<div class="sec-l"><h3 class="sec-t">No meu caminho</h3><a href="#rota/${rotaAtual.id}">${esc(rotaAtual.origem)} › ${esc(rotaAtual.destino)} · ${dataHora(rotaAtual.saida)}</a></div>
       ${naRota.length ? naRota.slice(0, 4).map(p => `<a class="linha-ped" href="#pedido/${p.id}"><span><b>${esc(p.origem)} › ${esc(p.destino)}</b>
-        <small>${esc(p.veiculo)} · ${dataCurta(p.data_servico)}</small></span><em>${p.desvio <= 5 ? 'no caminho' : '+' + p.desvio + ' km'}</em></a>`).join('')
+        <small>${esc(p.veiculo)} · ${p.desvio <= 5 ? 'no caminho' : '+' + p.desvio + ' km'}</small></span><em>${p.valor_oferecido ? reais(p.valor_oferecido) : 'a combinar'}</em></a>`).join('')
         : '<div class="vazio">Nenhum pedido na sua rota ainda. Ela fica ativa: quando aparecer um, você recebe aviso.</div>'}`
     : `<a class="anunciar" href="#rotas/nova"><b>Anunciar minha volta de hoje</b><span>Diga de onde sai e para onde volta. O GF mostra os pedidos que cabem no caminho.</span></a>`}
     <div class="mes" aria-label="Seu mês no GF">
@@ -916,6 +925,7 @@ async function telaPedido(id) {
   const km = GF_GEO.km(p.origem, p.destino);
   let html = `<div class="item quente destaque">${trajeto(p.origem, p.destino)}
     <div class="meta">${esc(VEICULO[p.veiculo_tipo] || '')} · ${esc(p.veiculo)}${p.placa && papel !== 'outro' ? ' · ' + esc(p.placa) : ''} · ${esc(CONDICAO[p.condicao] || p.condicao)}</div>
+    ${p.status === 'aberto' ? `<div class="oferta">${p.valor_oferecido ? `<b>${reais(p.valor_oferecido)}</b><span>${papel === 'cliente' ? 'valor que você ofereceu' : 'valor oferecido'}</span>` : '<b>A combinar</b><span>os guincheiros mandam propostas</span>'}</div>` : ''}
     <div class="meta">${dataCurta(p.data_servico)}${km ? ' · trajeto ' + kmTxt(km) : ''}${papel !== 'cliente' && p.autor ? ' · pedido por ' + esc(p.autor.nome.split(' ')[0]) : ''}</div>
     ${p.obs ? `<div class="meta">${esc(p.obs)}</div>` : ''}
     <div class="tags">${p.tipo === 'repasse' ? '<span class="tag am">Repasse</span>' : ''}${tagStatus(p.status)}</div>
@@ -934,6 +944,7 @@ async function telaPedido(id) {
       html += `<h3 class="sec-t">Propostas (${props.length})</h3>` + (props.length ? props.map(x => {
         const r = repDe(x.guincheiro_id);
         return `<div class="prop"><div class="valor">${brl(x.valor)}</div>
+          ${p.valor_oferecido ? `<span class="tag ${Number(x.valor) === Number(p.valor_oferecido) ? 'vd' : 'am'}" style="margin-bottom:6px">${Number(x.valor) === Number(p.valor_oferecido) ? 'Aceitou o seu valor' : 'Contraproposta'}</span>` : ''}
           <div><b>${esc(x.g?.nome || 'Guincheiro')}</b>${x.g?.empresa ? ' · ' + esc(x.g.empresa) : ''}</div>
           <div style="color:var(--cinza);font-size:15px">${esc(x.g?.cidade || '')} · ${esc(x.g?.equipamento || '')}${x.prazo ? ' · chega ' + esc(x.prazo) : ''}</div>
           <div style="color:var(--cinza);font-size:15px">${r ? `★ ${r.media ?? '–'} · ${r.concluidos} serviço${r.concluidos > 1 ? 's' : ''} pelo GF` : 'Novo no GF'}</div>
@@ -973,7 +984,10 @@ async function telaPedido(id) {
     }
     if (p.status === 'aberto' && ehGuincho() && aprovado() && (!mine || mine.status !== 'aceita')) {
       const ed = mine?.status === 'enviada';
-      html += `<h3 class="sec-t">${ed ? 'Alterar proposta' : 'Mandar proposta'}</h3><form id="fPr" novalidate>
+      const vo = p.valor_oferecido;
+      if (vo && !ed) html += `<button class="btn full grande" id="btAceitaValor" style="margin-top:14px">Aceitar por ${reais(vo)}</button>
+        <p style="color:var(--cinza);font-size:13.5px;text-align:center;margin:8px 0 0">Ou negocie outro valor abaixo. Quem pediu escolhe a proposta.</p>`;
+      html += `<h3 class="sec-t">${ed ? 'Alterar proposta' : vo ? 'Negociar outro valor' : 'Mandar proposta'}</h3><form id="fPr" novalidate>
         <label for="pv">Valor total (R$)</label><input id="pv" name="valor" inputmode="decimal" placeholder="Ex.: 450" value="${ed ? String(mine.valor).replace('.', ',') : ''}" required>
         <label for="pp">Quando consegue chegar</label><input id="pp" name="prazo" maxlength="80" placeholder="Ex.: hoje até 16h" value="${esc(ed ? mine.prazo : '')}">
         <label for="pm">Mensagem (opcional)</label><textarea id="pm" name="mensagem" maxlength="500" placeholder="Ex.: estou voltando de Santa Maria, passo aí no caminho">${esc(ed ? mine.mensagem : '')}</textarea>
@@ -1019,6 +1033,16 @@ async function telaPedido(id) {
     if (!d.nota) return toast('Escolha de 1 a 5 estrelas.', true);
     comBotao(e.target.querySelector('button'), async () => {
       try { await rpc('gf_avaliar', { p_pedido: id, p_nota: Number(d.nota), p_comentario: d.comentario }); toast('Obrigado pela avaliação!'); rota(); }
+      catch (er) { falha(er); }
+    });
+  };
+  if ($('#btAceitaValor')) $('#btAceitaValor').onclick = async e => {
+    const bt = e.currentTarget;
+    const prazo = await perguntar({ titulo: `Aceitar por ${reais(p.valor_oferecido)}?`, texto: 'Sua proposta vai com o valor que o cliente ofereceu. Ele escolhe e libera o contato.',
+      campo: { label: 'Quando consegue chegar (opcional)' }, ok: 'Aceitar e enviar' });
+    if (prazo == null) return;
+    comBotao(bt, async () => {
+      try { await rpc('gf_enviar_proposta', { p_pedido: id, p_valor: Number(p.valor_oferecido), p_prazo: prazo || null, p_mensagem: null }); toast('Proposta enviada pelo valor oferecido.'); rota(); }
       catch (er) { falha(er); }
     });
   };

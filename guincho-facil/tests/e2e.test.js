@@ -99,6 +99,7 @@ function backend() {
       const rows = (db.vistorias || []).filter(v => (!id || id === 'eq.' + v.id) && (!ped || ped === 'eq.' + v.pedido_id));
       return json(route, 200, objeto ? rows[0] || null : rows);
     }
+    if (url.pathname === '/rest/v1/rpc/gf_enviar_proposta') { (db.propostas ||= []).push(corpo); return json(route, 200, 'p' + db.propostas.length); }
     if (url.pathname === '/rest/v1/rpc/gf_rede_numeros') return json(route, 200, { guincheiros: 42, disponiveis: 17, rotas_ativas: 18, caminhoes: 3, pedidos_7d: 26 });
     if (url.pathname === '/rest/v1/rpc/gf_alcance_pedido') return json(route, 200, { avisados: 12, propostas: 0, minutos_tipicos: 18 });
     if (url.pathname === '/rest/v1/rpc/gf_falar_com_parceiro') { db.contatos = (db.contatos || 0) + 1; return json(route, 200, { nome: 'Pedro Parceiro', whatsapp: '55999991002' }); }
@@ -206,7 +207,7 @@ test('app cliente: login, perfil, pedido e persistência após recarregar', asyn
 
   await page.getByRole('link', { name: 'Pedir transporte de veículo' }).click();
   await page.locator('#fN').waitFor();
-  await page.fill('#nd', 'Alegrete'); await page.fill('#nv', 'Gol 2015');
+  await page.fill('#nd', 'Alegrete'); await page.fill('#nv', 'Gol 2015'); await page.fill('#nvo', '380');
   await page.locator('#fN button').click();
   await page.waitForFunction(() => /diferentes/.test(document.querySelector('#toast').textContent));
   await page.fill('#nd', 'Santa Maria'); await page.fill('#npl', 'xx'); await page.locator('#fN button').click();
@@ -229,6 +230,7 @@ test('app cliente: login, perfil, pedido e persistência após recarregar', asyn
   assert.equal(enviado.veiculo, 'Gol 2015'); assert.equal(enviado.condicao, 'nao_anda');
   for (const campo of ['status', 'prestador_id', 'valor_combinado', 'autor_id']) assert.ok(!(campo in api.db.ultimoInsert), `app não envia ${campo}`);
   assert.equal(api.db.ultimoInsert.placa, 'iyz-1234', 'placa vai como digitada; o banco normaliza');
+  assert.equal(api.db.ultimoInsert.valor_oferecido, 380, 'preço lançado por quem pede');
 
   await page.reload();
   await page.locator('.trajeto').waitFor();
@@ -380,7 +382,7 @@ test('app guincheiro: início com pedido em destaque, serviço em andamento, rot
     raio_km: 150, placa: 'ABC1D23', aprovacao: 'aprovado', disponivel: true, is_admin: false, criado_em: agora };
   api.db.pedidos = [
     { id: '81111111-1111-4111-8111-111111111111', autor_id: OUTRO, status: 'aberto', tipo: 'cliente', origem: 'São Pedro do Sul', destino: 'Alegrete',
-      veiculo: 'Gol 2015', veiculo_tipo: 'carro', condicao: 'nao_anda', data_servico: agora.slice(0, 10), criado_em: agora },
+      veiculo: 'Gol 2015', veiculo_tipo: 'carro', condicao: 'nao_anda', data_servico: agora.slice(0, 10), criado_em: agora, valor_oferecido: 380 },
     { id: '82222222-2222-4222-8222-222222222222', autor_id: OUTRO, prestador_id: UID, status: 'a_caminho', tipo: 'cliente', origem: 'Cacequi', destino: 'Santa Maria',
       veiculo: 'S10 2019', valor_combinado: 450, criado_em: agora },
     { id: '83333333-3333-4333-8333-333333333333', autor_id: OUTRO, prestador_id: UID, status: 'concluido', tipo: 'cliente', origem: 'Alegrete', destino: 'Uruguaiana',
@@ -391,6 +393,7 @@ test('app guincheiro: início com pedido em destaque, serviço em andamento, rot
   await page.fill('#em', 'g@teste.dev'); await page.fill('#se', 'segredo123'); await page.locator('#btL').click();
   await page.locator('.novo-pedido').waitFor();
   assert.match(await page.locator('.novo-pedido').innerText(), /São Pedro do Sul › Alegrete/);
+  assert.match(await page.locator('.novo-pedido .np-b b').innerText(), /R\$\s*380/);
   assert.match(await page.locator('.andamento').innerText(), /etapa 2 de 4/i);
   assert.match(await page.locator('.andamento button').innerText(), /Cheguei no local/);
   assert.match(await page.locator('.sec-l').innerText(), /No meu caminho/);
@@ -401,6 +404,15 @@ test('app guincheiro: início com pedido em destaque, serviço em andamento, rot
   await page.locator('#dlg button[value=ok]').click();
   await page.waitForFunction(() => /Atualizado/.test(document.querySelector('#toast').textContent));
   assert.equal(api.db.pedidos[1].status, 'no_local');
+  // aceitar pelo valor oferecido em um toque
+  await page.goto(base + '/app#pedido/81111111-1111-4111-8111-111111111111');
+  await page.locator('#btAceitaValor').waitFor();
+  assert.match(await page.locator('#btAceitaValor').innerText(), /Aceitar por R\$\s*380/);
+  await page.locator('#btAceitaValor').click();
+  await page.fill('#dlgCampo', 'hoje até 16h');
+  await page.locator('#dlg button[value=ok]').click();
+  await page.waitForFunction(() => /valor oferecido/.test(document.querySelector('#toast').textContent));
+  assert.deepEqual(api.db.propostas[0], { p_pedido: '81111111-1111-4111-8111-111111111111', p_valor: 380, p_prazo: 'hoje até 16h', p_mensagem: null });
   assert.deepEqual(erros, []);
   await ctx.close();
 });
