@@ -50,7 +50,7 @@ async function vistRemover(id) { return vistFila('readwrite', st => { st.delete(
 
 let vistSincronizando = false;
 async function sincronizarVistorias(silencioso = true) {
-  if (vistSincronizando || !S.user || !navigator.onLine) return 0;
+  if (vistSincronizando || !S.user) return 0;
   vistSincronizando = true; let enviadas = 0;
   try {
     for (const it of await vistPendentes()) {
@@ -77,7 +77,10 @@ async function sincronizarVistorias(silencioso = true) {
   if (enviadas) toast(enviadas > 1 ? `${enviadas} vistorias enviadas.` : 'Vistoria enviada ao servidor.');
   return enviadas;
 }
-window.addEventListener('online', () => sincronizarVistorias());
+// o aviso de "voltou o sinal" chega antes da conexão estar pronta: espera um pouco e,
+// enquanto houver vistoria pendente, tenta de novo a cada minuto
+window.addEventListener('online', () => setTimeout(() => sincronizarVistorias(), 1500));
+setInterval(async () => { if (S.user && (await vistPendentes()).length) sincronizarVistorias(); }, 60000);
 
 // ───────── compressão das fotos no celular ─────────
 async function comprimirFoto(arquivo, max = 1280, qualidade = 0.72) {

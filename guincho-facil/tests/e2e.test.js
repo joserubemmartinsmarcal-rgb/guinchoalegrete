@@ -22,7 +22,7 @@ function backend() {
   async function trata(route) {
     const req = route.request(); const url = new URL(req.url()); const m = req.method();
     if (m === 'OPTIONS') return route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' } });
-    const corpo = req.postData() ? JSON.parse(req.postData()) : null;
+    let corpo = null; try { corpo = req.postData() ? JSON.parse(req.postData()) : null; } catch { corpo = null; } // arquivos (fotos) não são JSON
     db.chamadas.push(`${m} ${url.pathname}`);
     const objeto = (req.headers().accept || '').includes('vnd.pgrst.object');
     if (url.pathname === '/auth/v1/token') {
@@ -82,6 +82,8 @@ function backend() {
     }
     if (url.pathname === '/rest/v1/rpc/gf_atualizar_status') { const p = db.pedidos.find(x => x.id === corpo.p_pedido); if (p) p.status = corpo.p_status; return json(route, 200, null); }
     if (url.pathname.startsWith('/storage/v1/object/sign/gf-vistorias')) {
+      if (m === 'GET') return route.fulfill({ status: 200, contentType: 'image/png', headers: { 'access-control-allow-origin': '*' },
+        body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVR4nGP8z8Dwn4GBgYGJAQoAHxcCAp1BYVYAAAAASUVORK5CYII=', 'base64') });
       return json(route, 200, corpo.paths.map(p => ({ path: p, signedURL: '/object/sign/gf-vistorias/' + p + '?token=t', error: null })));
     }
     if (url.pathname.startsWith('/storage/v1/object/gf-vistorias/')) {
@@ -445,7 +447,6 @@ test('vistoria: fotos, avarias, assinatura, sem sinal e termo', async () => {
   assert.equal(await page.evaluate(async () => (await vistPendentes()).length), 1);
   // sinal volta: envia sozinha
   await ctx.setOffline(false);
-  if (process.env.GF_DEBUG) { await page.waitForTimeout(3000); console.log('DEBUG', await page.evaluate(async () => { try { const it = (await vistPendentes())[0]; const r = await sb.storage.from('gf-vistorias').upload('x/y/z.jpg', it.fotos[0].blob, { upsert: true, contentType: 'image/jpeg' }); return JSON.stringify({ r, on: navigator.onLine, toast: document.querySelector('#toast').textContent, ch: 0 }); } catch (e) { return 'ERR ' + e.message; } }), JSON.stringify(api.db.chamadas.slice(-6))); }
   await page.waitForFunction(() => /Vistoria enviada/.test(document.querySelector('#toast').textContent), null, { timeout: 15000 });
   const v = api.db.vistorias[0];
   assert.equal(v.pedido_id, PED); assert.equal(v.fotos.length, 4); assert.equal(v.avarias.length, 1);
