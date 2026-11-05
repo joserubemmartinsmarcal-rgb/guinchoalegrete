@@ -79,6 +79,7 @@ function backend() {
       if (dono) rows = rows.filter(x => dono === `eq.${x.guincheiro_id}` || (dono.startsWith('neq.') && dono !== `neq.${x.guincheiro_id}`));
       return json(route, 200, objeto ? rows[0] || null : rows);
     }
+    if (url.pathname === '/rest/v1/rpc/gf_atualizar_status') { const p = db.pedidos.find(x => x.id === corpo.p_pedido); if (p) p.status = corpo.p_status; return json(route, 200, null); }
     if (url.pathname === '/rest/v1/rpc/gf_falar_com_parceiro') { db.contatos = (db.contatos || 0) + 1; return json(route, 200, { nome: 'Pedro Parceiro', whatsapp: '55999991002' }); }
     if (url.pathname === '/rest/v1/gf_lista_espera') { db.lista.push(corpo); return route.fulfill({ status: 201, headers: { 'access-control-allow-origin': '*' } }); }
     if (url.pathname.startsWith('/rest/v1/')) {
@@ -323,6 +324,14 @@ test('app guincheiro aprovado: vaga na rota e caminhão cedido', async () => {
   const c = api.db.caminhoes.at(-1);
   assert.equal(c.com_motorista, false); assert.equal(c.valor, 600); assert.equal(c.cobranca, 'dia'); assert.equal(c.cidade, 'Santa Maria');
   assert.match(await page.locator('#v').innerText(), /Só o caminhão/);
+  // serviço em andamento: avançar etapa com confirmação
+  api.db.pedidos.push({ id: '77777777-7777-4777-8777-777777777777', autor_id: OUTRO, prestador_id: UID, status: 'aceito', tipo: 'cliente',
+    origem: 'Cacequi', destino: 'Santa Maria', veiculo: 'S10 2019', valor_combinado: 450, criado_em: new Date().toISOString() });
+  await page.goto(base + '/app#servicos');
+  await page.locator('[data-av]').click();
+  await page.locator('#dlg button[value=ok]').click();
+  await page.waitForFunction(() => /Atualizado/.test(document.querySelector('#toast').textContent));
+  assert.equal(api.db.pedidos.at(-1).status, 'a_caminho');
   assert.deepEqual(erros, []);
   await ctx.close();
 });

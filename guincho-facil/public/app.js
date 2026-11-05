@@ -747,6 +747,16 @@ async function telaServicos() {
   V.querySelectorAll('[data-av]').forEach(b => b.onclick = () => avancar(b, b.dataset.av, b.dataset.st));
   if (aba === 'andamento') aoVivo();
 }
+// avança a etapa do serviço (guincheiro), com confirmação
+async function avancar(bt, pedidoId, novo) {
+  const txt = { a_caminho: 'Confirmar que saiu para o atendimento?', no_local: 'Confirmar que chegou no local?',
+    em_transporte: 'Confirmar que o veículo está carregado?', concluido: 'Confirmar que entregou o veículo no destino?' }[novo];
+  if (!await perguntar({ titulo: txt, texto: 'O cliente acompanha cada etapa no app.', ok: 'Confirmar' })) return;
+  comBotao(bt, async () => {
+    try { await rpc('gf_atualizar_status', { p_pedido: pedidoId, p_status: novo, p_detalhe: null }); toast('Atualizado: ' + STATUS[novo] + '.'); rota(); contadores(); }
+    catch (er) { falha(er); }
+  });
+}
 // ───────────── antecipação de recebíveis (parceira JK Invest; o GF só encaminha) ─────────────
 function blocoAntecipar() {
   return `<a class="item quente antecipa" href="#servicos/antecipar"><div class="tit">Fez o serviço? Receba na hora.</div>
