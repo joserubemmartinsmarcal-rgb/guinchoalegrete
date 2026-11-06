@@ -8,11 +8,11 @@
 ✅ Chamado urgente: toca alarme, o primeiro que aceita leva
 ✅ Recebe na hora: antecipação em até 3h com a JK Invest
 
-Grátis nesta fase. Abre no celular, sem baixar nada:
+Primeira versão em teste, já funcionando. Abre no celular, sem baixar nada:
 👉 appdoguincheiro.com
 
 ## 2. Mensagem individual (para contato próximo)
-Fala, [NOME]! Tudo certo? Tô montando com meu sócio o GF, um app pra gente não voltar mais vazio. Tu anuncia tua volta e aparece frete no caminho; quando não dá pra atender, repassa pra um colega. É grátis. Te cadastra e me diz o que achou? appdoguincheiro.com — qualquer coisa me chama.
+Fala, [NOME]! Tudo certo? Tô montando com meu sócio o GF, um app pra gente não voltar mais vazio. Tu anuncia tua volta e aparece frete no caminho; quando não dá pra atender, repassa pra um colega. Já tá funcionando. Te cadastra e me diz o que achou? appdoguincheiro.com — qualquer coisa me chama.
 
 ## 3. Mensagem para empresa/frota
 Bom dia! Sou [NOME], do GF – Guincho Fácil. Nosso app conecta guincheiros do RS: vocês podem ceder caminhão parado para colegas (com ou sem motorista), anunciar vaga na plataforma e receber chamados urgentes. Sem custo nesta fase. Posso te mostrar em 5 minutos? appdoguincheiro.com
@@ -24,9 +24,9 @@ Bom dia! Sou [NOME], do GF – Guincho Fácil. Nosso app conecta guincheiros do 
 4. Liga "Disponível" e anuncia tua volta. Pronto.
 
 ## 5. Resposta para "quanto custa?"
-Nada nesta fase. O valor do frete é combinado entre vocês; o GF não fica com parte do serviço.
+O valor do frete é combinado entre vocês, direto. O GF não fica com parte do serviço.
 
 ## 6. Status do WhatsApp (3 telas)
 - "Voltou vazio hoje de novo?"
 - "No GF tu anuncia a volta e pega frete no caminho."
-- "appdoguincheiro.com · grátis"
+- "appdoguincheiro.com · já funcionando"
