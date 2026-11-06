@@ -1,0 +1,160 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--am:#2EA043;--am2:#2EA043;--pr:#0D1117;--pr2:#161B22;--pr3:#30363D;--br:#E6EDF3;--cz:#0D1117;--tx2:#8b949e;--vd:#2EA043}
+body{background:#d9d9d4;font-family:'Inter Tight',system-ui,sans-serif;padding:30px;display:flex;gap:30px}
+.col{display:flex;flex-direction:column;gap:14px}
+.col h5{font:900 20px 'Inter Tight';color:#111}.col p{font:600 13px 'Inter Tight';color:#3d3d40;max-width:390px}
+.tela{width:390px;height:844px;position:relative;overflow:hidden;border-radius:44px;flex:none}
+svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.stat{height:44px;display:flex;justify-content:space-between;align-items:center;padding:0 28px;font:700 15px 'Inter Tight';position:relative}
+.nav{position:absolute;left:0;right:0;bottom:0;height:84px;display:flex;justify-content:space-around;padding-top:12px;font:600 11px 'Inter Tight'}
+.nav a{display:flex;flex-direction:column;align-items:center;gap:4px}
+.faixa{height:8px;background:repeating-linear-gradient(135deg,var(--am) 0 14px,var(--pr) 14px 28px)}
+.logo{font:900 22px 'Inter Tight';letter-spacing:-.04em;display:inline-flex;align-items:center;gap:6px}
+.logo i{font-style:normal;background:var(--am);color:var(--pr);border-radius:8px;padding:2px 7px}
+
+/* ── Guincheiro: preto + amarelo ── */
+.G{background:var(--pr);color:#fff}
+.G .cab{display:flex;justify-content:space-between;align-items:center;padding:6px 20px 14px}
+.G .cab h1{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.G .on{display:flex;align-items:center;gap:8px;background:var(--am);color:var(--pr);border-radius:999px;padding:8px 13px;font:900 13px 'Inter Tight'}
+.G .on i{width:9px;height:9px;border-radius:50%;background:var(--pr)}
+.G .corpo{padding:0 16px;display:grid;gap:12px}
+.G .novo{border-radius:22px;padding:16px;background:var(--am);color:var(--pr);position:relative;overflow:hidden}
+.G .novo .t{display:flex;justify-content:space-between;align-items:center;font:900 12px 'Inter Tight';letter-spacing:.14em;text-transform:uppercase}
+.G .novo .t span{background:var(--pr);color:var(--am);border-radius:999px;padding:4px 10px;letter-spacing:.04em}
+.G .novo h2{font-size:22px;font-weight:900;letter-spacing:-.02em;margin:8px 0 2px}
+.G .novo .m{font:600 14px 'Inter Tight';opacity:.8}
+.G .novo .v{display:flex;align-items:flex-end;justify-content:space-between;margin-top:12px}
+.G .novo .v b{font-size:38px;font-weight:900;letter-spacing:-.03em;line-height:1}
+.G .novo .v u{text-decoration:none;background:var(--pr);color:#fff;border-radius:14px;padding:13px 18px;font:800 15px 'Inter Tight'}
+.G .and{border-radius:22px;padding:16px;background:var(--pr2);border:1px solid var(--pr3)}
+.G .rot{font:800 11px 'Inter Tight';letter-spacing:.14em;text-transform:uppercase;color:var(--am)}
+.G .and h3{font-size:18px;margin:6px 0 10px;font-weight:800}
+.G .eta{display:flex;gap:6px;margin-bottom:12px}.G .eta i{flex:1;height:6px;border-radius:9px;background:var(--pr3)}.G .eta i.f{background:var(--am)}
+.G .bt{text-align:center;border-radius:16px;padding:16px;font:900 17px 'Inter Tight';color:var(--pr);background:var(--am);box-shadow:0 8px 24px rgba(255,196,0,.28)}
+.G .sec{display:flex;justify-content:space-between;align-items:baseline;margin-top:4px}
+.G .sec h4{font-size:17px;font-weight:800}.G .sec span{font:600 13px 'Inter Tight';color:#9a9aa0}
+.G .ped{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;border-radius:18px;padding:13px 14px;background:var(--pr2);border:1px solid var(--pr3)}
+.G .ped b{font-size:16px;font-weight:800}.G .ped .p{font:600 13px 'Inter Tight';color:#9a9aa0}
+.G .ped .r{grid-row:span 2;text-align:right}.G .ped .r strong{display:block;font-size:22px;font-weight:900;color:#fff;letter-spacing:-.02em}
+.G .ped .r small{font:800 11px 'Inter Tight';color:var(--am)}
+.G .mes{display:flex;justify-content:space-between;border-radius:18px;padding:13px 16px;background:var(--pr2);border:1px solid var(--pr3)}
+.G .mes div{text-align:center}.G .mes b{display:block;font-size:20px;font-weight:900}.G .mes span{font:600 11px 'Inter Tight';color:#9a9aa0}
+.G .nav{background:#050505;border-top:1px solid var(--pr3);color:#77777d}.G .nav a.at{color:var(--am)}
+
+/* ── Cliente: branco + amarelo + preto ── */
+.K{background:var(--cz);color:var(--pr)}
+.K .top{background:var(--pr);color:#fff;padding-bottom:22px}
+.K .top .l{display:flex;justify-content:space-between;align-items:center;padding:6px 20px 0}
+.K .top h1{font-size:30px;line-height:1.02;font-weight:900;letter-spacing:-.035em;padding:18px 20px 6px}
+.K .top h1 em{font-style:normal;color:var(--am)}
+.K .top p{font:600 14.5px 'Inter Tight';color:#bdbdc2;padding:0 20px 16px;max-width:34ch}
+.K .pedir{margin:0 20px;display:flex;align-items:center;justify-content:space-between;background:var(--am);color:var(--pr);border-radius:18px;padding:18px 20px;font:900 19px 'Inter Tight';box-shadow:0 10px 28px rgba(255,196,0,.35)}
+.K .pedir span{width:38px;height:38px;border-radius:12px;background:var(--pr);color:var(--am);display:grid;place-items:center}
+.K .corpo{padding:16px;display:grid;gap:12px}
+.K .conf{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.K .conf div{background:#fff;border:1px solid #e6e6e1;border-radius:16px;padding:12px 10px;font:700 12px/1.3 'Inter Tight';color:#3d3d40}
+.K .conf b{display:block;font-size:17px;color:var(--pr);margin-bottom:2px}
+.K .h{display:flex;justify-content:space-between;align-items:baseline}.K .h h4{font-size:17px;font-weight:900}.K .h span{font:700 13px 'Inter Tight';color:var(--tx2)}
+.K .acomp{background:#fff;border:1px solid #e6e6e1;border-radius:22px;padding:16px}
+.K .acomp .who{display:flex;gap:12px;align-items:center}
+.K .av{width:48px;height:48px;border-radius:14px;background:var(--pr);color:var(--am);display:grid;place-items:center;font:900 18px 'Inter Tight'}
+.K .who b{font-size:16px;font-weight:800;display:block}.K .who span{font:600 12.5px 'Inter Tight';color:var(--tx2)}
+.K .who .nota{margin-left:auto;text-align:right;font:900 16px 'Inter Tight'}.K .who .nota small{display:block;font:700 11px 'Inter Tight';color:var(--vd)}
+.K .passos{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:14px 0 6px}
+.K .passos div{font:800 10.5px 'Inter Tight';color:#9a9aa0;text-align:center}
+.K .passos div::before{content:"";display:block;height:6px;border-radius:9px;background:#e6e6e1;margin-bottom:6px}
+.K .passos div.f{color:var(--pr)}.K .passos div.f::before{background:var(--am)}
+.K .agora{font:800 15px 'Inter Tight';margin:8px 0 12px}.K .agora span{color:var(--tx2);font-weight:600}
+.K .bts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.K .bts span{text-align:center;border-radius:14px;padding:13px;font:900 14.5px 'Inter Tight'}
+.K .bts .z{background:var(--vd);color:#fff}.K .bts .o{border:2px solid var(--pr)}
+.K .prop{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e6e6e1;border-radius:18px;padding:12px 14px}
+.K .prop .v{font:900 22px 'Inter Tight';letter-spacing:-.02em}.K .prop .t{flex:1}.K .prop .t b{display:block;font-size:14.5px}.K .prop .t span{font:600 12px 'Inter Tight';color:var(--tx2)}
+.K .prop u{text-decoration:none;background:var(--pr);color:var(--am);border-radius:12px;padding:10px 14px;font:900 13px 'Inter Tight'}
+.K .nav{background:#fff;border-top:1px solid #e6e6e1;color:#8a8a90}.K .nav a.at{color:var(--pr)}
+.K .nav a.at svg{background:var(--am);border-radius:10px;padding:3px;width:30px;height:30px;margin:-4px 0}
+
+/* ── Guincheiro de dia: branco + preto + amarelo ── */
+.D{background:#fff;color:var(--pr)}
+.D .cab{display:flex;justify-content:space-between;align-items:center;padding:6px 20px 14px}
+.D .cab h1{font-size:24px;font-weight:900;letter-spacing:-.02em}
+.D .on{background:var(--pr);color:var(--am);border-radius:999px;padding:8px 13px;font:900 13px 'Inter Tight'}
+.D .corpo{padding:0 16px;display:grid;gap:12px}
+.D .novo{border-radius:22px;padding:16px;background:var(--pr);color:#fff}
+.D .novo .t{display:flex;justify-content:space-between;font:900 12px 'Inter Tight';letter-spacing:.14em;text-transform:uppercase;color:var(--am)}
+.D .novo .t span{background:var(--am);color:var(--pr);border-radius:999px;padding:4px 10px;letter-spacing:.04em}
+.D .novo h2{font-size:22px;font-weight:900;margin:8px 0 2px}.D .novo .m{font:600 14px 'Inter Tight';color:#bdbdc2}
+.D .novo .v{display:flex;align-items:flex-end;justify-content:space-between;margin-top:12px}
+.D .novo .v b{font-size:38px;font-weight:900;letter-spacing:-.03em;line-height:1;color:var(--am)}
+.D .novo .v u{text-decoration:none;background:var(--am);color:var(--pr);border-radius:14px;padding:13px 18px;font:900 15px 'Inter Tight'}
+.D .and{border-radius:22px;padding:16px;background:var(--am)}
+.D .rot{font:900 11px 'Inter Tight';letter-spacing:.14em;text-transform:uppercase}
+.D .and h3{font-size:18px;margin:6px 0 10px;font-weight:900}
+.D .eta{display:flex;gap:6px;margin-bottom:12px}.D .eta i{flex:1;height:6px;border-radius:9px;background:rgba(0,0,0,.18)}.D .eta i.f{background:var(--pr)}
+.D .bt{text-align:center;border-radius:16px;padding:16px;font:900 17px 'Inter Tight';color:var(--am);background:var(--pr)}
+.D .sec{display:flex;justify-content:space-between;align-items:baseline;margin-top:4px}.D .sec h4{font-size:17px;font-weight:900}.D .sec span{font:600 13px 'Inter Tight';color:var(--tx2)}
+.D .ped{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;border-radius:18px;padding:13px 14px;background:var(--cz);border:1px solid #e6e6e1}
+.D .ped b{font-size:16px;font-weight:800}.D .ped .p{font:600 13px 'Inter Tight';color:var(--tx2)}
+.D .ped .r{grid-row:span 2;text-align:right}.D .ped .r strong{display:block;font-size:22px;font-weight:900;letter-spacing:-.02em}
+.D .ped .r small{font:800 11px 'Inter Tight';color:#a07800}
+.D .mes{display:flex;justify-content:space-between;border-radius:18px;padding:13px 16px;background:var(--cz);border:1px solid #e6e6e1}
+.D .mes div{text-align:center}.D .mes b{display:block;font-size:20px;font-weight:900}.D .mes span{font:600 11px 'Inter Tight';color:var(--tx2)}
+.D .nav{background:#fff;border-top:1px solid #e6e6e1;color:#8a8a90}.D .nav a.at{color:var(--pr)}
+.D .nav a.at svg{background:var(--am);border-radius:10px;padding:3px;width:30px;height:30px;margin:-4px 0}
+</style><style>
+body{background:#d7dbe0}
+.G,.K{color:#E6EDF3}
+.G .novo,.G .bt,.G .on,.K .pedir{color:#fff}
+.G .novo .t span{color:#2EA043}.G .novo .v u{background:#0D1117;color:#fff}
+.G .on i{background:#fff}
+.faixa{background:#2EA043;height:3px}
+.K{background:#0D1117}.K .top{background:#161B22}.K .top p{color:#8b949e}
+.K .pedir{box-shadow:0 10px 28px rgba(46,160,67,.35)}.K .pedir span{background:#0D1117;color:#2EA043}
+.K .conf div,.K .acomp,.K .prop{background:#161B22;border-color:#30363D;color:#8b949e}.K .conf b,.K .prop .v,.K .who b{color:#E6EDF3}
+.K .av{background:#30363D;color:#2EA043}
+.K .passos div::before{background:#30363D}.K .passos div.f{color:#E6EDF3}
+.K .bts .o{border-color:#E6EDF3;color:#E6EDF3}.K .bts .z{background:#25D366;color:#0D1117}
+.K .prop u{background:#2EA043;color:#fff}
+.K .nav,.G .nav{background:#010409;border-top:1px solid #30363D;color:#8b949e}.K .nav a.at{color:#E6EDF3}.K .nav a.at svg{background:#2EA043;color:#fff}
+.G .bt{box-shadow:0 8px 24px rgba(46,160,67,.3)}
+.G .mes b[style]{color:#2EA043!important}
+.K .logo i{color:#fff}
+.K .who .nota{color:#E6EDF3}
+</style></head><body>
+
+<div class="col"><h5>Guincheiro</h5>
+<div class="tela G"><div class="stat">9:41<span>●●● 5G</span></div>
+<div class="cab"><h1>Boa noite, João</h1><span class="on"><i></i>Disponível</span></div>
+<div class="corpo">
+  <div class="novo"><div class="t">Pedido novo no seu caminho<span>agora</span></div><h2>Rosário do Sul › Alegrete</h2><div class="m">Gol 2015 · roda travada · desvio de 8 km</div><div class="v"><b>R$ 380</b><u>Ver e propor</u></div></div>
+  <div class="and"><div class="rot">Em andamento · etapa 2 de 4</div><h3>Cacequi › Santa Maria · S10 2019</h3><div class="eta"><i class="f"></i><i class="f"></i><i></i><i></i></div><div class="bt">Cheguei no local</div></div>
+  <div class="sec"><h4>No meu caminho</h4><span>volta hoje 16h</span></div>
+  <div class="ped"><b>Cacequi › São Pedro</b><div class="r"><strong>R$ 450</strong><small>+12 km</small></div><span class="p">Onix 2020 · amanhã cedo</span></div>
+  <div class="ped"><b>Alegrete › Santa Maria</b><div class="r"><strong>R$ 620</strong><small>no caminho</small></div><span class="p">Moto CG 160 · hoje</span></div>
+  <div class="mes"><div><b style="color:var(--am)">R$ 3.200</b><span>no mês</span></div><div><b>9</b><span>serviços</span></div><div><b>4</b><span>voltas pagas</span></div><div><b>★ 4,9</b><span>sua nota</span></div></div>
+</div>
+<nav class="nav"><a class="at"><svg class="i" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3z"/></svg>Início</a><a><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>Buscar</a><a><svg class="i" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a4 4 0 0 0 0-8h-4a4 4 0 0 1 0-8h6"/></svg>Rotas</a><a><svg class="i" viewBox="0 0 24 24"><rect x="2" y="7" width="13" height="10" rx="1"/><path d="M15 10h4l3 3v4h-7"/></svg>Serviços</a><a><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Perfil</a></nav>
+</div><p>Fundo grafite com verde só no que pede ação: pedido novo, próxima etapa, disponível.</p></div>
+
+<div class="col"><h5>Cliente</h5>
+<div class="tela K"><div class="top"><div class="stat">9:41<span>●●● 5G</span></div>
+  <div class="l"><span class="logo"><i>GF</i>Guincho Fácil</span><svg class="i" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg></div>
+  <h1>Precisa mandar <em>um veículo?</em></h1><p>Guincheiros conferidos mandam o preço. Você escolhe e acompanha tudo pelo app.</p>
+  <div class="pedir">Pedir guincho agora<span><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div></div>
+<div class="faixa"></div>
+<div class="corpo">
+  <div class="conf"><div><b>Conferidos</b>documentos e caminhão</div><div><b>Preço antes</b>sem surpresa</div><div><b>Ao vivo</b>cada etapa no app</div></div>
+  <div class="h"><h4>Seu pedido</h4><span>Cacequi › Santa Maria</span></div>
+  <div class="acomp"><div class="who"><div class="av">JG</div><div><b>João Guincho</b><span>Plataforma · placa ABC1D23</span></div><div class="nota">★ 4,9<small>conferido GF</small></div></div>
+    <div class="passos"><div class="f">Aceito</div><div class="f">A caminho</div><div>No local</div><div>Entregue</div></div>
+    <div class="agora">A caminho <span>· chega em ~25 min</span></div>
+    <div class="bts"><span class="z">WhatsApp</span><span class="o">Ver rota</span></div></div>
+  <div class="prop"><div class="v">R$ 380</div><div class="t"><b>Nova proposta · Pedro G.</b><span>★ 5,0 · 52 serviços · hoje 16h</span></div><u>Ver</u></div>
+</div>
+<nav class="nav"><a class="at"><svg class="i" viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3z"/></svg>Início</a><a><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Pedir</a><a><svg class="i" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Pedidos</a><a><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Perfil</a></nav>
+</div><p>Mesma paleta para o cliente: botão verde enorme para pedir, garantia de quem vem e acompanhamento ao vivo.</p></div>
+</body></html>

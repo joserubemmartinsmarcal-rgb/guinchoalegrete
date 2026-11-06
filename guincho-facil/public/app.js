@@ -14,6 +14,19 @@ document.getElementById('dlCidades').innerHTML = Object.keys(GF_CIDADES).sort((a
   .map(c => `<option value="${esc(c)}">`).join('');
 
 // ───────────────────────── utilidades de tela ─────────────────────────
+// tom claro / escuro: o botão do topo troca e a escolha fica salva neste aparelho
+const ICONE_TEMA = { claro: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
+  escuro: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>' };
+function aplicaTema(t) {
+  document.body.dataset.tema = t;
+  const bt = $('#btTema');
+  bt.innerHTML = ICONE_TEMA[t];
+  bt.setAttribute('aria-label', t === 'claro' ? 'Mudar para o tom escuro' : 'Mudar para o tom claro');
+  try { localStorage.setItem('gf-tema', t); } catch { /* sem armazenamento: vale só nesta visita */ }
+}
+aplicaTema(document.body.dataset.tema === 'escuro' ? 'escuro' : 'claro');
+$('#btTema').onclick = () => aplicaTema(document.body.dataset.tema === 'escuro' ? 'claro' : 'escuro');
+
 function toast(msg, erro) {
   const t = $('#toast'); t.textContent = msg; t.className = 'toast on' + (erro ? ' err' : '');
   clearTimeout(t._h); t._h = setTimeout(() => t.className = 'toast', erro ? 5000 : 3200);
@@ -46,6 +59,8 @@ const ehGuincho = () => S.perfil?.tipo === 'guincheiro';
 const aprovado = () => S.perfil?.aprovacao === 'aprovado';
 const cidadeOk = c => !!GF_CIDADES[c];
 const kmTxt = n => n == null ? '' : `~${n} km`;
+// valor em destaque sem centavos quando redondo: R$ 380 / R$ 380,50
+const reais = v => v == null ? '' : 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: Number(v) % 1 ? 2 : 0, maximumFractionDigits: 2 });
 // trajeto em forma de rota: origem ● ┆ ● destino
 const trajeto = (o, d) => `<div class="trajeto" aria-label="De ${esc(o)} para ${esc(d)}"><span class="parada o">${esc(o)}</span><span class="parada d">${esc(d)}</span></div>`;
 function tagStatus(st) {
@@ -176,6 +191,8 @@ async function rota(silencioso) {
     if (a === 'rotas' && b === 'nova') return telaNovaRota();
     if (a === 'rotas') return await telaRotas();
     if (a === 'rota') return await telaRota(b);
+    if (a === 'vistoria' && b === 'nova') return await telaVistoriaNova(c);
+    if (a === 'vistoria') return await telaVistoria(b);
     if (a === 'caminhoes' && b === 'novo') return telaNovoCaminhao();
     if (a === 'caminhoes') return await telaCaminhoes();
     if (a === 'caminhao') return await telaCaminhao(b);
@@ -348,14 +365,14 @@ function cardPedidoMeu(p) {
     ${trajeto(p.origem, p.destino)}
     <div class="meta">${esc(VEICULO[p.veiculo_tipo] || '')} · ${esc(p.veiculo)} · ${dataHora(p.criado_em)}</div>
     <div class="tags">${p.status === 'aberto' && n ? `<span class="tag am">${n} proposta${n > 1 ? 's' : ''} nova${n > 1 ? 's' : ''}</span>` : tagStatus(p.status)}
-      ${p.tipo === 'repasse' ? '<span class="tag">Repasse</span>' : ''}${p.valor_combinado != null ? `<span class="tag">${brl(p.valor_combinado)}</span>` : ''}</div></a>`;
+      ${p.tipo === 'repasse' ? '<span class="tag">Repasse</span>' : ''}${p.valor_combinado != null ? `<span class="tag">${brl(p.valor_combinado)}</span>` : p.valor_oferecido ? `<span class="tag">Você paga ${reais(p.valor_oferecido)}</span>` : ''}</div></a>`;
 }
 async function inicioCliente() {
   titulo('Olá, ' + S.perfil.nome.split(' ')[0]);
-  const d = ok(await sb.from('gf_pedidos').select('id,origem,destino,veiculo,veiculo_tipo,tipo,status,valor_combinado,criado_em,gf_propostas(status)')
+  const d = ok(await sb.from('gf_pedidos').select('id,origem,destino,veiculo,veiculo_tipo,tipo,status,valor_combinado,valor_oferecido,criado_em,gf_propostas(status)')
     .eq('autor_id', S.user.id).not('status', 'in', '(concluido,cancelado)').order('criado_em', { ascending: false }).limit(20));
   V.innerHTML = `${blocoInstalar()}
-    <div class="chamada"><h2>Precisa levar um veículo?</h2>
+    <div class="chamada"><h2>Precisa mandar um veículo?</h2>
       <p>Guincheiros da região e quem está voltando pela sua rota mandam propostas. Você escolhe.</p>
       <a class="btn full" href="#pedido/novo">Pedir transporte de veículo</a></div>
     <h3 class="sec-t">Em andamento</h3>
@@ -381,6 +398,10 @@ function telaNovoPedido(tipo) {
     <label for="npl">Placa (opcional)</label><input id="npl" name="placa" maxlength="8" style="text-transform:uppercase" placeholder="ABC1D23">
     <label>Condição</label>
     <div class="seg">${Object.entries(CONDICAO).map(([v, t], i) => `<label><input type="radio" name="condicao" value="${v}" ${i === 1 ? 'checked' : ''}><span>${t}</span></label>`).join('')}</div>
+    <label for="nvo">${rep ? 'Quanto você paga pelo repasse' : 'Quanto você paga'} (opcional)</label>
+    <input id="nvo" name="valor_oferecido" inputmode="decimal" placeholder="Ex.: 380 · em branco = a combinar">
+    <p style="color:var(--cinza);font-size:13.5px;margin:6px 0 0">Com valor, o guincheiro pode aceitar na hora ou negociar. Sem valor, os guincheiros mandam propostas.</p>
+    <label class="urgente"><input type="checkbox" name="urgente" id="nurg"><span><b>Chamado urgente</b><small>Dispara alarme para a rede toda. O primeiro guincheiro que aceitar pelo seu valor leva. Se ninguém pegar em 3 minutos, segue recebendo propostas.</small></span></label>
     <label for="nt">Quando</label><input id="nt" name="data_servico" type="date" min="${hoje}" value="${pre.data && pre.data > hoje ? pre.data : hoje}">
     <label for="nb">Detalhes (opcional)</label><textarea id="nb" name="obs" maxlength="1000" placeholder="Ponto de referência, roda travada, subsolo, horário… Não coloque endereço completo: ele é combinado com o guincheiro escolhido.">${esc(pre.obs || '')}</textarea>
     <p id="nkm" style="color:var(--cinza);font-size:15px"></p>
@@ -396,10 +417,14 @@ function telaNovoPedido(tipo) {
     if (d.origem === d.destino) return toast('Origem e destino precisam ser diferentes.', true);
     if (d.veiculo.trim().length < 2) { f.veiculo.focus(); return toast('Informe o modelo do veículo.', true); }
     if (!placaValida(d.placa)) { f.placa.focus(); return toast('Placa inválida. Use ABC1234 ou ABC1D23.', true); }
+    const vo = d.valor_oferecido.trim() ? valorDigitado(d.valor_oferecido) : null;
+    if (d.valor_oferecido.trim() && !(vo >= 1 && vo <= 100000)) { f.valor_oferecido.focus(); return toast('Valor entre R$ 1 e R$ 100.000, ou deixe em branco para combinar.', true); }
+    if (d.urgente && !vo) { f.valor_oferecido.focus(); return toast('Para chamado urgente, informe quanto você paga.', true); }
     comBotao(f.querySelector('button'), async () => {
       try {
         const p = ok(await sb.from('gf_pedidos').insert({ tipo, origem: d.origem, destino: d.destino, veiculo: d.veiculo.trim(), veiculo_tipo: d.veiculo_tipo,
-          placa: d.placa || null, condicao: d.condicao, data_servico: d.data_servico || null, obs: d.obs.trim() || null }).select('id').single());
+          placa: d.placa || null, condicao: d.condicao, data_servico: d.data_servico || null, obs: d.obs.trim() || null,
+          ...(vo ? { valor_oferecido: vo } : {}), ...(d.urgente ? { despacho_ate: new Date().toISOString() } : {}) }).select('id').single());
         toast(rep ? 'Repasse publicado.' : 'Pedido publicado. Avisamos quando chegar proposta.');
         location.hash = 'pedido/' + p.id;
       } catch (er) { falha(er, mensagemErro(er)); }
@@ -409,7 +434,7 @@ function telaNovoPedido(tipo) {
 async function telaMeusPedidos() {
   titulo(ehGuincho() ? 'Meus repasses' : 'Meus pedidos');
   const f = S.filtros.pedidos ||= { st: 'todos', dias: '30' };
-  const d = ok(await sb.from('gf_pedidos').select('id,origem,destino,veiculo,veiculo_tipo,tipo,status,valor_combinado,criado_em,gf_propostas(status)')
+  const d = ok(await sb.from('gf_pedidos').select('id,origem,destino,veiculo,veiculo_tipo,tipo,status,valor_combinado,valor_oferecido,criado_em,gf_propostas(status)')
     .eq('autor_id', S.user.id).order('criado_em', { ascending: false }).limit(300));
   const noPeriodo = d.filter(p => dentroDoPeriodo(p.criado_em, Number(f.dias)));
   const grupo = { todos: () => true, andamento: p => !['concluido', 'cancelado'].includes(p.status), concluido: p => p.status === 'concluido', cancelado: p => p.status === 'cancelado' };
@@ -429,13 +454,20 @@ function cardPedidoAberto(p, extra) {
   return `<a class="item ${p.tipo === 'repasse' ? 'quente' : ''}" href="#pedido/${p.id}">
     ${trajeto(p.origem, p.destino)}
     <div class="meta">${esc(VEICULO[p.veiculo_tipo] || '')} · ${esc(p.veiculo)} · ${esc(CONDICAO[p.condicao] || p.condicao)} · ${dataCurta(p.data_servico)}</div>
-    <div class="tags">${p.tipo === 'repasse' ? '<span class="tag am">Repasse de colega</span>' : ''}${extra ? `<span class="tag">${esc(extra)}</span>` : ''}
+    <div class="tags">${p.despacho_ate && new Date(p.despacho_ate) > Date.now() ? '<span class="tag vm">Urgente</span>' : ''}${p.valor_oferecido ? `<span class="tag vd">Paga ${reais(p.valor_oferecido)}</span>` : '<span class="tag">A combinar</span>'}${p.tipo === 'repasse' ? '<span class="tag am">Repasse de colega</span>' : ''}${extra ? `<span class="tag">${esc(extra)}</span>` : ''}
       ${GF_GEO.km(p.origem, p.destino) ? `<span class="tag">trajeto ${kmTxt(GF_GEO.km(p.origem, p.destino))}</span>` : ''}</div></a>`;
 }
 async function pedidosAbertos() {
-  return ok(await sb.from('gf_pedidos').select('id,origem,destino,veiculo,veiculo_tipo,condicao,data_servico,tipo,criado_em')
+  return ok(await sb.from('gf_pedidos').select('id,origem,destino,veiculo,veiculo_tipo,condicao,data_servico,tipo,criado_em,valor_oferecido,despacho_ate')
     .eq('status', 'aberto').neq('autor_id', S.user.id).order('criado_em', { ascending: false }).limit(300))
     .map(p => ({ ...p, dist: GF_GEO.km(S.perfil.cidade, p.origem) }));
+}
+// números agregados da rede (se a função ainda não existir no banco, a faixa some)
+async function numerosRede() { try { return await rpc('gf_rede_numeros'); } catch { return null; } }
+function faixaRede(n) {
+  if (!n) return '';
+  const it = [[n.guincheiros, 'guincheiros na rede'], [n.rotas_ativas, 'rotas anunciadas'], [n.pedidos_7d, 'pedidos na semana']];
+  return `<div class="rede-faixa" aria-label="Rede GF agora">${it.map(([v, t]) => `<div><b>${v ?? 0}</b><span>${t}</span></div>`).join('')}</div>`;
 }
 async function inicioGuincheiro() {
   titulo('Olá, ' + S.perfil.nome.split(' ')[0]);
@@ -444,26 +476,56 @@ async function inicioGuincheiro() {
     return ligaInstalar();
   }
   S.raio ||= String([20, 50, 100, 150].reduce((m, r) => r <= (S.perfil.raio_km || 100) ? r : m, 20));
-  const [abertos, propsR, servR, retR] = await Promise.all([
+  const inicioMes = new Date(); inicioMes.setDate(1); inicioMes.setHours(0, 0, 0, 0);
+  const [abertos, propsR, meusR, retR, rede] = await Promise.all([
     pedidosAbertos(),
     sb.from('gf_propostas').select('id', { count: 'exact', head: true }).eq('guincheiro_id', S.user.id).eq('status', 'enviada'),
-    sb.from('gf_pedidos').select('id', { count: 'exact', head: true }).eq('prestador_id', S.user.id).in('status', ATIVOS),
-    sb.from('gf_retornos').select('id', { count: 'exact', head: true }).eq('guincheiro_id', S.user.id).eq('status', 'ativo')]);
-  [propsR, servR, retR].forEach(ok);
+    sb.from('gf_pedidos').select('id,origem,destino,veiculo,status,valor_combinado,nota,concluido_em').eq('prestador_id', S.user.id)
+      .or(`status.in.(${ATIVOS.join(',')}),concluido_em.gte.${inicioMes.toISOString()}`).order('atualizado_em', { ascending: false }).limit(200),
+    sb.from('gf_retornos').select('id,origem,destino,saida').eq('guincheiro_id', S.user.id).eq('status', 'ativo')
+      .gte('saida', new Date(Date.now() - 864e5).toISOString()).order('saida').limit(5),
+    numerosRede()]);
+  const meus = ok(meusR), rotas = ok(retR); ok(propsR);
+  const emAndamento = meus.filter(p => ATIVOS.includes(p.status));
+  const doMes = meus.filter(p => p.status === 'concluido');
+  const notas = doMes.filter(p => p.nota);
   const perto = abertos.filter(p => p.dist != null && p.dist <= Number(S.raio)).sort((a, b) => a.dist - b.dist);
+  const destaque = perto[0];
+  const rotaAtual = rotas[0];
+  const naRota = rotaAtual ? abertos.map(p => ({ ...p, desvio: GF_GEO.desvio(rotaAtual.origem, rotaAtual.destino, p.origem, p.destino) }))
+    .filter(p => p.desvio != null && p.desvio <= 120).sort((a, b) => a.desvio - b.desvio) : [];
+  const etapa = st => ETAPAS.indexOf(st); // aceito 1 … em_transporte 4
   V.innerHTML = `${blocoInstalar()}
-    <div class="troca"><div><b>${S.perfil.disponivel ? 'Disponível para serviços' : 'Indisponível'}</b><br>
-      <span style="color:var(--cinza);font-size:14px">${S.perfil.disponivel ? 'Clientes e colegas sabem que você está atendendo.' : 'Ative quando puder pegar serviço.'}</span></div>
-      <input type="checkbox" role="switch" id="disp" aria-label="Disponível para serviços" ${S.perfil.disponivel ? 'checked' : ''}></div>
-    <div class="resumo">
-      <a href="#buscar"><b>${abertos.length}</b>pedidos abertos</a>
-      <a href="#servicos"><b>${servR.count ?? 0}</b>serviços em andamento</a>
-      <a href="#servicos/propostas"><b>${propsR.count ?? 0}</b>propostas aguardando</a>
-      <a href="#rotas"><b>${retR.count ?? 0}</b>rotas ativas</a>
-    </div>${blocoAntecipar()}
-    <h3 class="sec-t">Próximos de ${esc(S.perfil.cidade)}</h3>
+    <label class="disp ${S.perfil.disponivel ? 'on' : ''}"><span><b>${S.perfil.disponivel ? 'Disponível para serviços' : 'Indisponível'}</b>
+      <small>${S.perfil.disponivel ? 'Clientes e colegas sabem que você está atendendo.' : 'Ative quando puder pegar serviço.'}</small></span>
+      <input type="checkbox" role="switch" id="disp" aria-label="Disponível para serviços" ${S.perfil.disponivel ? 'checked' : ''}></label>
+    ${destaque ? `<a class="novo-pedido" href="#pedido/${destaque.id}">
+        <div class="np-t"><span>${destaque.tipo === 'repasse' ? 'Repasse de colega' : 'Pedido perto de você'}</span><i>${destaque.dist} km</i></div>
+        <div class="np-r">${esc(destaque.origem)} › ${esc(destaque.destino)}</div>
+        <div class="np-m">${esc(VEICULO[destaque.veiculo_tipo] || '')} · ${esc(destaque.veiculo)} · ${esc(CONDICAO[destaque.condicao] || '')}</div>
+        <div class="np-b">${destaque.valor_oferecido ? `<b>${reais(destaque.valor_oferecido)}<small>${kmTxt(GF_GEO.km(destaque.origem, destaque.destino))} de trajeto</small></b>`
+          : `<b>${kmTxt(GF_GEO.km(destaque.origem, destaque.destino)) || '–'}<small>valor a combinar</small></b>`}<u>Ver e mandar proposta</u></div></a>` : ''}
+    ${emAndamento.map(p => `<div class="andamento">
+        <a href="#pedido/${p.id}" class="and-t"><span>Em andamento · etapa ${etapa(p.status)} de 4</span><b>${esc(p.origem)} › ${esc(p.destino)}</b>
+          <small>${esc(p.veiculo)} · ${brl(p.valor_combinado)}</small></a>
+        <div class="etapas">${[1, 2, 3, 4].map(i => `<i class="${i <= etapa(p.status) ? 'f' : ''}"></i>`).join('')}</div>
+        <button class="btn full grande" data-av="${p.id}" data-st="${PROXIMO[p.status]}">${ACAO_PRESTADOR[p.status]}</button>
+        ${['a_caminho', 'no_local'].includes(p.status) ? `<a class="btn fant full" style="margin-top:8px" href="#vistoria/nova/${p.id}">Vistoria do veículo</a>` : ''}</div>`).join('')}
+    ${rotaAtual ? `<div class="sec-l"><h3 class="sec-t">No meu caminho</h3><a href="#rota/${rotaAtual.id}">${esc(rotaAtual.origem)} › ${esc(rotaAtual.destino)} · ${dataHora(rotaAtual.saida)}</a></div>
+      ${naRota.length ? naRota.slice(0, 4).map(p => `<a class="linha-ped" href="#pedido/${p.id}"><span><b>${esc(p.origem)} › ${esc(p.destino)}</b>
+        <small>${esc(p.veiculo)} · ${p.desvio <= 5 ? 'no caminho' : '+' + p.desvio + ' km'}</small></span><em>${p.valor_oferecido ? reais(p.valor_oferecido) : 'a combinar'}</em></a>`).join('')
+        : '<div class="vazio">Nenhum pedido na sua rota ainda. Ela fica ativa: quando aparecer um, você recebe aviso.</div>'}`
+    : `<a class="anunciar" href="#rotas/nova"><b>Anunciar minha volta de hoje</b><span>Diga de onde sai e para onde volta. O GF mostra os pedidos que cabem no caminho.</span></a>`}
+    <div class="mes" aria-label="Seu mês no GF">
+      <div><b>${brl(totalRegistrado(doMes))}</b><span>no mês</span></div>
+      <div><b>${doMes.length}</b><span>serviços</span></div>
+      <a href="#servicos/propostas"><b>${propsR.count ?? 0}</b><span>propostas</span></a>
+      <div><b>${notas.length ? '★ ' + (notas.reduce((s, p) => s + p.nota, 0) / notas.length).toFixed(1).replace('.', ',') : '–'}</b><span>sua nota</span></div></div>
+    ${faixaRede(rede)}
+    <h3 class="sec-t">Pedidos perto de ${esc(S.perfil.cidade)}</h3>
     ${chips('raio', [['20', '20 km'], ['50', '50 km'], ['100', '100 km'], ['150', '150 km']], S.raio)}
-    ${perto.length ? perto.slice(0, 10).map(p => cardPedidoAberto(p, `${p.dist} km de você`)).join('') : '<div class="vazio">Nenhum pedido aberto neste raio agora.<br>Aumente o raio ou anuncie sua rota de volta.</div>'}
+    ${perto.length > 1 ? perto.slice(1, 8).map(p => cardPedidoAberto(p, `${p.dist} km de você`)).join('')
+      : perto.length ? '' : `<div class="vazio">Nenhum pedido aberto até ${S.raio} km agora.<br>Aumente o raio ou anuncie sua volta: os pedidos novos chegam como aviso no celular.</div>`}
     <h3 class="sec-t">Parceiros da rede</h3>
     <ul class="menu-lista duas" aria-label="Parceiros">
       ${[['#rotas/nova', IC.rota, 'Tenho vaga no caminhão', 'Anuncie a rota: quem estiver nela manda veículo'],
@@ -471,8 +533,10 @@ async function inicioGuincheiro() {
          ['#rotas', IC.busca, 'Ver vagas e caminhões', 'De colegas que estão na sua rota'],
          ['#repasse/novo', IC.lista, 'Repassar um serviço', 'A rede atende seu cliente quando você não pode']].map(([h, i, t, d]) =>
         `<li><a href="${h}">${svg(i)}<span><b>${t}</b><small>${d}</small></span><span class="seta">${svg(IC.seta)}</span></a></li>`).join('')}
-    </ul>`;
+    </ul>
+    ${blocoAntecipar()}`;
   ligaChips('raio', v => { S.raio = v; rota(); });
+  V.querySelectorAll('[data-av]').forEach(bt => bt.onclick = () => avancar(bt, bt.dataset.av, bt.dataset.st));
   $('#disp').onchange = async e => {
     const el = e.currentTarget, v = el.checked;
     try { await rpc('gf_definir_disponivel', { p_disponivel: v }); S.perfil.disponivel = v; toast(v ? 'Você está disponível.' : 'Você está indisponível.'); rota(true); }
@@ -747,6 +811,16 @@ async function telaServicos() {
   V.querySelectorAll('[data-av]').forEach(b => b.onclick = () => avancar(b, b.dataset.av, b.dataset.st));
   if (aba === 'andamento') aoVivo();
 }
+// avança a etapa do serviço (guincheiro), com confirmação
+async function avancar(bt, pedidoId, novo) {
+  const txt = { a_caminho: 'Confirmar que saiu para o atendimento?', no_local: 'Confirmar que chegou no local?',
+    em_transporte: 'Confirmar que o veículo está carregado?', concluido: 'Confirmar que entregou o veículo no destino?' }[novo];
+  if (!await perguntar({ titulo: txt, texto: 'O cliente acompanha cada etapa no app.', ok: 'Confirmar' })) return;
+  comBotao(bt, async () => {
+    try { await rpc('gf_atualizar_status', { p_pedido: pedidoId, p_status: novo, p_detalhe: null }); toast('Atualizado: ' + STATUS[novo] + '.'); rota(); contadores(); }
+    catch (er) { falha(er); }
+  });
+}
 // ───────────── antecipação de recebíveis (parceira JK Invest; o GF só encaminha) ─────────────
 function blocoAntecipar() {
   return `<a class="item quente antecipa" href="#servicos/antecipar"><div class="tit">Fez o serviço? Receba na hora.</div>
@@ -801,6 +875,31 @@ async function telaAntecipar() {
     try { await rpc('gf_cancelar_antecipacao', { p_id: b.dataset.cant }); toast('Pedido cancelado.'); rota(); } catch (er) { falha(er); }
   });
 }
+// vistoria do atendimento: fazer (guincheiro) ou ver o termo (os dois)
+async function blocoVistoria(p, papel) {
+  let v = null; try { v = ok(await sb.from('gf_vistorias').select('id,feita_em').eq('pedido_id', p.id).maybeSingle()); } catch { /* tabela ainda não publicada */ }
+  if (v) return `<a class="vs-cta feita" href="#vistoria/${v.id}"><b>Termo de vistoria</b><span>Fotos, avarias e assinatura · ${dataHora(v.feita_em)}</span></a>`;
+  if (papel !== 'prestador' || !['aceito', 'a_caminho', 'no_local', 'em_transporte'].includes(p.status)) return '';
+  const pend = (typeof vistPendentes === 'function' ? await vistPendentes() : []).some(x => x.pedido_id === p.id);
+  return pend ? `<a class="vs-cta" href="#vistoria/nova/${p.id}"><b>Vistoria salva no celular</b><span>Será enviada quando o sinal voltar. Toque para enviar agora.</span></a>`
+    : `<a class="vs-cta fazer" href="#vistoria/nova/${p.id}"><b>Fazer vistoria do veículo</b><span>Fotos, avarias e assinatura do cliente. Protege você contra reclamação de dano.</span></a>`;
+}
+// "radar" do pedido aberto: mostra que a rede está vendo, sem inventar números
+function radarPedido(p, alc, nProps) {
+  const min = Math.max(1, Math.round((Date.now() - new Date(p.criado_em)) / 6e4));
+  const quando = min < 60 ? `há ${min} min` : min < 1440 ? `há ${Math.round(min / 60)} h` : `há ${Math.round(min / 1440)} dia(s)`;
+  const av = alc?.avisados || 0;
+  if (!nProps && p.despacho_ate && new Date(p.despacho_ate) > Date.now()) {
+    const s = Math.round((new Date(p.despacho_ate) - Date.now()) / 1000);
+    return `<div class="radar urg"><div class="pulso" aria-hidden="true"><i></i><i></i><i></i></div><div><b>Chamado urgente na rede</b>
+      <span>${av ? `Alarme tocando para ${av} guincheiro${av > 1 ? 's' : ''}` : 'Alarme tocando para os guincheiros disponíveis'}. O primeiro que aceitar ${reais(p.valor_oferecido)} leva.</span>
+      <span>Faltam ~${Math.max(1, Math.ceil(s / 60))} min. Depois, segue recebendo propostas.</span></div></div>`;
+  }
+  return `<div class="radar ${nProps ? 'com' : ''}"><div class="pulso" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div><b>${nProps ? `${nProps} proposta${nProps > 1 ? 's' : ''} recebida${nProps > 1 ? 's' : ''}` : 'Procurando guincheiros…'}</b>
+    <span>${av ? `Avisamos ${av} guincheiro${av > 1 ? 's' : ''} da rede no celular` : 'Seu pedido está visível para os guincheiros da rede'} · publicado ${quando}.</span>
+    ${!nProps ? `<span>${alc?.minutos_tipicos ? `A primeira proposta costuma chegar em ~${alc.minutos_tipicos} min. ` : ''}Você recebe um aviso quando chegar.</span>` : ''}</div></div>`;
+}
 // ───────────────────────── detalhe do pedido ─────────────────────────
 function linhaDoTempo(p) {
   if (p.status === 'cancelado') return `<div class="aviso"><b>Pedido cancelado.</b>${p.cancelado_motivo ? ' Motivo: ' + esc(p.cancelado_motivo) : ''}</div>`;
@@ -834,12 +933,13 @@ async function telaPedido(id) {
   const km = GF_GEO.km(p.origem, p.destino);
   let html = `<div class="item quente destaque">${trajeto(p.origem, p.destino)}
     <div class="meta">${esc(VEICULO[p.veiculo_tipo] || '')} · ${esc(p.veiculo)}${p.placa && papel !== 'outro' ? ' · ' + esc(p.placa) : ''} · ${esc(CONDICAO[p.condicao] || p.condicao)}</div>
+    ${p.status === 'aberto' ? `<div class="oferta">${p.valor_oferecido ? `<b>${reais(p.valor_oferecido)}</b><span>${papel === 'cliente' ? 'valor que você ofereceu' : 'valor oferecido'}</span>` : '<b>A combinar</b><span>os guincheiros mandam propostas</span>'}</div>` : ''}
     <div class="meta">${dataCurta(p.data_servico)}${km ? ' · trajeto ' + kmTxt(km) : ''}${papel !== 'cliente' && p.autor ? ' · pedido por ' + esc(p.autor.nome.split(' ')[0]) : ''}</div>
     ${p.obs ? `<div class="meta">${esc(p.obs)}</div>` : ''}
     <div class="tags">${p.tipo === 'repasse' ? '<span class="tag am">Repasse</span>' : ''}${tagStatus(p.status)}</div>
     <div id="mapa" role="img" aria-label="Mapa aproximado de ${esc(p.origem)} até ${esc(p.destino)}"></div>
     <a class="btn fant full" style="margin-top:10px" target="_blank" rel="noopener" href="${linkMaps(p.origem, p.destino)}">Ver rota no Google Maps</a></div>
-    ${papel !== 'outro' ? linhaDoTempo(p) : ''}`;
+    <!--radar-->${papel !== 'outro' ? linhaDoTempo(p) : ''}`;
 
   if (papel === 'cliente') {
     if (p.status === 'aberto') {
@@ -847,15 +947,18 @@ async function telaPedido(id) {
         .eq('pedido_id', id).eq('status', 'enviada').order('valor'));
       const rep = props.length ? ok(await sb.rpc('gf_reputacao', { p_ids: props.map(x => x.guincheiro_id) })) : [];
       const repDe = gid => rep.find(r => r.perfil_id === gid);
+      let alc = null; try { alc = await rpc('gf_alcance_pedido', { p_pedido: id }); } catch { /* função ainda não publicada */ }
+      html = html.replace('<!--radar-->', radarPedido(p, alc, props.length));
       html += `<h3 class="sec-t">Propostas (${props.length})</h3>` + (props.length ? props.map(x => {
         const r = repDe(x.guincheiro_id);
         return `<div class="prop"><div class="valor">${brl(x.valor)}</div>
+          ${p.valor_oferecido ? `<span class="tag ${Number(x.valor) === Number(p.valor_oferecido) ? 'vd' : 'am'}" style="margin-bottom:6px">${Number(x.valor) === Number(p.valor_oferecido) ? 'Aceitou o seu valor' : 'Contraproposta'}</span>` : ''}
           <div><b>${esc(x.g?.nome || 'Guincheiro')}</b>${x.g?.empresa ? ' · ' + esc(x.g.empresa) : ''}</div>
           <div style="color:var(--cinza);font-size:15px">${esc(x.g?.cidade || '')} · ${esc(x.g?.equipamento || '')}${x.prazo ? ' · chega ' + esc(x.prazo) : ''}</div>
           <div style="color:var(--cinza);font-size:15px">${r ? `★ ${r.media ?? '–'} · ${r.concluidos} serviço${r.concluidos > 1 ? 's' : ''} pelo GF` : 'Novo no GF'}</div>
           ${x.mensagem ? `<div style="margin-top:6px">${esc(x.mensagem)}</div>` : ''}
           <button class="btn full" style="margin-top:12px" data-ac="${x.id}" data-v="${x.valor}">Aceitar esta proposta</button></div>`;
-      }).join('') : '<div class="vazio">Ainda sem propostas. Guincheiros da região e com rota passando por aqui já estão vendo seu pedido. Esta tela atualiza sozinha.</div>');
+      }).join('') : '<div class="vazio">As propostas aparecem aqui, da mais barata para a mais cara. Esta tela atualiza sozinha.</div>');
     } else if (p.prestador_id) {
       html += `<h3 class="sec-t">Seu guincheiro</h3><div class="prop"><div class="valor">${brl(p.valor_combinado)}</div>
         <div><b>${esc(p.prestador?.nome || '')}</b>${p.prestador?.empresa ? ' · ' + esc(p.prestador.empresa) : ''}</div>
@@ -864,6 +967,8 @@ async function telaPedido(id) {
         ${p.status !== 'concluido' ? await botaoContato(p, 'cliente') : ''}</div>`;
       if (p.status === 'em_transporte') html += '<button class="btn full" style="margin-top:14px" id="btReceb">Recebi o veículo</button>';
     }
+    if (p.prestador_id && ['aceito', 'a_caminho', 'no_local', 'em_transporte'].includes(p.status)) html += await blocoLocal(p);
+    if (p.prestador_id) html += await blocoVistoria(p, 'cliente');
     if (p.status === 'concluido') {
       html += p.nota ? `<h3 class="sec-t">Sua avaliação</h3><p style="font-size:22px;margin:0;color:var(--placa)">${'★'.repeat(p.nota)}${'☆'.repeat(5 - p.nota)}</p>${p.avaliacao_comentario ? `<p>${esc(p.avaliacao_comentario)}</p>` : ''}`
         : `<h3 class="sec-t">Como foi o serviço?</h3><form id="fAv"><div class="seg c5" role="radiogroup" aria-label="Nota">${[1, 2, 3, 4, 5].map(n =>
@@ -873,6 +978,7 @@ async function telaPedido(id) {
     }
     if (['aberto', 'aceito', 'a_caminho'].includes(p.status)) html += '<button class="btn perigo full" style="margin-top:18px" id="btCanc">Cancelar pedido</button>';
   } else if (papel === 'prestador') {
+    html += await blocoVistoria(p, 'prestador');
     html += `<div class="prop"><div class="valor">${brl(p.valor_combinado)}</div><div style="color:var(--cinza);font-size:15px">Valor combinado (registrado). Pagamento direto com o cliente.</div>
       ${p.status !== 'concluido' ? await botaoContato(p, 'prestador') : ''}</div>
       ${PROXIMO[p.status] ? `<button class="btn full" style="margin-top:14px;min-height:64px;font-size:20px" id="btAv">${ACAO_PRESTADOR[p.status]}</button>` : ''}
@@ -887,7 +993,10 @@ async function telaPedido(id) {
     }
     if (p.status === 'aberto' && ehGuincho() && aprovado() && (!mine || mine.status !== 'aceita')) {
       const ed = mine?.status === 'enviada';
-      html += `<h3 class="sec-t">${ed ? 'Alterar proposta' : 'Mandar proposta'}</h3><form id="fPr" novalidate>
+      const vo = p.valor_oferecido;
+      if (vo && !ed) html += `<button class="btn full grande" id="btAceitaValor" style="margin-top:14px">Aceitar por ${reais(vo)}</button>
+        <p style="color:var(--cinza);font-size:13.5px;text-align:center;margin:8px 0 0">Ou negocie outro valor abaixo. Quem pediu escolhe a proposta.</p>`;
+      html += `<h3 class="sec-t">${ed ? 'Alterar proposta' : vo ? 'Negociar outro valor' : 'Mandar proposta'}</h3><form id="fPr" novalidate>
         <label for="pv">Valor total (R$)</label><input id="pv" name="valor" inputmode="decimal" placeholder="Ex.: 450" value="${ed ? String(mine.valor).replace('.', ',') : ''}" required>
         <label for="pp">Quando consegue chegar</label><input id="pp" name="prazo" maxlength="80" placeholder="Ex.: hoje até 16h" value="${esc(ed ? mine.prazo : '')}">
         <label for="pm">Mensagem (opcional)</label><textarea id="pm" name="mensagem" maxlength="500" placeholder="Ex.: estou voltando de Santa Maria, passo aí no caminho">${esc(ed ? mine.mensagem : '')}</textarea>
@@ -899,6 +1008,7 @@ async function telaPedido(id) {
     html += `<a class="btn fant full" style="margin-top:12px" href="#ocorrencia/nova/${p.id}">Abrir ocorrência</a>`;
     html += await historico(id);
   }
+  if (!decodeURIComponent(location.hash).includes(id)) return; // a pessoa já foi para outra tela enquanto carregava
   V.innerHTML = html;
   mapaRota(p.origem, p.destino);
 
@@ -932,6 +1042,16 @@ async function telaPedido(id) {
     if (!d.nota) return toast('Escolha de 1 a 5 estrelas.', true);
     comBotao(e.target.querySelector('button'), async () => {
       try { await rpc('gf_avaliar', { p_pedido: id, p_nota: Number(d.nota), p_comentario: d.comentario }); toast('Obrigado pela avaliação!'); rota(); }
+      catch (er) { falha(er); }
+    });
+  };
+  if ($('#btAceitaValor')) $('#btAceitaValor').onclick = async e => {
+    const bt = e.currentTarget;
+    const prazo = await perguntar({ titulo: `Aceitar por ${reais(p.valor_oferecido)}?`, texto: 'Sua proposta vai com o valor que o cliente ofereceu. Ele escolhe e libera o contato.',
+      campo: { label: 'Quando consegue chegar (opcional)' }, ok: 'Aceitar e enviar' });
+    if (prazo == null) return;
+    comBotao(bt, async () => {
+      try { await rpc('gf_enviar_proposta', { p_pedido: id, p_valor: Number(p.valor_oferecido), p_prazo: prazo || null, p_mensagem: null }); toast('Proposta enviada pelo valor oferecido.'); rota(); }
       catch (er) { falha(er); }
     });
   };
@@ -1221,7 +1341,7 @@ sb.auth.onAuthStateChange((ev, session) => {
     S.user = novo;
     if (!S.user) { S.perfil = null; $('#nav').hidden = true; return rota(); }
     if (mudou || ev === 'INITIAL_SESSION') {
-      try { await carregaPerfil(); rota(); contadores(); sincronizarPush(); } catch (e) { telaErro(e); }
+      try { await carregaPerfil(); rota(); contadores(); sincronizarPush(); sincronizarVistorias(); despIniciar(); locIniciar(); } catch (e) { telaErro(e); }
     }
   }, 0);
 });
