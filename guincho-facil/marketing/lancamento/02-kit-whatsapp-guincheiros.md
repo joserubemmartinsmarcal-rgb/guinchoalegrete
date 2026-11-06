@@ -15,7 +15,7 @@ Primeira versão em teste, já funcionando. Abre no celular, sem baixar nada:
 Fala, [NOME]! Tudo certo? Tô montando com meu sócio o GF, um app pra gente não voltar mais vazio. Tu anuncia tua volta e aparece frete no caminho; quando não dá pra atender, repassa pra um colega. Já tá funcionando. Te cadastra e me diz o que achou? appdoguincheiro.com — qualquer coisa me chama.
 
 ## 3. Mensagem para empresa/frota
-Bom dia! Sou [NOME], do GF – Guincho Fácil. Nosso app conecta guincheiros do RS: vocês podem ceder caminhão parado para colegas (com ou sem motorista), anunciar vaga na plataforma e receber chamados urgentes. Sem custo nesta fase. Posso te mostrar em 5 minutos? appdoguincheiro.com
+Bom dia! Sou [NOME], do GF – Guincho Fácil. Nosso app conecta guincheiros do RS: vocês podem ceder caminhão parado para colegas (com ou sem motorista), anunciar vaga na plataforma e receber chamados urgentes. Já está funcionando. Posso te mostrar em 5 minutos? appdoguincheiro.com
 
 ## 4. Resposta para "como funciona?"
 1. Entra em appdoguincheiro.com/app e cria a conta (e-mail e senha).
