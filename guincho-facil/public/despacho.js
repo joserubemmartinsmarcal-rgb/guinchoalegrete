@@ -79,3 +79,27 @@ async function despVerificar() {
 }
 function despIniciar() { clearInterval(despTimer); despTimer = setInterval(despVerificar, 8000); despVerificar(); }
 document.addEventListener('visibilitychange', () => { if (!document.hidden) despVerificar(); });
+
+// ───────── localização aproximada durante o atendimento ─────────
+// Com o app aberto, a cada minuto o guincheiro com serviço em andamento envia a
+// posição; o cliente vê "onde está o guincho" com link para o Google Maps.
+let locTimer = null;
+async function locEnviar() {
+  if (!S.user || !ehGuincho() || !navigator.geolocation || document.hidden) return;
+  try {
+    const d = ok(await sb.from('gf_pedidos').select('id').eq('prestador_id', S.user.id).in('status', ['aceito', 'a_caminho', 'no_local', 'em_transporte']).limit(5));
+    if (!d.length) return;
+    const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: false, maximumAge: 60000, timeout: 15000 }));
+    for (const p of d) await rpc('gf_atualizar_local', { p_pedido: p.id, p_lat: pos.coords.latitude, p_lng: pos.coords.longitude });
+  } catch { /* sem permissão ou sem sinal: tenta no próximo minuto */ }
+}
+function locIniciar() { clearInterval(locTimer); locTimer = setInterval(locEnviar, 60000); locEnviar(); }
+async function blocoLocal(p) {
+  try {
+    const l = ok(await sb.from('gf_localizacoes').select('lat,lng,atualizado_em').eq('pedido_id', p.id).maybeSingle());
+    if (!l) return `<div class="local"><b>Localização do guincho</b><span>Aparece aqui quando o guincheiro estiver com o app aberto a caminho.</span></div>`;
+    const min = Math.max(0, Math.round((Date.now() - new Date(l.atualizado_em)) / 6e4));
+    return `<a class="local on" target="_blank" rel="noopener" href="https://www.google.com/maps?q=${l.lat},${l.lng}"><b>Onde está o guincho</b>
+      <span>Atualizado ${min ? `há ${min} min` : 'agora'} · toque para ver no Google Maps</span></a>`;
+  } catch { return ''; }
+}

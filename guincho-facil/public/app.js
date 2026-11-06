@@ -967,6 +967,7 @@ async function telaPedido(id) {
         ${p.status !== 'concluido' ? await botaoContato(p, 'cliente') : ''}</div>`;
       if (p.status === 'em_transporte') html += '<button class="btn full" style="margin-top:14px" id="btReceb">Recebi o veículo</button>';
     }
+    if (p.prestador_id && ['aceito', 'a_caminho', 'no_local', 'em_transporte'].includes(p.status)) html += await blocoLocal(p);
     if (p.prestador_id) html += await blocoVistoria(p, 'cliente');
     if (p.status === 'concluido') {
       html += p.nota ? `<h3 class="sec-t">Sua avaliação</h3><p style="font-size:22px;margin:0;color:var(--placa)">${'★'.repeat(p.nota)}${'☆'.repeat(5 - p.nota)}</p>${p.avaliacao_comentario ? `<p>${esc(p.avaliacao_comentario)}</p>` : ''}`
@@ -1340,7 +1341,7 @@ sb.auth.onAuthStateChange((ev, session) => {
     S.user = novo;
     if (!S.user) { S.perfil = null; $('#nav').hidden = true; return rota(); }
     if (mudou || ev === 'INITIAL_SESSION') {
-      try { await carregaPerfil(); rota(); contadores(); sincronizarPush(); sincronizarVistorias(); despIniciar(); } catch (e) { telaErro(e); }
+      try { await carregaPerfil(); rota(); contadores(); sincronizarPush(); sincronizarVistorias(); despIniciar(); locIniciar(); } catch (e) { telaErro(e); }
     }
   }, 0);
 });
