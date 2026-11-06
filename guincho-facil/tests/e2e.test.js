@@ -323,7 +323,7 @@ test('app guincheiro aprovado: vaga na rota e caminhão cedido', async () => {
   await page.goto(base + '/app');
   await page.fill('#em', 'g@teste.dev'); await page.fill('#se', 'segredo123'); await page.locator('#btL').click();
   await page.locator('.menu-lista.duas').waitFor();
-  assert.deepEqual(await page.locator('.menu-lista.duas b').allInnerTexts(), ['Tenho vaga no caminhão', 'Ceder meu caminhão', 'Ver vagas e caminhões', 'Repassar um serviço']);
+  assert.deepEqual(await page.locator('.menu-lista.duas b').allInnerTexts(), ['Tenho vaga no caminhão', 'Ceder meu caminhão', 'Ver vagas e caminhões', 'Repassar um serviço', 'Convidar um colega']);
   assert.match(await page.locator('.anunciar').innerText(), /Anunciar minha volta de hoje/, 'sem rota própria: convite para anunciar');
   assert.match(await page.locator('.rede-faixa').innerText(), /42\s*guincheiros na rede/);
   assert.match(await page.locator('.mes').innerText(), /no mês/);

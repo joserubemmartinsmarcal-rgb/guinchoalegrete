@@ -59,6 +59,7 @@ const ehGuincho = () => S.perfil?.tipo === 'guincheiro';
 const aprovado = () => S.perfil?.aprovacao === 'aprovado';
 const cidadeOk = c => !!GF_CIDADES[c];
 const kmTxt = n => n == null ? '' : `~${n} km`;
+const CONVITE = 'https://wa.me/?text=' + encodeURIComponent('Fala, colega! Tô usando o GF – Guincho Fácil: anuncia a volta e pega frete no caminho, repassa serviço e recebe na hora. Grátis. Te cadastra: https://appdoguincheiro.com/app');
 // valor em destaque sem centavos quando redondo: R$ 380 / R$ 380,50
 const reais = v => v == null ? '' : 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: Number(v) % 1 ? 2 : 0, maximumFractionDigits: 2 });
 // trajeto em forma de rota: origem ● ┆ ● destino
@@ -531,8 +532,9 @@ async function inicioGuincheiro() {
       ${[['#rotas/nova', IC.rota, 'Tenho vaga no caminhão', 'Anuncie a rota: quem estiver nela manda veículo'],
          ['#caminhoes/novo', IC.caminhao, 'Ceder meu caminhão', 'Com ou sem motorista, para colegas da região'],
          ['#rotas', IC.busca, 'Ver vagas e caminhões', 'De colegas que estão na sua rota'],
-         ['#repasse/novo', IC.lista, 'Repassar um serviço', 'A rede atende seu cliente quando você não pode']].map(([h, i, t, d]) =>
-        `<li><a href="${h}">${svg(i)}<span><b>${t}</b><small>${d}</small></span><span class="seta">${svg(IC.seta)}</span></a></li>`).join('')}
+         ['#repasse/novo', IC.lista, 'Repassar um serviço', 'A rede atende seu cliente quando você não pode'],
+         [CONVITE, IC.user, 'Convidar um colega', 'Quanto mais guincheiros na rede, mais frete na sua volta']].map(([h, i, t, d]) =>
+        `<li><a href="${h}"${h.startsWith('http') ? ' target="_blank" rel="noopener"' : ''}>${svg(i)}<span><b>${t}</b><small>${d}</small></span><span class="seta">${svg(IC.seta)}</span></a></li>`).join('')}
     </ul>
     ${blocoAntecipar()}`;
   ligaChips('raio', v => { S.raio = v; rota(); });
