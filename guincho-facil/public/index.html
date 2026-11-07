@@ -71,8 +71,8 @@ header.top img{height:40px;display:block;background:#0F172A;padding:7px 12px;bor
 /* hero */
 .hero{position:relative;overflow:hidden;min-height:min(100svh,760px);display:flex;align-items:center;
   background:radial-gradient(700px 400px at 90% 10%,#DBEAFE,transparent 60%),linear-gradient(180deg,#fff,#F8FAFC)}
-.hero::before{content:"";position:absolute;right:max(24px,calc((100vw - 1120px)/2 + 24px));top:120px;bottom:70px;width:min(44vw,500px);
-  border-radius:28px;background:#0F172A url(/assets/hero-rede.jpg) center/cover no-repeat;box-shadow:0 30px 60px rgba(15,23,42,.18)}
+.hero::before{content:"";position:absolute;right:max(24px,calc((100vw - 1120px)/2 + 24px));top:calc(50% + 20px);transform:translateY(-50%);height:min(400px,32vw);width:min(42vw,540px);
+  border-radius:28px;background:#0F172A url(/assets/hero-real.jpg) 15% 60%/cover no-repeat;box-shadow:0 30px 60px rgba(15,23,42,.18)}
 .hero .wrap{position:relative;z-index:1;width:100%;padding-top:108px;padding-bottom:56px;display:grid;gap:28px}
 .eyebrow{font-size:12px;letter-spacing:.28em;color:var(--gf-accent);font-weight:700;text-transform:uppercase;display:inline-flex;align-items:center;gap:10px}
 .eyebrow::before{content:"";width:22px;height:2px;background:currentColor}
@@ -101,7 +101,7 @@ header.top img{height:40px;display:block;background:#0F172A;padding:7px 12px;bor
 }
 @media (max-width:899px){
   .hero{min-height:auto}
-  .hero::before{left:20px;right:20px;top:auto;bottom:28px;width:auto;height:calc(62vw);border-radius:22px}
+  .hero::before{left:20px;right:20px;top:auto;bottom:28px;transform:none;width:auto;height:calc(62vw);border-radius:22px}
   .hero .wrap{padding-top:96px;padding-bottom:calc(62vw + 56px);gap:22px}
   .hero h1 em{font-style:normal;color:#2563EB}.hero h1{font-size:clamp(32px,9vw,40px);margin:10px 0 14px}
   .hero p.lead{font-size:16px;margin-bottom:20px}
