@@ -19,7 +19,7 @@ A rede dos guincheiros do RS: frete na volta, repasse entre colegas, chamado urg
 2. Recebe na hora — antecipação de recebíveis com a JK Invest em até 3h após a aprovação.
 3. Vistoria com fotos e assinatura — proteção contra reclamação de dano.
 4. Guincheiro ajuda guincheiro — repasse, vaga no caminhão e caminhão cedido.
-5. Grátis nesta fase.
+5. Primeira versão em teste, já funcionando (não usar "grátis": dá a entender que vai ser cobrado depois).
 
 ## Tom de voz
 Direto, de estrada, sem palavrão de marketing. Fala como guincheiro fala. Números reais (km, R$, horas). Nunca prometer o que o app não faz.
