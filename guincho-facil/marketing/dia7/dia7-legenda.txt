@@ -1,0 +1,17 @@
+DIA 7 · Guincheiro ajuda guincheiro
+
+POST (feed, 19h)
+Não deu pra atender? Repassa pra um colega. 🤝
+Chamado longe demais, agenda cheia ou tu tá voltando de uma entrega? No GF o serviço não se perde: tu repassa para quem está perto, o cliente é atendido e o colega trabalha.
+Primeira versão em teste, já funcionando 👉 appdoguincheiro.com
+#guincho #guincheiro #autosocorro #guinchoRS #GF #guinchofacil
+
+STORIES (12h, nesta ordem)
+1. "Quantos serviços tu perdeu essa semana por estar longe?" (adesivo de enquete: Nenhum / 1 a 2 / 3 ou mais)
+2. "No GF o serviço não se perde." (adesivo de link: appdoguincheiro.com)
+
+INTERNO (fim da 1ª semana)
+- Quantos guincheiros se cadastraram? (meta: 20)
+- Quem começou e não terminou o cadastro? Chamar no WhatsApp.
+- Aprovar todos os cadastros pendentes no painel admin.
+- Ver o resultado das enquetes dos stories (dias 5 e 7) para usar nos próximos posts.
