@@ -1,0 +1,38 @@
+plugins { id 'com.android.application' }
+
+def host = 'appdoguincheiro.com'
+
+android {
+    namespace 'com.appdoguincheiro.app'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'com.appdoguincheiro.app'
+        minSdk 21
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0'
+        resValue 'string', 'app_name', 'GF Guincho Fácil'
+        resValue 'string', 'launcher_name', 'GF'
+        resValue 'string', 'host', host
+        manifestPlaceholders = [host: host, defaultUrl: "https://${host}/app?origem=android"]
+    }
+    signingConfigs {
+        upload {
+            def p = new Properties()
+            def f = rootProject.file('keystore.properties')
+            if (f.exists()) { p.load(new FileInputStream(f)) }
+            storeFile p['storeFile'] ? file(p['storeFile']) : null
+            storePassword p['storePassword']
+            keyAlias p['keyAlias']
+            keyPassword p['keyPassword']
+        }
+    }
+    buildTypes {
+        release { minifyEnabled false; signingConfig signingConfigs.upload }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
+}

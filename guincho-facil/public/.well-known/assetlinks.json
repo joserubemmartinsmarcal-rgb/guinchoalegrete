@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.appdoguincheiro.app",
+    "sha256_cert_fingerprints": [
+      "8B:0B:02:0D:85:BE:2A:49:08:16:65:41:DB:BB:87:8F:FA:07:6D:33:23:9F:A1:F4:2F:C6:1F:36:13:F4:C9:B6"
+    ]
+  }
+}]
