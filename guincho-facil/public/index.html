@@ -50,9 +50,10 @@ html{scroll-behavior:smooth}
 .antecipa .wrap{position:relative;display:grid;gap:34px}
 .antecipa h2{font-size:clamp(36px,5vw,64px);max-width:15ch}
 .antecipa .lead{font-size:clamp(17px,1.6vw,20px);color:var(--gf-ink-2);max-width:620px;margin:0}
-.relogio{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
-.relogio strong{font-size:clamp(84px,12vw,150px);line-height:.85;font-weight:800;letter-spacing:-.06em;color:var(--gf-brand-blue);text-shadow:0 0 50px rgba(30,143,255,.35)}
-.relogio span{font-size:clamp(18px,2vw,24px);font-weight:700;max-width:12ch;line-height:1.15}
+.relogio{display:flex;align-items:center;gap:16px;background:rgba(59,130,246,.12);border:1px solid rgba(96,165,250,.35);border-radius:20px;padding:20px 22px}
+.relogio .ri{flex:none;width:52px;height:52px;border-radius:14px;background:#2563EB;display:grid;place-items:center;font-size:26px}
+.relogio b{display:block;font-size:22px;letter-spacing:-.01em}
+.relogio div span{color:var(--gf-muted);font-size:15px}
 .cards3{display:grid;gap:14px}
 .cards3 div{background:rgba(30,41,59,.8);border:1px solid var(--gf-line-strong);border-radius:var(--gf-radius-xl);padding:22px}
 .cards3 b{display:block;font-size:20px;letter-spacing:-.01em;margin-bottom:6px}
@@ -257,7 +258,7 @@ footer p{margin:6px 0 0;color:var(--gf-faint);font-size:13px}
       <p class="lead">Seguradora pagando em 30, 60 dias? Empresa no boleto? Cliente no cartão? Pelo GF, você antecipa o que tem a receber com a JK Invest, securitizadora parceira, e não fica sem caixa para o diesel e a próxima saída.</p>
     </div>
     <div class="lado">
-      <div class="relogio"><strong>3h</strong><span>no máximo para o dinheiro cair depois da aprovação</span></div>
+      <div class="relogio"><span class="ri">⏱</span><div><b>Dinheiro em até 3 horas</b><span>depois da aprovação da JK Invest</span></div></div>
       <div class="cards3" style="margin-top:22px">
         <div><b>Todo mundo pode pedir</b><span>Pessoa física, MEI ou empresa.</span></div>
         <div><b>Seguradora, empresa, cartão ou Pix a prazo</b><span>Só não entram valores pagos por TED.</span></div>
