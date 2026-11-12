@@ -1,0 +1,65 @@
+GF · MATERIAL DA PLAY STORE
+============================
+
+NOME DO APP (até 30 caracteres)
+GF Guincho Fácil
+
+DESCRIÇÃO CURTA (até 80 caracteres)
+Frete na volta, chamado urgente e vistoria com fotos para guincheiros do RS.
+
+DESCRIÇÃO COMPLETA
+O seu caminhão nunca mais volta vazio.
+
+O GF – Guincho Fácil conecta quem precisa transportar um veículo ao guincheiro que já está passando por ali. Quem guincha pega serviço no caminho de volta. Feito por guincheiro, para guincheiro.
+
+PARA O GUINCHEIRO
+• Anuncie sua volta e veja os pedidos que estão no seu caminho, já com o valor e quantos km ficam de você.
+• Aceite na hora ou negocie outro valor.
+• Chamado urgente: o celular toca um alarme e o primeiro que aceitar leva o serviço.
+• Repasse o serviço que você não pode atender para um colega perto.
+• Vistoria digital na retirada: fotos do veículo, avarias marcadas no desenho e assinatura do cliente com o dedo. Sua proteção contra reclamação de dano antigo.
+• Acompanhe o mês: serviços feitos, valor e sua nota.
+
+PARA EMPRESAS E FROTAS
+• Ceda caminhão parado, com ou sem motorista.
+• Anuncie vaga na sua rota.
+• Dispare chamados para a rede quando a demanda passar da sua frota.
+
+PARA QUEM PRECISA MANDAR UM VEÍCULO
+• Você diz quanto paga. Guincheiros conferidos aceitam ou negociam.
+• Vistoria com fotos na retirada.
+• Acompanhe cada etapa até a entrega e veja onde está o guincho.
+
+RECEBA NA HORA
+Fez o serviço para seguradora, empresa ou no cartão? Peça a antecipação pelo app. A análise, a taxa e o pagamento são feitos pela JK Invest, securitizadora parceira, e o dinheiro cai em até 3 horas depois da aprovação.
+
+Primeira versão em teste, já funcionando no Rio Grande do Sul.
+Dúvidas: atendimento@appdoguincheiro.com
+
+CATEGORIA
+Mapas e navegação  (alternativa: Negócios)
+
+TAGS / PALAVRAS (se pedir)
+guincho, guincheiro, auto socorro, reboque, frete, transporte de veículos
+
+CONTATO NA LOJA
+E-mail: atendimento@appdoguincheiro.com
+Site: https://appdoguincheiro.com
+Política de privacidade: https://appdoguincheiro.com/privacidade
+
+IMAGENS (nesta pasta)
+• Ícone 512x512: icone-512.png
+• Imagem de destaque 1024x500: destaque-1024x500.png
+• Capturas do celular (1080x1920): print-1.png a print-5.png, nesta ordem
+
+RESPOSTAS QUE O GOOGLE PEDE (rascunho)
+• Anúncios: o app NÃO tem anúncios.
+• Público-alvo: maiores de 18 anos (uso profissional).
+• Classificação de conteúdo: questionário IARC — responder "não" para violência, sexo, drogas, apostas; o app permite comunicação entre usuários (WhatsApp após aceite) e compartilha localização do guincheiro com o cliente.
+• Segurança dos dados — dados coletados:
+  - Nome, e-mail, telefone (WhatsApp), cidade: para a conta e para contato entre cliente e guincheiro.
+  - Localização aproximada/precisa do guincheiro: só com o app aberto, para o cliente acompanhar o atendimento.
+  - Fotos (vistoria): guardadas de forma privada, visíveis só para as partes do pedido.
+  - Dados criptografados em trânsito: SIM. Usuário pode pedir exclusão: SIM (atendimento@appdoguincheiro.com).
+  - Não vende dados e não compartilha com terceiros para publicidade.
+• Acesso para o revisor do Google: vamos criar uma conta de teste (e-mail e senha) e informar no Play Console.
