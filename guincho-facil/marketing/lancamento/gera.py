@@ -18,7 +18,7 @@ car = '''<body>
 <h2>Vistoria com fotos. <em>Colega ajuda colega.</em></h2>
 <div class="checks"><div><b>Vistoria com assinatura</b> do cliente: chega de reclamação de dano antigo.</div><div><b>Repasse, vaga e caminhão cedido</b> entre guincheiros da rede.</div></div>
 <div class="pe"><span class="n">5/6</span><span class="seta">→</span></div></div></section>
-<section class="s esc"><div class="glow"></div><div class="z"><img class="logo" src="../../public/assets/gf-mark.png" alt=""><div class="eye">Primeira versão em teste · já funcionando</div>
+<section class="s esc"><div class="glow"></div><div class="z"><img class="logo" src="../../public/assets/gf-mark.png" alt=""><div class="eye">Grátis nesta fase</div>
 <h2>O seu caminhão nunca mais <em>volta vazio.</em></h2><div class="cta"><a class="p">appdoguincheiro.com</a><a class="s2">Link na bio · @guinchofacil.app</a></div>
 <div class="pe"><span class="n">6/6</span><span></span></div></div></section></body></html>'''
 open('04-carrossel.html', 'w').write(head + car)
@@ -27,5 +27,5 @@ fol = head.replace('</head>', css) + '''<body><div class="a4"><img src="../../pu
 <h1 style="margin-top:70px">Precisa mandar <em>um veículo?</em></h1>
 <p style="font-size:40px;color:#334155;margin-top:30px;line-height:1.35">Guincho para oficinas, revendas, locadoras e particulares no RS.</p>
 <div class="lst"><div><b>Você diz quanto paga</b>: guincheiros aceitam ou negociam</div><div><b>Guincheiros conferidos</b> pela equipe GF</div><div><b>Vistoria com fotos e assinatura</b> na retirada</div><div><b>Acompanhe</b> cada etapa e onde está o guincho</div><div><b>Chamado urgente</b>: o primeiro disponível vai</div></div>
-<div class="qr"><img src="qr-app.png"><div><b>Aponte a câmera e peça agora</b><span>appdoguincheiro.com · primeira versão já funcionando</span></div></div></div></body></html>'''
+<div class="qr"><img src="qr-app.png"><div><b>Aponte a câmera e peça agora</b><span>appdoguincheiro.com · grátis nesta fase</span></div></div></div></body></html>'''
 open('05-folheto-oficinas.html', 'w').write(fol)
