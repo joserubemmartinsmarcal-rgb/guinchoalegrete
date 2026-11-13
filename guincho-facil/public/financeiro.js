@@ -408,3 +408,43 @@ async function telaRecibo(id) {
       <a class="btn fant full" href="#os/${o.id}">Voltar à OS</a></div></div>`;
   $('#rcPdf').onclick = () => window.print();
 }
+
+// ───────── Ganhos: visão rápida do guincheiro (hoje, semana, a receber, extrato) ─────────
+async function telaGanhos() {
+  titulo('Ganhos');
+  const hoje = hojeISO();
+  const d0 = new Date(hoje + 'T12:00:00'); const dow = (d0.getDay() + 6) % 7; // segunda = 0
+  const seg = new Date(d0); seg.setDate(d0.getDate() - dow);
+  const iso = x => new Date(x.getTime() - x.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+  const dias = Array.from({ length: 7 }, (_, i) => { const x = new Date(seg); x.setDate(seg.getDate() + i); return iso(x); });
+  const ini = [dias[0], mesISO() + '-01'].sort()[0];
+  const [recentes, abertas] = await Promise.all([
+    sb.from('gf_os').select('id,numero,data,cliente,origem,destino,valor,status,pago_em,pedido_id,vencimento').neq('status', 'cancelada').gte('data', ini).order('data', { ascending: false }).order('numero', { ascending: false }).limit(500).then(ok),
+    sb.from('gf_os').select('id,valor,vencimento').eq('status', 'a_receber').limit(1000).then(ok)]);
+  const soma = l => l.reduce((t, o) => t + Number(o.valor), 0);
+  const aReceber = soma(abertas), vencido = soma(abertas.filter(vencida));
+  const doDia = recentes.filter(o => o.data === hoje), daSemana = recentes.filter(o => o.data >= dias[0] && o.data <= dias[6]);
+  const recebidoMes = soma(recentes.filter(o => o.status === 'pago' && o.pago_em && o.pago_em.slice(0, 7) === mesISO()));
+  const porDia = dias.map(d => soma(daSemana.filter(o => o.data === d)));
+  const max = Math.max(...porDia, 1);
+  const extrato = await sb.from('gf_os').select('id,numero,data,cliente,origem,destino,valor,status,pedido_id,vencimento').neq('status', 'cancelada')
+    .order('data', { ascending: false }).order('numero', { ascending: false }).limit(30).then(ok);
+  const n = l => `${l.length} atendimento${l.length === 1 ? '' : 's'}`;
+  V.innerHTML = `<div class="gn-top"><span>A receber</span><b>${brl(aReceber)}</b>
+      <small>${vencido ? `${brl(vencido)} já venceu · cobre o cliente` : abertas.length ? `${abertas.length} OS em aberto` : 'Nada em aberto'}</small>
+      <a class="btn gn-bt ${aReceber ? '' : 'off'}" href="#servicos/antecipar">Antecipar com a ${esc(ANTECIPACAO.parceira)}</a>
+      <small class="gn-nota">O cliente paga direto a você. O GF não segura o seu dinheiro.</small></div>
+    <div class="fin-cards">
+      <div class="fin-card"><span>Recebido no mês</span><b>${brl(recebidoMes)}</b><small>marcado como pago</small></div>
+      <div class="fin-card ${vencido ? 'alerta' : ''}"><span>Vencido</span><b>${brl(vencido)}</b><small>${vencido ? 'cobre hoje' : 'nada vencido'}</small></div>
+      <div class="fin-card"><span>Hoje</span><b>${brl(soma(doDia))}</b><small>${n(doDia)}</small></div>
+      <div class="fin-card"><span>Esta semana</span><b>${brl(soma(daSemana))}</b><small>${n(daSemana)}</small></div></div>
+    <div class="gn-sem"><div class="gn-sem-t"><span>Esta semana</span><b>${brl(soma(daSemana))}</b></div>
+      <div class="gn-barras" role="img" aria-label="Ganhos por dia da semana">${dias.map((d, i) => `<div class="${d === hoje ? 'hoje' : ''}">
+        <i style="height:${Math.max(4, Math.round(porDia[i] / max * 100))}%" title="${brl(porDia[i])}"></i><span>${'STQQSSD'[i]}</span></div>`).join('')}</div></div>
+    <h3 class="sec-t">Extrato</h3>
+    ${extrato.length ? `<div class="gn-ext">${extrato.map(o => `<a href="#os/${o.id}"><div><b>${esc(o.origem && o.destino ? o.origem + ' › ' + o.destino : o.cliente)}</b>
+        <span>${dataBR(o.data)} · ${o.origem && o.destino ? esc(o.cliente) : 'OS nº ' + o.numero}${o.pedido_id ? ' · pelo GF' : ''}</span></div><div class="v"><b>${brl(o.valor)}</b>${tagOS(o)}</div></a>`).join('')}</div>`
+      : '<div class="vazio">Seus ganhos aparecem aqui depois do primeiro atendimento concluído.<br>Serviço de fora do GF? Lance em <a href="#os/nova">Nova OS</a>.</div>'}
+    <div class="dupla" style="margin-top:14px"><a class="btn fant" href="#os/nova">+ Lançar serviço</a><a class="btn fant" href="#servicos/financeiro">Financeiro completo</a></div>`;
+}

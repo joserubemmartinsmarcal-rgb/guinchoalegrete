@@ -134,7 +134,7 @@ function backend() {
       if (m === 'PATCH') { const x = tab.find(o => 'eq.' + o.id === id); Object.assign(x, corpo); if (x.status === 'pago' && !x.pago_em) x.pago_em = x.data; return json(route, 200, objeto ? x : [x]); }
       if (m === 'DELETE') { db.os = tab.filter(o => 'eq.' + o.id !== id); return json(route, 200, []); }
       const st = url.searchParams.get('status');
-      const rows = tab.filter(o => (!id || 'eq.' + o.id === id) && (!st || 'eq.' + o.status === st));
+      const rows = tab.filter(o => (!id || 'eq.' + o.id === id) && (!st || 'eq.' + o.status === st || (st.startsWith('neq.') && 'neq.' + o.status !== st)));
       return json(route, 200, objeto ? rows[0] || null : rows);
     }
     if (url.pathname === '/rest/v1/gf_lista_espera') { db.lista.push(corpo); return route.fulfill({ status: 201, headers: { 'access-control-allow-origin': '*' } }); }
@@ -315,7 +315,7 @@ test('app guincheiro: validação de placa e cadastro em análise', async () => 
   await page.locator('.aviso.am').waitFor();
   assert.match(await page.locator('.aviso.am').innerText(), /Em análise/);
   assert.match(await page.locator('.barra-prog').getAttribute('aria-label'), /80%/);
-  assert.equal(await page.locator('#nav a').count(), 5);
+  assert.equal(await page.locator('#nav a').count(), 6);
   await foto(page, '8-guincheiro-analise');
   await page.locator('#nav a[data-r=buscar]').click();
   await page.locator('.aviso.am').waitFor();
@@ -617,6 +617,15 @@ test('financeiro: nova OS, resumo do mês e marcar como pago', async () => {
   assert.match(await page.locator('.recibo').innerText(), /quatrocentos e cinquenta reais/);
   assert.match(await page.locator('.recibo').innerText(), /Seguradora Azul/);
   await foto(page, '20-recibo');
+  assert.ok(await semRolagemLateral(page));
+  await page.locator('#nav a[href="#ganhos"]').click();
+  await page.locator('.gn-top').waitFor();
+  assert.match(await page.locator('.gn-top').innerText(), /R\$\s*600/);
+  const cards = await page.locator('.fin-cards').innerText();
+  assert.match(cards, /Recebido no mês\s*R\$\s*450/); assert.match(cards, /Hoje\s*R\$\s*1\.050/);
+  assert.equal(await page.locator('.gn-barras > div').count(), 7);
+  assert.equal(await page.locator('.gn-ext a').count(), 2);
+  await foto(page, '21-ganhos');
   assert.ok(await semRolagemLateral(page));
   assert.deepEqual(erros, []);
   await ctx.close();

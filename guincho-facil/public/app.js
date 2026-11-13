@@ -134,12 +134,13 @@ const IC = {
   cadeado: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
   celular: '<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
   sair: '<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/>',
-  seta: '<path d="m9 6 6 6-6 6"/>'
+  seta: '<path d="m9 6 6 6-6 6"/>',
+  carteira: '<path d="M3 7a2 2 0 0 1 2-2h12v4"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 13.5h2"/>'
 };
 const svg = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">${p}</svg>`;
 function montaNav() {
   const itens = ehGuincho()
-    ? [['inicio', 'Início', IC.casa], ['buscar', 'Buscar', IC.busca], ['rotas', 'Rotas', IC.rota], ['servicos', 'Serviços', IC.caminhao], ['perfil', 'Perfil', IC.user]]
+    ? [['inicio', 'Início', IC.casa], ['buscar', 'Buscar', IC.busca], ['rotas', 'Rotas', IC.rota], ['servicos', 'Serviços', IC.caminhao], ['ganhos', 'Ganhos', IC.carteira], ['perfil', 'Perfil', IC.user]]
     : [['inicio', 'Início', IC.casa], ['pedido/novo', 'Pedir', IC.mais], ['pedidos', 'Pedidos', IC.lista], ['perfil', 'Perfil', IC.user]];
   if (S.perfil?.is_admin && !ehGuincho()) itens.splice(3, 0, ['admin', 'Admin', IC.admin]);
   $('#nav').innerHTML = itens.map(([h, t, i]) => `<a href="#${h}" data-r="${h}">${svg(i)}${t}<span class="badge" data-b="${h}" hidden></span></a>`).join('');
@@ -148,6 +149,7 @@ function montaNav() {
 function marcaNav(r) {
   let base = r.split('/')[0] || 'inicio';
   if (['rota', 'caminhoes', 'caminhao'].includes(base)) base = 'rotas';
+  if (['os', 'conta', 'banco', 'recibo'].includes(base)) base = 'ganhos';
   document.querySelectorAll('#nav a').forEach(a => {
     const on = a.dataset.r.split('/')[0] === base || (a.dataset.r === 'pedido/novo' && r === 'pedido/novo');
     a.classList.toggle('on', on); on ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current');
@@ -200,6 +202,7 @@ async function rota(silencioso) {
     if (a === 'servicos') return await telaServicos();
     if (a === 'os') return await telaOS(b);
     if (a === 'conta') return await telaConta(b);
+    if (a === 'ganhos') return await telaGanhos();
     if (a === 'banco') return await telaBanco(b);
     if (a === 'recibo') return await telaRecibo(b);
     if (a === 'perfil') return telaPerfil(false);
