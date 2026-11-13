@@ -1,0 +1,3 @@
+const {chromium}=require('playwright');const path=require('path');(async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:1080,height:1350}});
+await p.goto('file://'+path.resolve(__dirname,'rotas.html'));await p.evaluate(()=>document.fonts.ready);
+for(const [id,n] of [['poa','rota-alegrete-porto-alegre'],['sm','rota-alegrete-santa-maria']]){await p.evaluate(id=>document.querySelectorAll('.p').forEach(e=>e.style.display=e.id==id?'block':'none'),id);await p.waitForTimeout(300);await p.locator('#'+id).screenshot({path:path.join(__dirname,n+'.png')});}await b.close()})();
