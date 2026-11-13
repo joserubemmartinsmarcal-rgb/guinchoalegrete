@@ -20,52 +20,160 @@ function tagOS(o) {
 function nomeMes(m) { const [a, b] = m.split('-').map(Number); const t = new Date(a, b - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }); return t.charAt(0).toUpperCase() + t.slice(1); }
 function somaMes(m, d) { const [a, b] = m.split('-').map(Number); const x = new Date(a, b - 1 + d, 1); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}`; }
 
+const CONTA_CAT = { caminhao: 'Caminhão (parcela/financiamento)', combustivel: 'Combustível', manutencao: 'Manutenção e pneus', seguro: 'Seguro',
+  salario: 'Salários e motoristas', impostos: 'Impostos e taxas', aluguel: 'Aluguel e pátio', telefone: 'Telefone e internet', pedagio: 'Pedágio', outros: 'Outros' };
+const CONTA_FORMA = { pix: 'Pix', boleto: 'Boleto', debito: 'Débito automático', cartao: 'Cartão', dinheiro: 'Dinheiro', transferencia: 'Transferência', outro: 'Outro' };
+const contaVencida = c => c.status === 'a_pagar' && c.vencimento < hojeISO();
+const tagConta = c => c.status === 'pago' ? '<span class="tag vd">Paga</span>' : contaVencida(c) ? '<span class="tag vm">Vencida</span>' : '<span class="tag am">A pagar</span>';
+const barras = (pares, total, rot) => pares.length ? `<div class="fin-pag">${pares.map(([k, v]) => `<div><span>${esc(rot[k] || k)}</span><i style="width:${Math.max(4, Math.round(v / (total || 1) * 100))}%"></i><b>${brl(v)}</b></div>`).join('')}</div>` : '';
+const somaPor = (lista, campo, valor) => Object.entries(lista.reduce((m, x) => (m[x[campo]] = (m[x[campo]] || 0) + valor(x), m), {})).sort((a, b) => b[1] - a[1]);
+
 async function telaFinanceiro() {
   titulo('Financeiro');
-  const f = S.filtros.fin ||= { mes: mesISO(), ver: 'todas' };
+  const f = S.filtros.fin ||= { mes: mesISO(), ver: 'todas', sec: 'resumo', verC: 'todas' };
+  f.sec ||= 'resumo'; f.verC ||= 'todas'; f.ver ||= 'todas';
   const ini = f.mes + '-01', fim = somaMes(f.mes, 1) + '-01';
-  const [doMes, abertas] = await Promise.all([
+  try { await rpc('gf_gerar_contas_mes', { p_mes: ini }); } catch { /* função ainda não publicada */ }
+  const [doMes, abertas, contas, contasAbertas] = await Promise.all([
     sb.from('gf_os').select('*').gte('data', ini).lt('data', fim).order('data', { ascending: false }).order('numero', { ascending: false }).limit(500).then(ok),
-    sb.from('gf_os').select('id,valor,vencimento,status').eq('status', 'a_receber').limit(1000).then(ok)]);
+    sb.from('gf_os').select('id,numero,cliente,valor,vencimento,status').eq('status', 'a_receber').limit(1000).then(ok),
+    sb.from('gf_contas').select('*').gte('vencimento', ini).lt('vencimento', fim).order('vencimento').limit(500).then(ok).catch(() => []),
+    sb.from('gf_contas').select('id,descricao,valor,vencimento,status').eq('status', 'a_pagar').order('vencimento').limit(1000).then(ok).catch(() => [])]);
   const validas = doMes.filter(o => o.status !== 'cancelada');
   const fat = validas.reduce((s, o) => s + Number(o.valor), 0);
-  const custos = validas.reduce((s, o) => s + custoOS(o), 0);
+  const custosOS = validas.reduce((s, o) => s + custoOS(o), 0);
   const recebido = validas.filter(o => o.status === 'pago').reduce((s, o) => s + Number(o.valor), 0);
   const aReceber = abertas.reduce((s, o) => s + Number(o.valor), 0);
   const vencido = abertas.filter(vencida).reduce((s, o) => s + Number(o.valor), 0);
-  const lista = doMes.filter(o => f.ver === 'todas' || (f.ver === 'receber' && o.status === 'a_receber') || (f.ver === 'vencidas' && vencida(o)) || (f.ver === 'pagas' && o.status === 'pago'));
-  const porPagador = Object.entries(validas.reduce((m, o) => (m[o.pagador_tipo] = (m[o.pagador_tipo] || 0) + Number(o.valor), m), {})).sort((a, b) => b[1] - a[1]);
+  const despesas = contas.reduce((s, c) => s + Number(c.valor), 0);
+  const pagas = contas.filter(c => c.status === 'pago').reduce((s, c) => s + Number(c.valor), 0);
+  const aPagar = contasAbertas.reduce((s, c) => s + Number(c.valor), 0);
+  const pagarVencido = contasAbertas.filter(contaVencida).reduce((s, c) => s + Number(c.valor), 0);
+  const resultado = fat - custosOS - despesas;
 
-  V.innerHTML = `${chips('aba', ABAS_SERV, 'financeiro')}
+  let html = `${chips('aba', ABAS_SERV, 'financeiro')}
+  ${chips('sec', [['resumo', 'Resumo da empresa'], ['os', 'OS · entradas'], ['contas', 'Contas a pagar']], f.sec)}
   <div class="fin-mes"><button class="btn fant peq" id="mAnt" aria-label="Mês anterior">‹</button><b>${esc(nomeMes(f.mes))}</b>
-    <button class="btn fant peq" id="mProx" aria-label="Próximo mês" ${f.mes >= mesISO() ? 'disabled' : ''}>›</button></div>
-  <div class="fin-cards">
-    <div class="fin-card"><span>Faturado no mês</span><b>${brl(fat)}</b><small>${validas.length} OS</small></div>
-    <div class="fin-card"><span>Lucro no mês</span><b class="${fat - custos >= 0 ? 'pos' : 'neg'}">${brl(fat - custos)}</b><small>custos ${brl(custos)}</small></div>
-    <div class="fin-card"><span>Recebido no mês</span><b>${brl(recebido)}</b><small>das OS do mês</small></div>
-    <div class="fin-card ${vencido ? 'alerta' : ''}"><span>A receber (todas)</span><b>${brl(aReceber)}</b><small>${vencido ? `${brl(vencido)} vencido` : 'nada vencido'}</small></div>
-  </div>
-  ${aReceber ? `<a class="item quente antecipa" href="#servicos/antecipar"><div class="tit">Tem ${brl(aReceber)} a receber?</div>
-    <div class="meta">Antecipe com a ${esc(ANTECIPACAO.parceira)} e receba em até 3 horas após a aprovação.</div></a>` : ''}
-  ${porPagador.length > 1 ? `<div class="fin-pag">${porPagador.map(([k, v]) => `<div><span>${esc(OS_PAGADOR[k] || k)}</span><i style="width:${Math.max(4, Math.round(v / fat * 100))}%"></i><b>${brl(v)}</b></div>`).join('')}</div>` : ''}
-  <a class="btn full grande" href="#os/nova" style="margin:14px 0">+ Nova OS</a>
-  ${chips('ver', [['todas', 'Todas'], ['receber', 'A receber'], ['vencidas', 'Vencidas'], ['pagas', 'Pagas']], f.ver)}
-  ${lista.length ? lista.map(o => `<a class="item os-item" href="#os/${o.id}">
-      <div class="os-top"><b>${numOS(o.numero)}</b>${tagOS(o)}</div>
-      <div class="os-meio"><span>${esc(o.cliente)}</span><b class="valor">${brl(o.valor)}</b></div>
-      <div class="meta">${dataBR(o.data)} · ${esc(OS_PAGADOR[o.pagador_tipo] || '')}${o.origem && o.destino ? ' · ' + esc(o.origem) + ' › ' + esc(o.destino) : ''}${o.pedido_id ? ' · pelo GF' : ''}</div>
-      ${o.status === 'a_receber' && o.vencimento ? `<div class="meta">Vence ${dataBR(o.vencimento)}</div>` : ''}</a>`).join('')
-    : `<div class="vazio">Nenhuma OS ${f.ver === 'todas' ? 'neste mês' : 'neste filtro'}.<br>Atendimentos concluídos pelo GF entram sozinhos. Serviços de fora, lance em "Nova OS".</div>`}
-  ${doMes.length ? '<button class="btn fant full" id="finCsv" style="margin-top:14px">Exportar planilha do mês (CSV)</button>' : ''}`;
+    <button class="btn fant peq" id="mProx" aria-label="Próximo mês" ${f.mes > mesISO() ? 'disabled' : ''}>›</button></div>`;
+
+  if (f.sec === 'resumo') {
+    const em7 = new Date(Date.now() + 7 * 864e5 - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+    const prox = [...contasAbertas.filter(c => c.vencimento <= em7).map(c => ({ t: 'pagar', d: c.vencimento, nome: c.descricao, v: c.valor, href: '#conta/' + c.id })),
+      ...abertas.filter(o => o.vencimento && o.vencimento <= em7).map(o => ({ t: 'receber', d: o.vencimento, nome: numOS(o.numero) + ' · ' + o.cliente, v: o.valor, href: '#os/' + o.id }))]
+      .sort((a, b) => a.d.localeCompare(b.d));
+    html += `<div class="fin-res ${resultado >= 0 ? 'pos' : 'neg'}"><span>Resultado do mês</span><b>${brl(resultado)}</b>
+        <small>Entradas ${brl(fat)} − custos dos serviços ${brl(custosOS)} − contas ${brl(despesas)}</small></div>
+      <div class="fin-cards">
+        <div class="fin-card"><span>Entradas (OS)</span><b>${brl(fat)}</b><small>${validas.length} OS · recebido ${brl(recebido)}</small></div>
+        <div class="fin-card"><span>Saídas (contas)</span><b>${brl(despesas)}</b><small>pago ${brl(pagas)}</small></div>
+        <div class="fin-card ${vencido ? 'alerta' : ''}"><span>A receber</span><b>${brl(aReceber)}</b><small>${vencido ? `${brl(vencido)} vencido` : 'nada vencido'}</small></div>
+        <div class="fin-card ${pagarVencido ? 'alerta' : ''}"><span>A pagar</span><b>${brl(aPagar)}</b><small>${pagarVencido ? `${brl(pagarVencido)} vencido` : 'nada vencido'}</small></div>
+      </div>
+      <div class="fin-caixa"><span>Caixa do mês (recebido − pago)</span><b class="${recebido - pagas >= 0 ? 'pos' : 'neg'}">${brl(recebido - pagas)}</b></div>
+      <h3 class="sec-t">Vence nos próximos 7 dias</h3>
+      ${prox.length ? `<ul class="fin-prox">${prox.map(x => `<li><a href="${x.href}"><span class="tag ${x.t === 'pagar' ? 'vm' : 'vd'}">${x.t === 'pagar' ? 'Pagar' : 'Receber'}</span>
+        <span class="n">${esc(x.nome)}</span><time>${dataBR(x.d)}</time><b>${brl(x.v)}</b></a></li>`).join('')}</ul>` : '<div class="vs-dica">Nada vencendo nos próximos 7 dias.</div>'}
+      ${despesas ? `<h3 class="sec-t">Para onde foi o dinheiro</h3>${barras(somaPor(contas, 'categoria', c => Number(c.valor)), despesas, CONTA_CAT)}` : ''}
+      ${fat ? `<h3 class="sec-t">De onde veio</h3>${barras(somaPor(validas, 'pagador_tipo', o => Number(o.valor)), fat, OS_PAGADOR)}` : ''}
+      ${aReceber ? `<a class="item quente antecipa" href="#servicos/antecipar"><div class="tit">Tem ${brl(aReceber)} a receber?</div>
+        <div class="meta">Antecipe com a ${esc(ANTECIPACAO.parceira)} e receba em até 3 horas após a aprovação.</div></a>` : ''}
+      <div class="dupla" style="margin-top:14px"><a class="btn" href="#os/nova">+ Nova OS</a><a class="btn fant" href="#conta/nova">+ Nova conta</a></div>
+      ${doMes.length || contas.length ? '<button class="btn fant full" id="finCsv" style="margin-top:12px">Exportar planilha do mês (CSV)</button>' : ''}`;
+  } else if (f.sec === 'os') {
+    const lista = doMes.filter(o => f.ver === 'todas' || (f.ver === 'receber' && o.status === 'a_receber') || (f.ver === 'vencidas' && vencida(o)) || (f.ver === 'pagas' && o.status === 'pago'));
+    html += `<div class="fin-cards">
+        <div class="fin-card"><span>Faturado no mês</span><b>${brl(fat)}</b><small>${validas.length} OS</small></div>
+        <div class="fin-card"><span>Lucro dos serviços</span><b class="${fat - custosOS >= 0 ? 'pos' : 'neg'}">${brl(fat - custosOS)}</b><small>custos ${brl(custosOS)}</small></div></div>
+      <a class="btn full grande" href="#os/nova" style="margin:14px 0">+ Nova OS</a>
+      ${chips('ver', [['todas', 'Todas'], ['receber', 'A receber'], ['vencidas', 'Vencidas'], ['pagas', 'Pagas']], f.ver)}
+      ${lista.length ? lista.map(o => `<a class="item os-item" href="#os/${o.id}">
+          <div class="os-top"><b>${numOS(o.numero)}</b>${tagOS(o)}</div>
+          <div class="os-meio"><span>${esc(o.cliente)}</span><b class="valor">${brl(o.valor)}</b></div>
+          <div class="meta">${dataBR(o.data)} · ${esc(OS_PAGADOR[o.pagador_tipo] || '')}${o.origem && o.destino ? ' · ' + esc(o.origem) + ' › ' + esc(o.destino) : ''}${o.pedido_id ? ' · pelo GF' : ''}</div>
+          ${o.status === 'a_receber' && o.vencimento ? `<div class="meta">Vence ${dataBR(o.vencimento)}</div>` : ''}</a>`).join('')
+        : `<div class="vazio">Nenhuma OS ${f.ver === 'todas' ? 'neste mês' : 'neste filtro'}.<br>Atendimentos concluídos pelo GF entram sozinhos. Serviços de fora, lance em "Nova OS".</div>`}`;
+  } else {
+    const lista = contas.filter(c => f.verC === 'todas' || (f.verC === 'pagar' && c.status === 'a_pagar') || (f.verC === 'vencidas' && contaVencida(c)) || (f.verC === 'pagas' && c.status === 'pago'));
+    html += `<div class="fin-cards">
+        <div class="fin-card"><span>Contas do mês</span><b>${brl(despesas)}</b><small>${contas.length} conta${contas.length === 1 ? '' : 's'}</small></div>
+        <div class="fin-card ${pagarVencido ? 'alerta' : ''}"><span>Falta pagar (todas)</span><b>${brl(aPagar)}</b><small>${pagarVencido ? `${brl(pagarVencido)} vencido` : 'nada vencido'}</small></div></div>
+      <a class="btn full grande" href="#conta/nova" style="margin:14px 0">+ Nova conta</a>
+      ${chips('verC', [['todas', 'Todas'], ['pagar', 'A pagar'], ['vencidas', 'Vencidas'], ['pagas', 'Pagas']], f.verC)}
+      ${lista.length ? lista.map(c => `<div class="item os-item"><a href="#conta/${c.id}" style="color:inherit;text-decoration:none;display:block">
+          <div class="os-top"><b>${esc(CONTA_CAT[c.categoria] || 'Outros')}</b>${tagConta(c)}</div>
+          <div class="os-meio"><span>${esc(c.descricao)}</span><b class="valor">${brl(c.valor)}</b></div>
+          <div class="meta">Vence ${dataBR(c.vencimento)}${c.fornecedor ? ' · ' + esc(c.fornecedor) : ''}${c.recorrente ? ' · repete todo mês' : ''}${c.pago_em ? ' · paga em ' + dataBR(c.pago_em) : ''}</div></a>
+          ${c.status === 'a_pagar' ? `<button class="btn vd peq" style="margin-top:10px" data-pagar="${c.id}">Marcar como paga</button>` : ''}</div>`).join('')
+        : `<div class="vazio">Nenhuma conta ${f.verC === 'todas' ? 'neste mês' : 'neste filtro'}.<br>Lance as despesas da empresa: parcela do caminhão, seguro, salários, manutenção. As que repetem todo mês aparecem sozinhas nos meses seguintes.</div>`}`;
+  }
+  V.innerHTML = html;
   ligaChips('aba', v => location.hash = 'servicos/' + v);
+  ligaChips('sec', v => { f.sec = v; rota(); });
   ligaChips('ver', v => { f.ver = v; rota(); });
+  ligaChips('verC', v => { f.verC = v; rota(); });
   $('#mAnt').onclick = () => { f.mes = somaMes(f.mes, -1); rota(); };
-  $('#mProx').onclick = () => { if (f.mes < mesISO()) { f.mes = somaMes(f.mes, 1); rota(); } };
-  if ($('#finCsv')) $('#finCsv').onclick = () => csv(doMes.map(o => ({ OS: o.numero, Data: dataBR(o.data), Cliente: o.cliente, Pagador: OS_PAGADOR[o.pagador_tipo],
-    Origem: o.origem || '', Destino: o.destino || '', Veiculo: o.veiculo || '', Placa: o.placa || '', Valor: String(o.valor).replace('.', ','),
-    Forma: OS_FORMA[o.forma], Status: OS_STATUS[o.status], Vencimento: dataBR(o.vencimento), Pago_em: dataBR(o.pago_em),
-    Diesel: String(o.custo_diesel).replace('.', ','), Pedagio: String(o.custo_pedagio).replace('.', ','), Outros: String(o.custo_outros).replace('.', ','),
-    Comissao: String(o.comissao).replace('.', ','), Motorista: o.motorista || '', Lucro: String((Number(o.valor) - custoOS(o)).toFixed(2)).replace('.', ',') })), `gf-financeiro-${f.mes}.csv`);
+  $('#mProx').onclick = () => { if (f.mes <= mesISO()) { f.mes = somaMes(f.mes, 1); rota(); } };
+  V.querySelectorAll('[data-pagar]').forEach(b => b.onclick = () => comBotao(b, async () => {
+    try { ok(await sb.from('gf_contas').update({ status: 'pago', pago_em: hojeISO() }).eq('id', b.dataset.pagar)); toast('Conta marcada como paga.'); rota(); } catch (er) { falha(er); }
+  }));
+  const v2 = n => String(Number(n || 0).toFixed(2)).replace('.', ',');
+  if ($('#finCsv')) $('#finCsv').onclick = () => csv([
+    ...doMes.map(o => ({ Tipo: 'Entrada (OS)', Numero: o.numero, Data: dataBR(o.data), Descricao: o.cliente, Categoria: OS_PAGADOR[o.pagador_tipo], Valor: v2(o.valor),
+      Custos: v2(custoOS(o)), Situacao: OS_STATUS[o.status], Vencimento: dataBR(o.vencimento), Pago_em: dataBR(o.pago_em),
+      Detalhe: [o.origem && o.destino ? o.origem + ' > ' + o.destino : '', o.veiculo || '', o.placa || ''].filter(Boolean).join(' · ') })),
+    ...contas.map(c => ({ Tipo: 'Saída (conta)', Numero: '', Data: dataBR(c.vencimento), Descricao: c.descricao, Categoria: CONTA_CAT[c.categoria], Valor: v2(c.valor),
+      Custos: '', Situacao: c.status === 'pago' ? 'Paga' : 'A pagar', Vencimento: dataBR(c.vencimento), Pago_em: dataBR(c.pago_em), Detalhe: c.fornecedor || '' }))], `gf-financeiro-${f.mes}.csv`);
+}
+
+async function telaConta(id) {
+  const nova = id === 'nova';
+  const c = nova ? { vencimento: hojeISO(), categoria: 'outros', status: 'a_pagar', forma: 'pix', recorrente: false }
+    : ok(await sb.from('gf_contas').select('*').eq('id', id).maybeSingle());
+  if (!c) { titulo('Conta'); V.innerHTML = '<div class="vazio"><h2>Conta não encontrada</h2><a href="#servicos/financeiro">Voltar ao financeiro</a></div>'; return; }
+  titulo(nova ? 'Nova conta' : 'Conta');
+  const op = (obj, at) => Object.entries(obj).map(([v, t]) => `<option value="${v}" ${v === at ? 'selected' : ''}>${esc(t)}</option>`).join('');
+  V.innerHTML = `${!nova ? `<div class="item destaque"><div class="os-top"><b style="font-size:18px">${esc(c.descricao)}</b>${tagConta(c)}</div>
+      <div class="meta">${esc(CONTA_CAT[c.categoria])}${c.recorrente ? ' · repete todo mês' : ''}</div>
+      ${c.status === 'a_pagar' ? '<button class="btn vd full" id="ctPago" style="margin-top:12px">Marcar como paga hoje</button>' : ''}</div>` : ''}
+  <form id="fCt" novalidate>
+    <label for="cDs">Descrição</label><input id="cDs" name="descricao" maxlength="120" value="${esc(c.descricao || '')}" placeholder="Ex.: parcela do caminhão, seguro, salário do motorista" required>
+    <div class="dupla"><div><label for="cCat">Categoria</label><select id="cCat" name="categoria">${op(CONTA_CAT, c.categoria)}</select></div>
+      <div><label for="cVal">Valor (R$)</label><input id="cVal" name="valor" inputmode="decimal" value="${c.valor != null ? String(c.valor).replace('.', ',') : ''}" placeholder="Ex.: 3.500" required></div></div>
+    <div class="dupla"><div><label for="cVc">Vencimento</label><input id="cVc" name="vencimento" type="date" value="${esc(c.vencimento)}" required></div>
+      <div><label for="cSt">Situação</label><select id="cSt" name="status">${op({ a_pagar: 'A pagar', pago: 'Paga' }, c.status)}</select></div></div>
+    <div class="dupla"><div><label for="cFo">Para quem (opcional)</label><input id="cFo" name="fornecedor" maxlength="120" value="${esc(c.fornecedor || '')}" placeholder="Ex.: banco, oficina"></div>
+      <div><label for="cFm">Forma</label><select id="cFm" name="forma">${op(CONTA_FORMA, c.forma || 'pix')}</select></div></div>
+    <label class="chk" style="margin-top:14px"><input type="checkbox" name="recorrente" value="1" ${c.recorrente ? 'checked' : ''}><span><b>Repete todo mês</b> no mesmo dia (parcela, seguro, salário, aluguel). Desmarque quando parar.</span></label>
+    <label for="cOb">Observação</label><textarea id="cOb" name="obs" maxlength="1000">${esc(c.obs || '')}</textarea>
+    <button class="btn full grande" style="margin-top:16px">${nova ? 'Salvar conta' : 'Salvar alterações'}</button>
+  </form>
+  ${!nova ? '<button class="btn perigo full" id="ctDel" style="margin-top:12px">Excluir conta</button>' : ''}
+  <a class="btn fant full" href="#servicos/financeiro" style="margin-top:12px">Voltar ao financeiro</a>`;
+  $('#fCt').addEventListener('input', () => { $('#fCt').dataset.sujo = '1'; });
+  $('#fCt').onsubmit = e => {
+    e.preventDefault(); const fd = Object.fromEntries(new FormData(e.target));
+    if (fd.descricao.trim().length < 2) { $('#cDs').focus(); return toast('Descreva a conta.', true); }
+    const valor = valorDigitado(fd.valor);
+    if (!(valor >= 0)) { $('#cVal').focus(); return toast('Informe o valor da conta.', true); }
+    if (!fd.vencimento) return toast('Informe o vencimento.', true);
+    const dados = { descricao: fd.descricao.trim(), categoria: fd.categoria, valor, vencimento: fd.vencimento, status: fd.status,
+      fornecedor: fd.fornecedor.trim() || null, forma: fd.forma, recorrente: !!fd.recorrente, obs: fd.obs.trim() || null };
+    comBotao(e.target.querySelector('button'), async () => {
+      try {
+        if (nova) ok(await sb.from('gf_contas').insert(dados)); else ok(await sb.from('gf_contas').update(dados).eq('id', c.id));
+        toast(nova ? 'Conta salva.' : 'Conta atualizada.'); delete $('#fCt').dataset.sujo;
+        (S.filtros.fin ||= { mes: mesISO(), ver: 'todas', sec: 'contas', verC: 'todas' }).sec = 'contas';
+        location.hash = 'servicos/financeiro';
+      } catch (er) { falha(er); }
+    });
+  };
+  if ($('#ctPago')) $('#ctPago').onclick = e => comBotao(e.currentTarget, async () => {
+    try { ok(await sb.from('gf_contas').update({ status: 'pago', pago_em: hojeISO() }).eq('id', c.id)); toast('Conta marcada como paga.'); rota(); } catch (er) { falha(er); }
+  });
+  if ($('#ctDel')) $('#ctDel').onclick = async () => {
+    if (!await perguntar({ titulo: 'Excluir esta conta?', texto: c.recorrente ? 'Só este mês é excluído. Para parar de repetir, desmarque "Repete todo mês" na última conta.' : 'Não dá para desfazer.', ok: 'Excluir', perigo: true })) return;
+    try { ok(await sb.from('gf_contas').delete().eq('id', c.id)); toast('Conta excluída.'); location.hash = 'servicos/financeiro'; } catch (er) { falha(er); }
+  };
 }
 
 async function telaOS(id) {

@@ -199,6 +199,7 @@ async function rota(silencioso) {
     if (a === 'caminhao') return await telaCaminhao(b);
     if (a === 'servicos') return await telaServicos();
     if (a === 'os') return await telaOS(b);
+    if (a === 'conta') return await telaConta(b);
     if (a === 'perfil') return telaPerfil(false);
     if (a === 'avisos') return await telaAvisos();
     if (a === 'ocorrencias') return await telaOcorrencias();

@@ -116,6 +116,16 @@ function backend() {
       return json(route, 200, 'm');
     }
     if (url.pathname === '/rest/v1/rpc/gf_contato') return json(route, 200, { nome: 'Carla Cliente', whatsapp: '55999991001' });
+    if (url.pathname === '/rest/v1/rpc/gf_gerar_contas_mes') return json(route, 200, 0);
+    if (url.pathname === '/rest/v1/gf_contas') {
+      const tab = (db.contas ||= []);
+      if (m === 'POST') { const x = { ...(Array.isArray(corpo) ? corpo[0] : corpo), id: 'ct' + tab.length, criado_em: new Date().toISOString() }; tab.push(x); return json(route, 201, objeto ? x : [x]); }
+      const id = url.searchParams.get('id');
+      if (m === 'PATCH') { const x = tab.find(o => 'eq.' + o.id === id); Object.assign(x, corpo); return json(route, 200, objeto ? x : [x]); }
+      const st = url.searchParams.get('status');
+      const rows = tab.filter(o => (!id || 'eq.' + o.id === id) && (!st || 'eq.' + o.status === st));
+      return json(route, 200, objeto ? rows[0] || null : rows);
+    }
     if (url.pathname === '/rest/v1/gf_os') {
       const tab = (db.os ||= []);
       if (m === 'POST') { const x = { ...(Array.isArray(corpo) ? corpo[0] : corpo), id: 'os' + tab.length, numero: tab.length + 1, guincheiro_id: UID, pedido_id: null,
@@ -583,7 +593,21 @@ test('financeiro: nova OS, resumo do mês e marcar como pago', async () => {
   await page.locator('.fin-cards').waitFor();
   assert.equal(api.db.os.length, 2);
   assert.match(await page.locator('.fin-cards').innerText(), /R\$\s*1\.050/);
+  await page.locator('a[href="#conta/nova"]').click();
+  await page.locator('#fCt').waitFor();
+  await page.fill('#cDs', 'Parcela do caminhão'); await page.selectOption('#cCat', 'caminhao'); await page.fill('#cVal', '3.500');
+  await page.locator('#fCt input[name=recorrente]').check();
+  await page.locator('#fCt button').click();
+  await page.locator('[data-pagar]').waitFor();
+  assert.equal(api.db.contas.length, 1); assert.equal(api.db.contas[0].recorrente, true); assert.equal(api.db.contas[0].valor, 3500);
+  await page.locator('[data-pagar]').click();
+  await page.locator('.os-item .tag.vd').waitFor();
+  assert.equal(api.db.contas[0].status, 'pago');
+  await page.locator('[data-v="resumo"]').click();
+  await page.locator('.fin-res').waitFor();
+  assert.match(await page.locator('.fin-res').innerText(), /−\s*R\$\s*2\.600|-R\$\s*2\.600/);
   await foto(page, '19-financeiro');
+  await page.locator('[data-v="os"]').click();
   await page.locator('a[href="#os/os1"]').click();
   await page.locator('#osPago').click();
   await page.locator('.os-top .tag.vd').waitFor();
