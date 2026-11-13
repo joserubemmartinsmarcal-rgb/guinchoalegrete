@@ -192,7 +192,7 @@ async function rota(silencioso) {
     if (a === 'rotas' && b === 'nova') return telaNovaRota();
     if (a === 'rotas') return await telaRotas();
     if (a === 'rota') return await telaRota(b);
-    if (a === 'vistoria' && b === 'nova') return await telaVistoriaNova(c);
+    if (a === 'vistoria' && b === 'nova') return await telaVistoriaNova(c, h.split('/')[3] === 'entrega' ? 'entrega' : 'retirada');
     if (a === 'vistoria') return await telaVistoria(b);
     if (a === 'caminhoes' && b === 'novo') return telaNovoCaminhao();
     if (a === 'caminhoes') return await telaCaminhoes();
@@ -879,12 +879,25 @@ async function telaAntecipar() {
 }
 // vistoria do atendimento: fazer (guincheiro) ou ver o termo (os dois)
 async function blocoVistoria(p, papel) {
-  let v = null; try { v = ok(await sb.from('gf_vistorias').select('id,feita_em').eq('pedido_id', p.id).maybeSingle()); } catch { /* tabela ainda não publicada */ }
-  if (v) return `<a class="vs-cta feita" href="#vistoria/${v.id}"><b>Termo de vistoria</b><span>Fotos, avarias e assinatura · ${dataHora(v.feita_em)}</span></a>`;
-  if (papel !== 'prestador' || !['aceito', 'a_caminho', 'no_local', 'em_transporte'].includes(p.status)) return '';
-  const pend = (typeof vistPendentes === 'function' ? await vistPendentes() : []).some(x => x.pedido_id === p.id);
-  return pend ? `<a class="vs-cta" href="#vistoria/nova/${p.id}"><b>Vistoria salva no celular</b><span>Será enviada quando o sinal voltar. Toque para enviar agora.</span></a>`
-    : `<a class="vs-cta fazer" href="#vistoria/nova/${p.id}"><b>Fazer vistoria do veículo</b><span>Fotos, avarias e assinatura do cliente. Protege você contra reclamação de dano.</span></a>`;
+  let vs = []; try { vs = ok(await sb.from('gf_vistorias').select('id,tipo,feita_em').eq('pedido_id', p.id)); } catch { /* tabela ainda não publicada */ }
+  const de = t => vs.find(v => (v.tipo || 'retirada') === t);
+  const pend = papel === 'prestador' && typeof vistPendentes === 'function' ? await vistPendentes() : [];
+  const temPend = t => pend.some(x => x.pedido_id === p.id && (x.dados?.tipo || 'retirada') === t);
+  const nome = { retirada: 'retirada', entrega: 'entrega' };
+  let html = '';
+  for (const t of ['retirada', 'entrega']) {
+    const v = de(t);
+    if (v) { html += `<a class="vs-cta feita" href="#vistoria/${v.id}"><b>Vistoria de ${nome[t]}</b><span>Fotos, avarias e assinatura · ${dataHora(v.feita_em)}</span></a>`; continue; }
+    if (papel !== 'prestador') continue;
+    const pode = t === 'retirada' ? ['aceito', 'a_caminho', 'no_local', 'em_transporte'].includes(p.status)
+      : p.status === 'em_transporte' && de('retirada');
+    if (!pode) continue;
+    const href = `#vistoria/nova/${p.id}${t === 'entrega' ? '/entrega' : ''}`;
+    html += temPend(t) ? `<a class="vs-cta" href="${href}"><b>Vistoria de ${nome[t]} salva no celular</b><span>Será enviada quando o sinal voltar. Toque para enviar agora.</span></a>`
+      : t === 'retirada' ? `<a class="vs-cta fazer" href="${href}"><b>Fazer vistoria do veículo</b><span>Fotos, avarias e assinatura do cliente. Protege você contra reclamação de dano.</span></a>`
+      : `<a class="vs-cta fazer" href="${href}"><b>Fazer vistoria de entrega</b><span>No destino, antes de descarregar: prova de que o veículo chegou como saiu.</span></a>`;
+  }
+  return html;
 }
 // "radar" do pedido aberto: mostra que a rede está vendo, sem inventar números
 function radarPedido(p, alc, nProps) {
@@ -969,8 +982,10 @@ async function telaPedido(id) {
         ${p.status !== 'concluido' ? await botaoContato(p, 'cliente') : ''}</div>`;
       if (p.status === 'em_transporte') html += '<button class="btn full" style="margin-top:14px" id="btReceb">Recebi o veículo</button>';
     }
+    if (p.prestador_id) html += await blocoAcompanhamento(p, 'cliente');
     if (p.prestador_id && ['aceito', 'a_caminho', 'no_local', 'em_transporte'].includes(p.status)) html += await blocoLocal(p);
     if (p.prestador_id) html += await blocoVistoria(p, 'cliente');
+    html += await blocoChat(p);
     if (p.status === 'concluido') {
       html += p.nota ? `<h3 class="sec-t">Sua avaliação</h3><p style="font-size:22px;margin:0;color:var(--placa)">${'★'.repeat(p.nota)}${'☆'.repeat(5 - p.nota)}</p>${p.avaliacao_comentario ? `<p>${esc(p.avaliacao_comentario)}</p>` : ''}`
         : `<h3 class="sec-t">Como foi o serviço?</h3><form id="fAv"><div class="seg c5" role="radiogroup" aria-label="Nota">${[1, 2, 3, 4, 5].map(n =>
@@ -980,12 +995,14 @@ async function telaPedido(id) {
     }
     if (['aberto', 'aceito', 'a_caminho'].includes(p.status)) html += '<button class="btn perigo full" style="margin-top:18px" id="btCanc">Cancelar pedido</button>';
   } else if (papel === 'prestador') {
+    html += await blocoAcompanhamento(p, 'prestador');
     html += await blocoVistoria(p, 'prestador');
     html += `<div class="prop"><div class="valor">${brl(p.valor_combinado)}</div><div style="color:var(--cinza);font-size:15px">Valor combinado (registrado). Pagamento direto com o cliente.</div>
       ${p.status !== 'concluido' ? await botaoContato(p, 'prestador') : ''}</div>
       ${PROXIMO[p.status] ? `<button class="btn full" style="margin-top:14px;min-height:64px;font-size:20px" id="btAv">${ACAO_PRESTADOR[p.status]}</button>` : ''}
       ${['aceito', 'a_caminho'].includes(p.status) ? '<button class="btn perigo full" style="margin-top:12px" id="btDesist">Não vou conseguir atender</button>' : ''}`;
     if (p.nota) html += `<p style="color:var(--placa);font-size:20px">Avaliação do cliente: ${'★'.repeat(p.nota)}</p>${p.avaliacao_comentario ? `<p>${esc(p.avaliacao_comentario)}</p>` : ''}`;
+    html += await blocoChat(p);
   } else {
     const mine = ok(await sb.from('gf_propostas').select('*').eq('pedido_id', id).eq('guincheiro_id', S.user.id).maybeSingle());
     const rot = { enviada: 'Aguardando o cliente', aceita: 'Aceita', recusada: 'Não escolhida', cancelada: 'Retirada' };
@@ -994,6 +1011,7 @@ async function telaPedido(id) {
         <span class="tag ${mine.status === 'recusada' ? 'vm' : ''}">${rot[mine.status]}</span></div>`;
     }
     if (p.status === 'aberto' && ehGuincho() && aprovado() && (!mine || mine.status !== 'aceita')) {
+      html += blocoCusto(p);
       const ed = mine?.status === 'enviada';
       const vo = p.valor_oferecido;
       if (vo && !ed) html += `<button class="btn full grande" id="btAceitaValor" style="margin-top:14px">Aceitar por ${reais(vo)}</button>
@@ -1013,6 +1031,7 @@ async function telaPedido(id) {
   if (!decodeURIComponent(location.hash).includes(id)) return; // a pessoa já foi para outra tela enquanto carregava
   V.innerHTML = html;
   mapaRota(p.origem, p.destino);
+  ligaAcompanhamento(p); ligaChat(p); ligaCusto(p);
 
   if (['aberto', ...ATIVOS].includes(p.status)) aoVivo();
 

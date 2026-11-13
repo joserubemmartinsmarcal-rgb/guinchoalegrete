@@ -12,6 +12,9 @@ const VIST_ITENS = [['estepe', 'Estepe'], ['macaco', 'Macaco e chave de roda'], 
   ['chave', 'Chave do veículo'], ['som', 'Rádio / som'], ['tapetes', 'Tapetes']];
 const VIST_COMBUSTIVEL = ['Reserva', '1/4', '1/2', '3/4', 'Cheio'];
 const VIST_RELACAO = { proprietario: 'Proprietário', condutor: 'Condutor', terceiro: 'Seguradora / terceiro', ausente: 'Ninguém no local' };
+const VIST_TERMO_ENTREGA = 'Declaro que recebi o veículo descrito no destino e que o seu estado na entrega é o registrado neste termo, ' +
+  'nas fotos, nas avarias marcadas no desenho e no checklist.';
+const VIST_NOME = { retirada: 'retirada', entrega: 'entrega' };
 const VIST_TERMO = 'Declaro que o veículo descrito foi vistoriado no momento da retirada e que o seu estado é o registrado neste termo, ' +
   'nas fotos, nas avarias marcadas no desenho e no checklist. As avarias marcadas já existiam antes do recolhimento.';
 
@@ -68,7 +71,7 @@ async function sincronizarVistorias(silencioso = true) {
         await vistRemover(it.id); enviadas++;
       } catch (e) {
         const msg = mensagemErro(e);
-        if (/já tem vistoria|A vistoria é feita durante/.test(msg)) { await vistRemover(it.id); if (!silencioso) toast(msg, true); continue; }
+        if (/já tem vistoria|A vistoria é feita durante|A vistoria de entrega é feita/.test(msg)) { await vistRemover(it.id); if (!silencioso) toast(msg, true); continue; }
         if (!silencioso) toast('A vistoria continua salva no celular. ' + msg, true);
         break; // sem sinal ou erro: tenta de novo depois
       }
@@ -96,20 +99,20 @@ async function comprimirFoto(arquivo, max = 1280, qualidade = 0.72) {
 }
 
 // ───────── tela: nova vistoria ─────────
-async function telaVistoriaNova(pedidoId) {
-  titulo('Vistoria de retirada');
+async function telaVistoriaNova(pedidoId, tipo = 'retirada') {
+  titulo('Vistoria de ' + VIST_NOME[tipo]);
   const p = ok(await sb.from('gf_pedidos').select('id,origem,destino,veiculo,veiculo_tipo,placa,status,prestador_id').eq('id', pedidoId).maybeSingle());
   if (!p || p.prestador_id !== S.user.id) { V.innerHTML = '<div class="vazio"><h2>Atendimento não encontrado</h2><a href="#servicos">Voltar</a></div>'; return; }
-  const ja = ok(await sb.from('gf_vistorias').select('id').eq('pedido_id', pedidoId).maybeSingle());
+  const ja = ok(await sb.from('gf_vistorias').select('id').eq('pedido_id', pedidoId).eq('tipo', tipo).maybeSingle());
   if (ja) { location.hash = 'vistoria/' + ja.id; return; }
-  if ((await vistPendentes()).some(x => x.pedido_id === pedidoId)) {
+  if ((await vistPendentes()).some(x => x.pedido_id === pedidoId && (x.dados?.tipo || 'retirada') === tipo)) {
     V.innerHTML = `<div class="aviso"><b>Vistoria salva no celular.</b> Ela é enviada sozinha quando o sinal voltar.</div>
       <button class="btn full grande" id="btSinc">Enviar agora</button>`;
     $('#btSinc').onclick = e => comBotao(e.currentTarget, async () => { if (await sincronizarVistorias(false)) rota(); });
     return;
   }
-  const R = (S.vistoria && S.vistoria.pedido === pedidoId) ? S.vistoria
-    : (S.vistoria = { pedido: pedidoId, id: crypto.randomUUID(), fotos: {}, avarias: [], tipoAvaria: 'risco', itens: {}, combustivel: '', km: '', obs: '', relacao: 'proprietario', nome: '', assinatura: null });
+  const R = (S.vistoria && S.vistoria.pedido === pedidoId && S.vistoria.tipo === tipo) ? S.vistoria
+    : (S.vistoria = { pedido: pedidoId, tipo, id: crypto.randomUUID(), fotos: {}, avarias: [], tipoAvaria: 'risco', itens: {}, combustivel: '', km: '', obs: '', relacao: 'proprietario', nome: '', assinatura: null });
   V.innerHTML = `<div class="item destaque">${trajeto(p.origem, p.destino)}<div class="meta">${esc(p.veiculo)}${p.placa ? ' · ' + esc(p.placa) : ''}</div></div>
     ${!navigator.onLine ? '<div class="aviso am"><b>Sem sinal.</b> Pode fazer a vistoria normalmente: ela fica salva no celular e é enviada quando o sinal voltar.</div>' : ''}
     <h3 class="sec-t">1. Fotos <small class="vs-dica">mínimo 4, até 8</small></h3>
@@ -130,12 +133,12 @@ async function telaVistoriaNova(pedidoId) {
       `<label><input type="radio" name="comb" value="${v}" ${R.combustivel === v ? 'checked' : ''}><span>${v}</span></label>`).join('')}</div>
     <label for="vsKm">Quilometragem (opcional)</label><input id="vsKm" inputmode="numeric" maxlength="7" value="${esc(R.km)}" placeholder="Ex.: 123456">
     <label for="vsObs">Observação (opcional)</label><textarea id="vsObs" maxlength="1000" placeholder="Ex.: para-choque solto, pneu dianteiro furado">${esc(R.obs)}</textarea>
-    <h3 class="sec-t">4. Quem acompanha a retirada</h3>
+    <h3 class="sec-t">4. Quem acompanha a ${VIST_NOME[tipo]}</h3>
     <div class="seg c2 vs-rel" role="radiogroup" aria-label="Quem assina">${Object.entries(VIST_RELACAO).map(([v, t]) =>
       `<label><input type="radio" name="rel" value="${v}" ${R.relacao === v ? 'checked' : ''}><span>${t}</span></label>`).join('')}</div>
     <div id="vsAss" ${R.relacao === 'ausente' ? 'hidden' : ''}>
       <label for="vsNome">Nome de quem assina</label><input id="vsNome" maxlength="80" value="${esc(R.nome)}" autocomplete="off">
-      <p class="vs-termo">${esc(VIST_TERMO)}</p>
+      <p class="vs-termo">${esc(tipo === 'entrega' ? VIST_TERMO_ENTREGA : VIST_TERMO)}</p>
       <div class="vs-assina"><canvas id="vsCanvas" aria-label="Assine aqui com o dedo"></canvas><span>Assine aqui com o dedo</span></div>
       <button type="button" class="btn fant" id="vsLimpar" style="margin-top:8px">Limpar assinatura</button></div>
     <p class="vs-dica" id="vsAusente" ${R.relacao === 'ausente' ? '' : 'hidden'}>Sem ninguém no local, o termo fica registrado com as fotos, a hora e o seu nome como responsável pela vistoria.</p>
@@ -209,7 +212,7 @@ async function telaVistoriaNova(pedidoId) {
     const assinatura = R.relacao !== 'ausente' ? await new Promise(res => cv.toBlob(res, 'image/png')) : null;
     const item = { id: R.id, pedido_id: pedidoId, criado: Date.now(),
       fotos: Object.entries(R.fotos).map(([slot, f]) => ({ slot, blob: f.blob })), assinatura,
-      dados: { avarias: R.avarias, checklist: { ...Object.fromEntries(VIST_ITENS.map(([k]) => [k, !!R.itens[k]])), combustivel: R.combustivel, km: R.km ? Number(R.km) : null, sem_avarias: !!R.semAvaria },
+      dados: { tipo, avarias: R.avarias, checklist: { ...Object.fromEntries(VIST_ITENS.map(([k]) => [k, !!R.itens[k]])), combustivel: R.combustivel, km: R.km ? Number(R.km) : null, sem_avarias: !!R.semAvaria },
         obs: R.obs.trim() || null, responsavel_relacao: R.relacao, responsavel_nome: R.relacao === 'ausente' ? null : R.nome.trim(), feita_em: new Date().toISOString() } };
     try { await vistGuardar(item); } catch { return toast('Não foi possível salvar no celular. Libere espaço e tente de novo.', true); }
     Object.values(R.fotos).forEach(f => URL.revokeObjectURL(f.url)); S.vistoria = null;
@@ -227,6 +230,7 @@ async function telaVistoria(id) {
   const [p, g] = await Promise.all([
     sb.from('gf_pedidos').select('id,origem,destino,veiculo,veiculo_tipo,placa,autor_id,prestador_id').eq('id', v.pedido_id).maybeSingle().then(ok),
     sb.from('gf_perfis').select('nome,empresa').eq('id', v.guincheiro_id).maybeSingle().then(ok)]);
+  let outra = null; try { outra = ok(await sb.from('gf_vistorias').select('id,tipo').eq('pedido_id', v.pedido_id).neq('id', v.id).maybeSingle()); } catch { /* sem outra */ }
   const paths = [...v.fotos.map(f => f.path), ...(v.assinatura_path ? [v.assinatura_path] : [])];
   const { data: urls } = paths.length ? await sb.storage.from('gf-vistorias').createSignedUrls(paths, 3600) : { data: [] };
   const url = path => (urls || []).find(u => u.path === path)?.signedUrl || '';
@@ -235,32 +239,33 @@ async function telaVistoria(id) {
   V.innerHTML = `<div class="vs-termo-doc">
     <div class="item destaque">${p ? trajeto(p.origem, p.destino) : ''}
       <div class="meta">${p ? esc(p.veiculo) + (p.placa ? ' · ' + esc(p.placa) : '') : ''}</div>
-      <div class="meta">Vistoria de retirada · ${dataHora(v.feita_em)}${g ? ' · por ' + esc(g.nome) + (g.empresa ? ' (' + esc(g.empresa) + ')' : '') : ''}</div></div>
+      <div class="meta">Vistoria de ${VIST_NOME[v.tipo] || 'retirada'} · ${dataHora(v.feita_em)}${g ? ' · por ' + esc(g.nome) + (g.empresa ? ' (' + esc(g.empresa) + ')' : '') : ''}</div></div>
     <h3 class="sec-t">Fotos (${v.fotos.length})</h3>
     <div class="vs-galeria">${v.fotos.map(f => `<a href="${url(f.path)}" target="_blank" rel="noopener"><img src="${url(f.path)}" alt="${esc(nomeFoto(f.slot))}" loading="lazy"><span>${esc(nomeFoto(f.slot))}</span></a>`).join('')}</div>
     <h3 class="sec-t">Avarias (${v.avarias.length})</h3>
     ${v.avarias.length ? `<div class="vs-carro"><svg viewBox="0 0 200 400" role="img" aria-label="Avarias marcadas">${CARRO_SVG}<g>${pinsSvg(v.avarias)}</g></svg>
       <ol class="vs-lista">${v.avarias.map((a, i) => `<li><b>${i + 1}</b> ${VIST_AVARIA[a.tipo] || a.tipo}</li>`).join('')}</ol></div>`
-      : '<p class="vs-dica">Veículo sem avarias aparentes na retirada.</p>'}
+      : `<p class="vs-dica">Veículo sem avarias aparentes na ${VIST_NOME[v.tipo] || 'retirada'}.</p>`}
     <h3 class="sec-t">Checklist</h3>
     <ul class="vs-check">${VIST_ITENS.map(([k, t]) => `<li class="${ck[k] ? 'sim' : 'nao'}">${ck[k] ? '✓' : '✕'} ${t}</li>`).join('')}
       <li class="sim">Combustível: <b>${esc(ck.combustivel || '–')}</b></li>${ck.km ? `<li class="sim">Quilometragem: <b>${Number(ck.km).toLocaleString('pt-BR')} km</b></li>` : ''}</ul>
     ${v.obs ? `<p><b>Observação:</b> ${esc(v.obs)}</p>` : ''}
     <h3 class="sec-t">Termo</h3>
-    <p class="vs-termo">${esc(VIST_TERMO)}</p>
-    ${v.responsavel_relacao === 'ausente' ? '<p class="vs-dica">Sem responsável no local na retirada. Registro feito pelo guincheiro com fotos e horário.</p>'
+    <p class="vs-termo">${esc(v.tipo === 'entrega' ? VIST_TERMO_ENTREGA : VIST_TERMO)}</p>
+    ${v.responsavel_relacao === 'ausente' ? '<p class="vs-dica">Sem responsável no local. Registro feito pelo guincheiro com fotos e horário.</p>'
       : `<div class="vs-assinatura"><img src="${url(v.assinatura_path)}" alt="Assinatura"><span>${esc(v.responsavel_nome || '')} · ${esc(VIST_RELACAO[v.responsavel_relacao] || '')}</span></div>`}
     <p class="vs-dica">Registro nº ${esc(v.id.slice(0, 8).toUpperCase())} · feito em ${dataHora(v.feita_em)} · recebido pelo GF em ${dataHora(v.recebida_em)}.</p>
     <div class="acoes nao-imprime">
       ${p && p.prestador_id === S.user.id ? '<button class="btn zap full" id="vsZap">Enviar ao cliente no WhatsApp</button>' : ''}
-      <button class="btn fant full" id="vsPdf">Imprimir ou salvar em PDF</button>
+      ${outra ? `<a class="btn fant full" href="#vistoria/${outra.id}">Comparar com a vistoria de ${VIST_NOME[outra.tipo]}</a>` : ''}
+      <button class="btn fant full" id="vsPdf">Baixar PDF ou imprimir</button>
       ${p ? `<a class="btn fant full" href="#pedido/${p.id}">Voltar ao atendimento</a>` : ''}</div></div>`;
   $('#vsPdf').onclick = () => window.print();
   if ($('#vsZap')) $('#vsZap').onclick = e => comBotao(e.currentTarget, async () => {
     try {
       const c = await rpc('gf_contato', { p_pedido: p.id });
       const link = `${location.origin}/app#vistoria/${v.id}`;
-      const msg = `Olá ${c.nome.split(' ')[0]}! Segue o termo de vistoria do seu veículo (${p.veiculo}), feito na retirada em ${dataHora(v.feita_em)}: ${link}`;
+      const msg = `Olá ${c.nome.split(' ')[0]}! Segue o termo de vistoria do seu veículo (${p.veiculo}), feito na ${VIST_NOME[v.tipo] || 'retirada'} em ${dataHora(v.feita_em)}: ${link}`;
       const w = window.open(linkZap(c.whatsapp, msg), '_blank'); if (w) w.opener = null; else location.href = linkZap(c.whatsapp, msg);
     } catch (er) { falha(er); }
   });

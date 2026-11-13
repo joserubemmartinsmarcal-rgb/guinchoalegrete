@@ -104,6 +104,18 @@ function backend() {
     if (url.pathname === '/rest/v1/rpc/gf_rede_numeros') return json(route, 200, { guincheiros: 42, disponiveis: 17, rotas_ativas: 18, caminhoes: 3, pedidos_7d: 26 });
     if (url.pathname === '/rest/v1/rpc/gf_alcance_pedido') return json(route, 200, { avisados: 12, propostas: 0, minutos_tipicos: 18 });
     if (url.pathname === '/rest/v1/rpc/gf_falar_com_parceiro') { db.contatos = (db.contatos || 0) + 1; return json(route, 200, { nome: 'Pedro Parceiro', whatsapp: '55999991002' }); }
+    if (url.pathname === '/rest/v1/rpc/gf_meu_acompanhamento') return json(route, 200, db.acomp || null);
+    if (url.pathname === '/rest/v1/rpc/gf_confirmar_chegada') {
+      if (corpo.p_codigo !== '4821') return json(route, 400, { code: 'P0001', message: 'Código incorreto. Confira com o cliente.' });
+      const p = db.pedidos.find(x => x.id === corpo.p_pedido); p.status = 'no_local'; p.chegada_confirmada_em = new Date().toISOString();
+      db.acomp = { ...db.acomp, chegada_confirmada_em: p.chegada_confirmada_em }; return json(route, 200, null);
+    }
+    if (url.pathname === '/rest/v1/gf_mensagens') return json(route, 200, db.mensagens || []);
+    if (url.pathname === '/rest/v1/rpc/gf_enviar_mensagem') {
+      (db.mensagens ||= []).push({ id: 'm' + db.mensagens.length, autor_id: UID, texto: corpo.p_texto, criado_em: new Date().toISOString() });
+      return json(route, 200, 'm');
+    }
+    if (url.pathname === '/rest/v1/rpc/gf_contato') return json(route, 200, { nome: 'Carla Cliente', whatsapp: '55999991001' });
     if (url.pathname === '/rest/v1/gf_lista_espera') { db.lista.push(corpo); return route.fulfill({ status: 201, headers: { 'access-control-allow-origin': '*' } }); }
     if (url.pathname.startsWith('/rest/v1/')) {
       if (m === 'HEAD') return route.fulfill({ status: 200, headers: { 'content-range': '*/0', 'access-control-allow-origin': '*', 'access-control-expose-headers': 'content-range' } });
@@ -495,6 +507,45 @@ test('despacho: chamado urgente toca alarme e o guincheiro pega', async () => {
   assert.equal(api.db.pedidos[0].status, 'aceito');
   assert.equal(await page.locator('#chamado').count(), 0);
   assert.ok(api.db.chamadas.includes('POST /rest/v1/rpc/gf_pegar_chamado'));
+  assert.deepEqual(erros, []);
+  await ctx.close();
+});
+
+test('atendimento: código de chegada, chat e conta "vale a pena?"', async () => {
+  const api = backend(); const { ctx, page, erros } = await abrir(api);
+  const OUTRO = '44444444-4444-4444-8444-444444444444', PED = 'b1111111-1111-4111-8111-111111111111', ABERTO = 'c1111111-1111-4111-8111-111111111111', agora = new Date().toISOString();
+  api.db.perfil = { id: UID, tipo: 'guincheiro', nome: 'João Guincho', cidade: 'Cacequi', whatsapp: '55999990002', equipamento: 'Plataforma',
+    raio_km: 150, placa: 'ABC1D23', aprovacao: 'aprovado', disponivel: true, is_admin: false, criado_em: agora };
+  api.db.pedidos = [
+    { id: PED, autor_id: OUTRO, prestador_id: UID, status: 'a_caminho', tipo: 'cliente', origem: 'Santa Maria', destino: 'Porto Alegre', veiculo: 'Gol 2015',
+      veiculo_tipo: 'carro', condicao: 'nao_anda', valor_combinado: 600, criado_em: agora },
+    { id: ABERTO, autor_id: OUTRO, status: 'aberto', tipo: 'cliente', origem: 'Santa Maria', destino: 'Porto Alegre', veiculo: 'Onix 2020',
+      veiculo_tipo: 'carro', condicao: 'anda', valor_oferecido: 900, criado_em: agora }];
+  api.db.acomp = { token: '99999999-9999-4999-8999-999999999999', codigo: null, chegada_confirmada_em: null };
+  await page.goto(base + '/app');
+  await page.fill('#em', 'g@teste.dev'); await page.fill('#se', 'segredo123'); await page.locator('#btL').click();
+  await page.locator('.novo-pedido').waitFor();
+  await page.goto(base + '/app#pedido/' + PED);
+  await page.locator('#fCod').waitFor();
+  await page.fill('#codIn', '1111'); await page.locator('#fCod button').click();
+  await page.getByText('Código incorreto').waitFor();
+  await page.fill('#codIn', '4821'); await page.locator('#fCod button').click();
+  await page.locator('.cod-ok').waitFor();
+  assert.equal(api.db.pedidos[0].status, 'no_local');
+  await page.locator('#chatIn').fill('Chego em 5 minutos');
+  await page.locator('#fChat button').click();
+  await page.locator('.msg.eu', { hasText: 'Chego em 5 minutos' }).waitFor();
+  await page.locator('[data-rap="Veículo carregado"]').click();
+  await page.locator('.msg.eu', { hasText: 'Veículo carregado' }).waitFor();
+  assert.equal(api.db.mensagens.length, 2);
+  await foto(page, '17-codigo-chat');
+  await page.goto(base + '/app#pedido/' + ABERTO);
+  await page.locator('#custo').waitFor();
+  await page.locator('#custo summary').click();
+  assert.match(await page.locator('#custoRes').innerText(), /Rodagem total/);
+  assert.match(await page.locator('#custoResumo').innerText(), /sobra|prejuízo/);
+  assert.ok(await semRolagemLateral(page));
+  await foto(page, '18-vale-a-pena');
   assert.deepEqual(erros, []);
   await ctx.close();
 });

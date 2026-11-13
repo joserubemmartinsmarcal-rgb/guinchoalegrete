@@ -294,6 +294,34 @@ body[data-tema="escuro"] .rede-faixa{background:var(--ap-soft)}
 .barra .tema{background:none;border:0;color:#fff;display:grid;place-items:center;width:40px;height:40px;min-height:0;padding:0;border-radius:999px;cursor:pointer}
 .barra .tema svg{width:22px;height:22px}
 .barra .tema:focus-visible{outline:2px solid #60a5fa}
+/* acompanhamento, código de chegada, chat, vale a pena */
+.acomp{display:grid;gap:10px;margin:14px 0}
+.cod-chegada{border-radius:18px;padding:16px;background:var(--ap-card);border:2px dashed #3B82F6;text-align:center;display:grid;gap:4px}
+.cod-chegada span{font-weight:800;font-size:14px;color:var(--gf-muted);text-transform:uppercase;letter-spacing:.08em}
+.cod-chegada b{font:900 44px/1 var(--gf-font);letter-spacing:.3em;color:var(--gf-ink);font-variant-numeric:tabular-nums;padding-left:.3em}
+.cod-chegada small{color:var(--gf-muted);font-size:13.5px}
+.cod-form{border-radius:18px;padding:14px;background:var(--ap-card);border:1px solid var(--ap-line)}
+.cod-form label{margin-top:0}
+.cod-linha{display:flex;gap:8px;margin-top:6px}.cod-linha input{flex:1;min-width:0;font:900 26px var(--gf-font);letter-spacing:.3em;text-align:center}
+.cod-form small{display:block;color:var(--gf-muted);font-size:13px;margin-top:8px}
+.cod-ok{border-radius:14px;padding:12px 14px;background:#dcfce7;color:#14532d;font-weight:700}
+.acomp-aj{color:var(--gf-muted);font-size:13px}
+.chat{border-radius:18px;background:var(--ap-card);border:1px solid var(--ap-line);overflow:hidden}
+.chat-lista{max-height:320px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:82%;align-self:flex-start;background:var(--ap-soft,#EEF2F7);border-radius:16px 16px 16px 4px;padding:8px 12px}
+.msg.eu{align-self:flex-end;background:#2563EB;color:#fff;border-radius:16px 16px 4px 16px}
+.msg p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}.msg time{display:block;font-size:11.5px;opacity:.7;text-align:right;margin-top:2px}
+.chat-form{display:flex;gap:8px;padding:10px;border-top:1px solid var(--ap-line)}.chat-form input{flex:1;min-width:0;margin:0}
+.chat-rapidas{display:flex;gap:6px;overflow-x:auto;padding:0 10px 10px}
+.chat-rapidas button{flex:none;border:1px solid var(--ap-line);background:transparent;color:var(--gf-ink);border-radius:99px;padding:6px 12px;font:600 13.5px var(--gf-font);cursor:pointer}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.custo{border-radius:16px;background:var(--ap-card);border:1px solid var(--ap-line);margin:14px 0;padding:0 14px}
+.custo summary{cursor:pointer;padding:14px 0;display:flex;justify-content:space-between;gap:10px;font-size:16px}
+.custo summary span.pos{color:#15803D;font-weight:800}.custo summary span.neg{color:#dc2626;font-weight:800}
+.custo-cfg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.custo-cfg label{font-size:12.5px;margin:0}.custo-cfg input{margin-top:4px}
+.custo-res{display:grid;gap:6px;margin:12px 0 14px}.custo-res div{display:flex;justify-content:space-between;gap:10px}
+.custo-res dt{color:var(--gf-muted)}.custo-res dd{margin:0;font-weight:800;font-variant-numeric:tabular-nums}
+.custo-res .pos dd{color:#15803D}.custo-res .neg dd{color:#dc2626}
 </style>
 </head>
 <body data-tema="claro">
@@ -310,6 +338,7 @@ body[data-tema="escuro"] .rede-faixa{background:var(--ap-soft)}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="/vistoria.js"></script>
 <script src="/despacho.js"></script>
+<script src="/extras.js"></script>
 <script src="/app.js"></script>
 </body>
 </html>
