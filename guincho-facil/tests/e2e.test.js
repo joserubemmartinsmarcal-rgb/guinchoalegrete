@@ -116,6 +116,17 @@ function backend() {
       return json(route, 200, 'm');
     }
     if (url.pathname === '/rest/v1/rpc/gf_contato') return json(route, 200, { nome: 'Carla Cliente', whatsapp: '55999991001' });
+    if (url.pathname === '/rest/v1/gf_os') {
+      const tab = (db.os ||= []);
+      if (m === 'POST') { const x = { ...(Array.isArray(corpo) ? corpo[0] : corpo), id: 'os' + tab.length, numero: tab.length + 1, guincheiro_id: UID, pedido_id: null,
+        criado_em: new Date().toISOString() }; tab.push(x); return json(route, 201, objeto ? x : [x]); }
+      const id = url.searchParams.get('id');
+      if (m === 'PATCH') { const x = tab.find(o => 'eq.' + o.id === id); Object.assign(x, corpo); if (x.status === 'pago' && !x.pago_em) x.pago_em = x.data; return json(route, 200, objeto ? x : [x]); }
+      if (m === 'DELETE') { db.os = tab.filter(o => 'eq.' + o.id !== id); return json(route, 200, []); }
+      const st = url.searchParams.get('status');
+      const rows = tab.filter(o => (!id || 'eq.' + o.id === id) && (!st || 'eq.' + o.status === st));
+      return json(route, 200, objeto ? rows[0] || null : rows);
+    }
     if (url.pathname === '/rest/v1/gf_lista_espera') { db.lista.push(corpo); return route.fulfill({ status: 201, headers: { 'access-control-allow-origin': '*' } }); }
     if (url.pathname.startsWith('/rest/v1/')) {
       if (m === 'HEAD') return route.fulfill({ status: 200, headers: { 'content-range': '*/0', 'access-control-allow-origin': '*', 'access-control-expose-headers': 'content-range' } });
@@ -546,6 +557,38 @@ test('atendimento: código de chegada, chat e conta "vale a pena?"', async () =>
   assert.match(await page.locator('#custoResumo').innerText(), /sobra|prejuízo/);
   assert.ok(await semRolagemLateral(page));
   await foto(page, '18-vale-a-pena');
+  assert.deepEqual(erros, []);
+  await ctx.close();
+});
+
+test('financeiro: nova OS, resumo do mês e marcar como pago', async () => {
+  const api = backend(); const { ctx, page, erros } = await abrir(api);
+  const agora = new Date().toISOString(), hoje = new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+  api.db.perfil = { id: UID, tipo: 'guincheiro', nome: 'João Guincho', cidade: 'Santa Maria', whatsapp: '55999990002', equipamento: 'Plataforma',
+    raio_km: 150, placa: 'ABC1D23', aprovacao: 'aprovado', disponivel: true, is_admin: false, criado_em: agora };
+  api.db.os = [{ id: 'os0', numero: 1, guincheiro_id: UID, pedido_id: 'p1', data: hoje, cliente: 'Carla Cliente', pagador_tipo: 'particular', origem: 'Santa Maria',
+    destino: 'Porto Alegre', veiculo: 'Gol 2015', valor: 600, forma: 'pix', status: 'a_receber', custo_diesel: 0, custo_pedagio: 0, custo_outros: 0, comissao: 0, criado_em: agora }];
+  await page.goto(base + '/app');
+  await page.fill('#em', 'g@teste.dev'); await page.fill('#se', 'segredo123'); await page.locator('#btL').click();
+  await page.locator('#nav').waitFor();
+  await page.goto(base + '/app#servicos/financeiro');
+  await page.locator('.fin-cards').waitFor();
+  assert.match(await page.locator('.fin-cards').innerText(), /R\$\s*600/);
+  await page.locator('a[href="#os/nova"]').click();
+  await page.locator('#fOS').waitFor();
+  await page.fill('#oC', 'Seguradora Azul'); await page.selectOption('#oPt', 'seguradora');
+  await page.fill('#oVal', '450'); await page.fill('#oCd', '120'); await page.fill('#oCp', '30');
+  assert.match(await page.locator('#osLucro').innerText(), /Lucro R\$\s*300/);
+  await page.locator('#fOS button').click();
+  await page.locator('.fin-cards').waitFor();
+  assert.equal(api.db.os.length, 2);
+  assert.match(await page.locator('.fin-cards').innerText(), /R\$\s*1\.050/);
+  await foto(page, '19-financeiro');
+  await page.locator('a[href="#os/os1"]').click();
+  await page.locator('#osPago').click();
+  await page.locator('.os-top .tag.vd').waitFor();
+  assert.equal(api.db.os[1].status, 'pago');
+  assert.ok(await semRolagemLateral(page));
   assert.deepEqual(erros, []);
   await ctx.close();
 });

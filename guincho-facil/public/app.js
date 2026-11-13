@@ -198,6 +198,7 @@ async function rota(silencioso) {
     if (a === 'caminhoes') return await telaCaminhoes();
     if (a === 'caminhao') return await telaCaminhao(b);
     if (a === 'servicos') return await telaServicos();
+    if (a === 'os') return await telaOS(b);
     if (a === 'perfil') return telaPerfil(false);
     if (a === 'avisos') return await telaAvisos();
     if (a === 'ocorrencias') return await telaOcorrencias();
@@ -770,12 +771,13 @@ async function telaCaminhao(id) {
     catch (er) { falha(er); }
   };
 }
-const ABAS_SERV = [['andamento', 'Em andamento'], ['historico', 'Histórico e valores'], ['propostas', 'Propostas'], ['antecipar', 'Antecipar']];
+const ABAS_SERV = [['andamento', 'Em andamento'], ['financeiro', 'Financeiro e OS'], ['historico', 'Histórico'], ['propostas', 'Propostas'], ['antecipar', 'Antecipar']];
 async function telaServicos() {
   titulo('Meus serviços');
   const aba = decodeURIComponent(location.hash).split('/')[1] || 'andamento';
   const f = S.filtros.servicos ||= { dias: '30' };
   if (aba === 'antecipar') return telaAntecipar();
+  if (aba === 'financeiro') return telaFinanceiro();
   let html = chips('aba', ABAS_SERV, aba);
   if (aba === 'propostas') {
     const d = ok(await sb.from('gf_propostas').select('*, p:gf_pedidos(id,origem,destino,veiculo,status)').eq('guincheiro_id', S.user.id)

@@ -322,6 +322,22 @@ body[data-tema="escuro"] .rede-faixa{background:var(--ap-soft)}
 .custo-res{display:grid;gap:6px;margin:12px 0 14px}.custo-res div{display:flex;justify-content:space-between;gap:10px}
 .custo-res dt{color:var(--gf-muted)}.custo-res dd{margin:0;font-weight:800;font-variant-numeric:tabular-nums}
 .custo-res .pos dd{color:#15803D}.custo-res .neg dd{color:#dc2626}
+/* financeiro e OS */
+.fin-mes{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0 12px}.fin-mes b{font:800 18px var(--gf-font);text-transform:capitalize}
+.fin-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fin-card{background:var(--ap-card);border:1px solid var(--ap-line);border-radius:16px;padding:12px 14px;display:grid;gap:2px;min-width:0}
+.fin-card span{font-size:13px;color:var(--gf-muted);font-weight:600}.fin-card b{font:900 22px var(--gf-font);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.fin-card small{font-size:12.5px;color:var(--gf-muted)}.fin-card.alerta{border-color:#dc2626}.fin-card.alerta small{color:#dc2626;font-weight:700}
+.fin-card b.pos,.fin-lucro b.pos{color:#15803D}.fin-card b.neg,.fin-lucro b.neg{color:#dc2626}
+.fin-pag{display:grid;gap:8px;margin:12px 0;background:var(--ap-card);border:1px solid var(--ap-line);border-radius:16px;padding:12px 14px}
+.fin-pag div{display:grid;grid-template-columns:110px 1fr auto;gap:10px;align-items:center;font-size:14px}.fin-pag i{height:8px;border-radius:99px;background:#3B82F6;display:block}
+.fin-pag b{font-variant-numeric:tabular-nums}
+.os-item{display:block}.os-top{display:flex;justify-content:space-between;align-items:center;gap:8px}.os-top b{font:800 15px var(--gf-font);color:var(--gf-muted)}
+.os-meio{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:4px}.os-meio span{font-weight:700;font-size:17px;min-width:0;overflow-wrap:anywhere}.os-meio .valor{font-size:20px;flex:none}
+.dupla{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.dupla>div{min-width:0}
+.fin-lucro{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px;padding:12px 14px;border-radius:14px;background:var(--ap-card);border:1px solid var(--ap-line)}
+.fin-lucro span{color:var(--gf-muted);font-size:14px}.fin-lucro b{font-size:18px}
+.btn.vd{background:#16a34a;border-color:#16a34a;color:#fff}
 </style>
 </head>
 <body data-tema="claro">
@@ -339,6 +355,7 @@ body[data-tema="escuro"] .rede-faixa{background:var(--ap-soft)}
 <script src="/vistoria.js"></script>
 <script src="/despacho.js"></script>
 <script src="/extras.js"></script>
+<script src="/financeiro.js"></script>
 <script src="/app.js"></script>
 </body>
 </html>
