@@ -612,6 +612,11 @@ test('financeiro: nova OS, resumo do mês e marcar como pago', async () => {
   await page.locator('#osPago').click();
   await page.locator('.os-top .tag.vd').waitFor();
   assert.equal(api.db.os[1].status, 'pago');
+  await page.locator('a[href="#recibo/os1"]').click();
+  await page.locator('.recibo').waitFor();
+  assert.match(await page.locator('.recibo').innerText(), /quatrocentos e cinquenta reais/);
+  assert.match(await page.locator('.recibo').innerText(), /Seguradora Azul/);
+  await foto(page, '20-recibo');
   assert.ok(await semRolagemLateral(page));
   assert.deepEqual(erros, []);
   await ctx.close();

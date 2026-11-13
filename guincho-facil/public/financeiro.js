@@ -50,9 +50,12 @@ async function telaFinanceiro() {
   const aPagar = contasAbertas.reduce((s, c) => s + Number(c.valor), 0);
   const pagarVencido = contasAbertas.filter(contaVencida).reduce((s, c) => s + Number(c.valor), 0);
   const resultado = fat - custosOS - despesas;
+  let saldos = []; try { saldos = await rpc('gf_saldos'); } catch { /* ainda não publicado */ }
+  const saldoTotal = saldos.reduce((t, x) => t + Number(x.saldo), 0);
+  const fixasMes = contas.filter(c => c.recorrente || c.serie_id).reduce((s, c) => s + Number(c.valor), 0);
 
   let html = `${chips('aba', ABAS_SERV, 'financeiro')}
-  ${chips('sec', [['resumo', 'Resumo da empresa'], ['os', 'OS · entradas'], ['contas', 'Contas a pagar']], f.sec)}
+  ${chips('sec', [['resumo', 'Resumo da empresa'], ['os', 'OS · entradas'], ['contas', 'Contas a pagar'], ['fixas', 'Despesas fixas'], ['bancos', 'Contas e caixa']], f.sec)}
   <div class="fin-mes"><button class="btn fant peq" id="mAnt" aria-label="Mês anterior">‹</button><b>${esc(nomeMes(f.mes))}</b>
     <button class="btn fant peq" id="mProx" aria-label="Próximo mês" ${f.mes > mesISO() ? 'disabled' : ''}>›</button></div>`;
 
@@ -69,6 +72,10 @@ async function telaFinanceiro() {
         <div class="fin-card ${vencido ? 'alerta' : ''}"><span>A receber</span><b>${brl(aReceber)}</b><small>${vencido ? `${brl(vencido)} vencido` : 'nada vencido'}</small></div>
         <div class="fin-card ${pagarVencido ? 'alerta' : ''}"><span>A pagar</span><b>${brl(aPagar)}</b><small>${pagarVencido ? `${brl(pagarVencido)} vencido` : 'nada vencido'}</small></div>
       </div>
+      ${fixasMes ? `<div class="fin-caixa"><span>Despesas fixas do mês</span><b>${brl(fixasMes)}</b></div>
+        <div class="fin-meta"><span>Para pagar as fixas, faltam faturar</span><b>${brl(Math.max(0, fixasMes - (fat - custosOS)))}</b>
+        <i style="width:${Math.min(100, Math.round(Math.max(0, fat - custosOS) / fixasMes * 100))}%"></i></div>` : `<a class="fin-dica" href="#" data-sec="fixas">Cadastre suas despesas fixas (parcela, seguro, salário) e veja quanto precisa faturar no mês ›</a>`}
+      ${saldos.length ? `<div class="fin-caixa"><span>Saldo nas contas e caixa</span><b class="${saldoTotal >= 0 ? 'pos' : 'neg'}">${brl(saldoTotal)}</b></div>` : ''}
       <div class="fin-caixa"><span>Caixa do mês (recebido − pago)</span><b class="${recebido - pagas >= 0 ? 'pos' : 'neg'}">${brl(recebido - pagas)}</b></div>
       <h3 class="sec-t">Vence nos próximos 7 dias</h3>
       ${prox.length ? `<ul class="fin-prox">${prox.map(x => `<li><a href="${x.href}"><span class="tag ${x.t === 'pagar' ? 'vm' : 'vd'}">${x.t === 'pagar' ? 'Pagar' : 'Receber'}</span>
@@ -92,6 +99,10 @@ async function telaFinanceiro() {
           <div class="meta">${dataBR(o.data)} · ${esc(OS_PAGADOR[o.pagador_tipo] || '')}${o.origem && o.destino ? ' · ' + esc(o.origem) + ' › ' + esc(o.destino) : ''}${o.pedido_id ? ' · pelo GF' : ''}</div>
           ${o.status === 'a_receber' && o.vencimento ? `<div class="meta">Vence ${dataBR(o.vencimento)}</div>` : ''}</a>`).join('')
         : `<div class="vazio">Nenhuma OS ${f.ver === 'todas' ? 'neste mês' : 'neste filtro'}.<br>Atendimentos concluídos pelo GF entram sozinhos. Serviços de fora, lance em "Nova OS".</div>`}`;
+  } else if (f.sec === 'bancos') {
+    html += await secaoBancos();
+  } else if (f.sec === 'fixas') {
+    html += await secaoFixas(contas);
   } else {
     const lista = contas.filter(c => f.verC === 'todas' || (f.verC === 'pagar' && c.status === 'a_pagar') || (f.verC === 'vencidas' && contaVencida(c)) || (f.verC === 'pagas' && c.status === 'pago'));
     html += `<div class="fin-cards">
@@ -111,6 +122,8 @@ async function telaFinanceiro() {
   ligaChips('sec', v => { f.sec = v; rota(); });
   ligaChips('ver', v => { f.ver = v; rota(); });
   ligaChips('verC', v => { f.verC = v; rota(); });
+  V.querySelectorAll('[data-sec]').forEach(b => b.onclick = e => { e.preventDefault(); f.sec = b.dataset.sec; rota(); });
+  ligaFixas(f);
   $('#mAnt').onclick = () => { f.mes = somaMes(f.mes, -1); rota(); };
   $('#mProx').onclick = () => { if (f.mes <= mesISO()) { f.mes = somaMes(f.mes, 1); rota(); } };
   V.querySelectorAll('[data-pagar]').forEach(b => b.onclick = () => comBotao(b, async () => {
@@ -131,6 +144,7 @@ async function telaConta(id) {
     : ok(await sb.from('gf_contas').select('*').eq('id', id).maybeSingle());
   if (!c) { titulo('Conta'); V.innerHTML = '<div class="vazio"><h2>Conta não encontrada</h2><a href="#servicos/financeiro">Voltar ao financeiro</a></div>'; return; }
   titulo(nova ? 'Nova conta' : 'Conta');
+  const bancos = await listaBancos();
   const op = (obj, at) => Object.entries(obj).map(([v, t]) => `<option value="${v}" ${v === at ? 'selected' : ''}>${esc(t)}</option>`).join('');
   V.innerHTML = `${!nova ? `<div class="item destaque"><div class="os-top"><b style="font-size:18px">${esc(c.descricao)}</b>${tagConta(c)}</div>
       <div class="meta">${esc(CONTA_CAT[c.categoria])}${c.recorrente ? ' · repete todo mês' : ''}</div>
@@ -143,6 +157,7 @@ async function telaConta(id) {
       <div><label for="cSt">Situação</label><select id="cSt" name="status">${op({ a_pagar: 'A pagar', pago: 'Paga' }, c.status)}</select></div></div>
     <div class="dupla"><div><label for="cFo">Para quem (opcional)</label><input id="cFo" name="fornecedor" maxlength="120" value="${esc(c.fornecedor || '')}" placeholder="Ex.: banco, oficina"></div>
       <div><label for="cFm">Forma</label><select id="cFm" name="forma">${op(CONTA_FORMA, c.forma || 'pix')}</select></div></div>
+    ${bancos.length ? `<label for="cBc">Pago com</label><select id="cBc" name="banco_id"><option value="">Não informar</option>${bancos.map(x => `<option value="${x.id}" ${x.id === c.banco_id ? 'selected' : ''}>${esc(x.nome)}</option>`).join('')}</select>` : ''}
     <label class="chk" style="margin-top:14px"><input type="checkbox" name="recorrente" value="1" ${c.recorrente ? 'checked' : ''}><span><b>Repete todo mês</b> no mesmo dia (parcela, seguro, salário, aluguel). Desmarque quando parar.</span></label>
     <label for="cOb">Observação</label><textarea id="cOb" name="obs" maxlength="1000">${esc(c.obs || '')}</textarea>
     <button class="btn full grande" style="margin-top:16px">${nova ? 'Salvar conta' : 'Salvar alterações'}</button>
@@ -158,6 +173,7 @@ async function telaConta(id) {
     if (!fd.vencimento) return toast('Informe o vencimento.', true);
     const dados = { descricao: fd.descricao.trim(), categoria: fd.categoria, valor, vencimento: fd.vencimento, status: fd.status,
       fornecedor: fd.fornecedor.trim() || null, forma: fd.forma, recorrente: !!fd.recorrente, obs: fd.obs.trim() || null };
+    if ('banco_id' in fd) dados.banco_id = fd.banco_id || null;
     comBotao(e.target.querySelector('button'), async () => {
       try {
         if (nova) ok(await sb.from('gf_contas').insert(dados)); else ok(await sb.from('gf_contas').update(dados).eq('id', c.id));
@@ -185,9 +201,11 @@ async function telaOS(id) {
   const op = (obj, at) => Object.entries(obj).map(([v, t]) => `<option value="${v}" ${v === at ? 'selected' : ''}>${esc(t)}</option>`).join('');
   const din = v => v == null || Number(v) === 0 ? '' : String(v).replace('.', ',');
   const gf = !!o.pedido_id;
+  const bancos = await listaBancos();
   V.innerHTML = `${!nova ? `<div class="item destaque"><div class="os-top"><b style="font-size:20px">${numOS(o.numero)}</b>${tagOS(o)}</div>
       <div class="meta">${gf ? `Atendimento pelo GF · <a href="#pedido/${o.pedido_id}">ver atendimento</a>` : 'Lançada à mão'} · criada ${dataHora(o.criado_em)}</div>
-      ${o.status === 'a_receber' ? '<button class="btn vd full" id="osPago" style="margin-top:12px">Marcar como pago hoje</button>' : ''}</div>` : ''}
+      ${o.status === 'a_receber' ? '<button class="btn vd full" id="osPago" style="margin-top:12px">Marcar como pago hoje</button>' : ''}
+      <a class="btn fant full" href="#recibo/${o.id}" style="margin-top:10px">${o.status === 'pago' ? 'Recibo em PDF' : 'Cobrança em PDF'}</a></div>` : ''}
   <form id="fOS" novalidate>
     <h3 class="sec-t">Serviço</h3>
     <div class="dupla"><div><label for="oD">Data</label><input id="oD" name="data" type="date" value="${esc(o.data)}" required></div>
@@ -202,6 +220,7 @@ async function telaOS(id) {
     <h3 class="sec-t">Valor e recebimento</h3>
     <div class="dupla"><div><label for="oVal">Valor (R$)</label><input id="oVal" name="valor" inputmode="decimal" value="${din(o.valor)}" placeholder="Ex.: 600" required></div>
       <div><label for="oF">Forma</label><select id="oF" name="forma">${op(OS_FORMA, o.forma)}</select></div></div>
+    ${bancos.length ? `<label for="oBc">Recebido em</label><select id="oBc" name="banco_id"><option value="">Não informar</option>${bancos.map(x => `<option value="${x.id}" ${x.id === o.banco_id ? 'selected' : ''}>${esc(x.nome)}</option>`).join('')}</select>` : ''}
     <div class="dupla"><div><label for="oS">Situação</label><select id="oS" name="status">${op(OS_STATUS, o.status)}</select></div>
       <div><label for="oVc">Vencimento</label><input id="oVc" name="vencimento" type="date" value="${esc(o.vencimento || '')}"></div></div>
     <h3 class="sec-t">Custos do serviço</h3>
@@ -232,6 +251,7 @@ async function telaOS(id) {
       vencimento: fd.vencimento || null, custo_diesel: num(fd.custo_diesel), custo_pedagio: num(fd.custo_pedagio), custo_outros: num(fd.custo_outros),
       comissao: num(fd.comissao), motorista: fd.motorista.trim() || null, obs: fd.obs.trim() || null, veiculo: fd.veiculo.trim() || null,
       placa: fd.placa.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') || null, km: fd.km.trim() ? num(fd.km) : null };
+    if ('banco_id' in fd) dados.banco_id = fd.banco_id || null;
     if (!gf) Object.assign(dados, { origem: fd.origem.trim() || null, destino: fd.destino.trim() || null });
     comBotao(e.target.querySelector('button'), async () => {
       try {
@@ -247,4 +267,144 @@ async function telaOS(id) {
     if (!await perguntar({ titulo: `Excluir ${numOS(o.numero)}?`, texto: 'Ela sai do financeiro e não dá para desfazer.', ok: 'Excluir', perigo: true })) return;
     try { ok(await sb.from('gf_os').delete().eq('id', o.id)); toast('OS excluída.'); location.hash = 'servicos/financeiro'; } catch (er) { falha(er); }
   };
+}
+
+// ───────── despesas fixas: modelos prontos, viram contas que repetem todo mês ─────────
+const FIXAS_MODELOS = [
+  ['caminhao', 'Parcela do caminhão', 10], ['seguro', 'Seguro do caminhão', 10], ['salario', 'Salário do motorista', 5],
+  ['salario', 'Pró-labore (retirada do dono)', 5], ['impostos', 'Contador', 10], ['impostos', 'Simples / DAS / MEI', 20],
+  ['telefone', 'Celular e internet', 15], ['outros', 'Rastreador', 10], ['aluguel', 'Aluguel do pátio / garagem', 5],
+  ['manutencao', 'Reserva para manutenção e pneus', 25]];
+async function secaoFixas(contasMes) {
+  const series = ok(await sb.from('gf_contas').select('id,descricao,categoria,valor,vencimento,recorrente,serie_id').not('serie_id', 'is', null)
+    .order('vencimento', { ascending: false }).limit(1000));
+  const ultima = {}; series.forEach(c => { if (!ultima[c.serie_id]) ultima[c.serie_id] = c; });
+  const ativas = Object.values(ultima).filter(c => c.recorrente).sort((a, b) => Number(b.valor) - Number(a.valor));
+  const total = ativas.reduce((s, c) => s + Number(c.valor), 0);
+  const nomes = new Set(ativas.map(c => c.descricao.toLowerCase()));
+  const modelos = FIXAS_MODELOS.filter(([, n]) => !nomes.has(n.toLowerCase()));
+  return `<div class="fin-res ${total ? 'neg' : ''}" style="background:#0F172A"><span>Despesas fixas por mês</span><b style="color:#fff">${brl(total)}</b>
+      <small>${ativas.length ? `${ativas.length} despesa${ativas.length > 1 ? 's' : ''} que repete${ativas.length > 1 ? 'm' : ''} todo mês. É o mínimo que a empresa precisa faturar (além do diesel e custos de cada serviço).` : 'Nenhuma ainda. Use os modelos abaixo: escolha, coloque o valor e pronto.'}</small></div>
+    ${ativas.length ? `<h3 class="sec-t">Suas despesas fixas</h3>${ativas.map(c => `<a class="item os-item" href="#conta/${c.id}">
+        <div class="os-top"><b>${esc(CONTA_CAT[c.categoria] || 'Outros')}</b><span class="tag">todo dia ${Number(c.vencimento.slice(8))}</span></div>
+        <div class="os-meio"><span>${esc(c.descricao)}</span><b class="valor">${brl(c.valor)}</b></div></a>`).join('')}` : ''}
+    ${modelos.length ? `<h3 class="sec-t">Adicionar despesa fixa</h3><p class="vs-dica">Coloque o valor de cada uma que você tem e toque em salvar. As outras ficam em branco. Dá para mudar depois.</p>
+    <form id="fFix" novalidate class="fix-lista">${modelos.map(([cat, nome, dia], i) => `<div class="fix-it">
+        <label for="fx${i}"><b>${esc(nome)}</b><small>${esc(CONTA_CAT[cat])} · vence dia</small></label>
+        <input class="fix-dia" type="number" min="1" max="28" value="${dia}" data-dia="${i}" aria-label="Dia do vencimento de ${esc(nome)}">
+        <input id="fx${i}" class="fix-val" inputmode="decimal" placeholder="R$ 0,00" data-i="${i}" data-cat="${cat}" data-nome="${esc(nome)}"></div>`).join('')}
+      <button class="btn full grande" style="margin-top:12px">Salvar despesas fixas</button></form>` : ''}
+    <a class="btn fant full" href="#conta/nova" style="margin-top:12px">+ Outra despesa (marque "Repete todo mês")</a>`;
+}
+function ligaFixas(f) {
+  const form = $('#fFix'); if (!form) return;
+  form.addEventListener('input', () => { form.dataset.sujo = '1'; });
+  form.onsubmit = e => {
+    e.preventDefault();
+    const hoje = hojeISO(), mes = f.mes || mesISO();
+    const linhas = [...form.querySelectorAll('.fix-val')].filter(i => i.value.trim()).map(i => {
+      const dia = Math.min(28, Math.max(1, Number(form.querySelector(`[data-dia="${i.dataset.i}"]`).value) || 10));
+      const venc = `${mes}-${String(dia).padStart(2, '0')}`;
+      return { descricao: i.dataset.nome, categoria: i.dataset.cat, valor: valorDigitado(i.value), vencimento: venc, status: 'a_pagar', recorrente: true, forma: 'pix', _ok: venc >= '0' && hoje };
+    });
+    if (!linhas.length) return toast('Coloque o valor de pelo menos uma despesa.', true);
+    if (linhas.some(l => !(l.valor > 0))) return toast('Confira os valores: use só números, ex.: 3.500', true);
+    comBotao(form.querySelector('button'), async () => {
+      try {
+        ok(await sb.from('gf_contas').insert(linhas.map(({ _ok, ...l }) => l)));
+        delete form.dataset.sujo; toast(`${linhas.length} despesa${linhas.length > 1 ? 's' : ''} fixa${linhas.length > 1 ? 's' : ''} salva${linhas.length > 1 ? 's' : ''}. Elas aparecem todo mês.`); rota();
+      } catch (er) { falha(er); }
+    });
+  };
+}
+
+// ───────── contas bancárias e caixa ─────────
+const BANCO_TIPO = { banco: 'Conta no banco', caixa: 'Caixa (dinheiro)', carteira: 'Carteira digital' };
+async function listaBancos() { try { return ok(await sb.from('gf_bancos').select('id,nome,tipo').eq('ativo', true).order('criado_em')); } catch { return []; } }
+async function secaoBancos() {
+  let saldos = []; try { saldos = await rpc('gf_saldos'); } catch { /* ainda não publicado */ }
+  const total = saldos.reduce((t, x) => t + Number(x.saldo), 0);
+  return `<div class="fin-res ${total >= 0 ? 'pos' : 'neg'}"><span>Saldo total</span><b>${brl(total)}</b>
+      <small>${saldos.length ? 'Saldo inicial + o que você recebeu nas OS − o que pagou nas contas, em cada conta.' : 'Cadastre seu banco e o caixa para ver o saldo de cada um.'}</small></div>
+    ${saldos.map(x => `<a class="item os-item" href="#banco/${x.banco_id}"><div class="os-top"><b>${esc(BANCO_TIPO[x.tipo] || '')}</b></div>
+      <div class="os-meio"><span>${esc(x.nome)}</span><b class="valor ${Number(x.saldo) < 0 ? 'neg' : ''}">${brl(x.saldo)}</b></div>
+      <div class="meta">Entrou ${brl(x.entradas)} · saiu ${brl(x.saidas)}</div></a>`).join('')}
+    <a class="btn full grande" href="#banco/novo" style="margin-top:12px">+ Nova conta bancária ou caixa</a>
+    <p class="vs-dica" style="margin-top:10px">Ao marcar uma OS como paga ou uma conta como paga, escolha em qual conta entrou ou saiu o dinheiro. O saldo atualiza sozinho.</p>`;
+}
+async function telaBanco(id) {
+  const novo = id === 'novo';
+  const b = novo ? { tipo: 'banco', saldo_inicial: 0, data_inicial: hojeISO() } : ok(await sb.from('gf_bancos').select('*').eq('id', id).maybeSingle());
+  if (!b) { titulo('Conta'); V.innerHTML = '<div class="vazio"><h2>Conta não encontrada</h2><a href="#servicos/financeiro">Voltar</a></div>'; return; }
+  titulo(novo ? 'Nova conta bancária' : b.nome);
+  V.innerHTML = `<form id="fBc" novalidate>
+    <label for="bN">Nome</label><input id="bN" name="nome" maxlength="60" value="${esc(b.nome || '')}" placeholder="Ex.: Sicredi, Nubank, Caixa da empresa" required>
+    <label for="bT">Tipo</label><select id="bT" name="tipo">${Object.entries(BANCO_TIPO).map(([v, t]) => `<option value="${v}" ${v === b.tipo ? 'selected' : ''}>${t}</option>`).join('')}</select>
+    <div class="dupla"><div><label for="bS">Saldo de hoje (R$)</label><input id="bS" name="saldo_inicial" inputmode="decimal" value="${String(b.saldo_inicial ?? 0).replace('.', ',')}"></div>
+      <div><label for="bD">Data desse saldo</label><input id="bD" name="data_inicial" type="date" value="${esc(b.data_inicial)}"></div></div>
+    <p class="vs-dica">Coloque o saldo que está no extrato hoje. Daí em diante o GF soma o que entra e tira o que sai.</p>
+    <button class="btn full grande" style="margin-top:14px">${novo ? 'Salvar conta' : 'Salvar alterações'}</button></form>
+    ${!novo ? '<button class="btn perigo full" id="bDel" style="margin-top:12px">Desativar esta conta</button>' : ''}
+    <a class="btn fant full" href="#servicos/financeiro" style="margin-top:12px">Voltar ao financeiro</a>`;
+  $('#fBc').onsubmit = e => {
+    e.preventDefault(); const fd = Object.fromEntries(new FormData(e.target));
+    if (fd.nome.trim().length < 2) { $('#bN').focus(); return toast('Dê um nome para a conta.', true); }
+    const saldo = fd.saldo_inicial.trim() ? valorDigitado(fd.saldo_inicial.replace('-', '')) * (fd.saldo_inicial.trim().startsWith('-') ? -1 : 1) : 0;
+    if (!Number.isFinite(saldo)) return toast('Confira o saldo.', true);
+    const dados = { nome: fd.nome.trim(), tipo: fd.tipo, saldo_inicial: saldo, data_inicial: fd.data_inicial || hojeISO() };
+    comBotao(e.target.querySelector('button'), async () => {
+      try {
+        if (novo) ok(await sb.from('gf_bancos').insert(dados)); else ok(await sb.from('gf_bancos').update(dados).eq('id', b.id));
+        toast('Conta salva.'); (S.filtros.fin ||= { mes: mesISO() }).sec = 'bancos'; location.hash = 'servicos/financeiro';
+      } catch (er) { falha(er); }
+    });
+  };
+  if ($('#bDel')) $('#bDel').onclick = async () => {
+    if (!await perguntar({ titulo: `Desativar ${b.nome}?`, texto: 'Ela some da lista e do saldo. As OS e contas ligadas a ela continuam no financeiro.', ok: 'Desativar', perigo: true })) return;
+    try { ok(await sb.from('gf_bancos').update({ ativo: false }).eq('id', b.id)); toast('Conta desativada.'); location.hash = 'servicos/financeiro'; } catch (er) { falha(er); }
+  };
+}
+
+// ───────── recibo / cobrança da OS (imprimir ou salvar em PDF) ─────────
+function porExtenso(v) {
+  const u = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez', 'onze', 'doze', 'treze', 'catorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove'];
+  const d = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa'];
+  const c = ['', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos'];
+  const ate999 = n => { if (n === 100) return 'cem'; const p = []; if (n >= 100) p.push(c[Math.floor(n / 100)]); n %= 100;
+    if (n >= 20) { p.push(d[Math.floor(n / 10)]); if (n % 10) p.push(u[n % 10]); } else if (n) p.push(u[n]); return p.join(' e '); };
+  const inteiro = n => { if (!n) return 'zero'; const mi = Math.floor(n / 1e6), mil = Math.floor(n % 1e6 / 1000), r = n % 1000; const p = [];
+    if (mi) p.push(mi === 1 ? 'um milhão' : ate999(mi) + ' milhões'); if (mil) p.push(mil === 1 ? 'mil' : ate999(mil) + ' mil'); if (r) p.push(ate999(r));
+    return p.length > 1 && r && (r < 100 || r % 100 === 0) ? p.slice(0, -1).join(' ') + ' e ' + p[p.length - 1] : p.join(' '); };
+  const reaisN = Math.floor(v + 1e-9), cent = Math.round((v - reaisN) * 100);
+  let t = `${inteiro(reaisN)} ${reaisN === 1 ? 'real' : 'reais'}`;
+  if (reaisN >= 1e6 && reaisN % 1e6 === 0) t = t.replace(' reais', ' de reais');
+  if (cent) t += ` e ${inteiro(cent)} centavo${cent > 1 ? 's' : ''}`;
+  return reaisN ? t : `${inteiro(cent)} centavo${cent > 1 ? 's' : ''}`;
+}
+async function telaRecibo(id) {
+  const o = ok(await sb.from('gf_os').select('*').eq('id', id).maybeSingle());
+  if (!o) { titulo('Recibo'); V.innerHTML = '<div class="vazio"><h2>OS não encontrada</h2><a href="#servicos/financeiro">Voltar</a></div>'; return; }
+  const pago = o.status === 'pago'; const P = S.perfil || {};
+  titulo(pago ? 'Recibo' : 'Cobrança');
+  V.innerHTML = `<div class="recibo">
+    <div class="rc-top"><img src="/assets/gf-mark.png" alt="" class="rc-logo"><div><b>${esc(P.empresa || P.nome || '')}</b>
+      <span>${esc(P.empresa ? P.nome : '')}${P.cidade ? (P.empresa ? ' · ' : '') + esc(P.cidade) : ''}${P.whatsapp ? ' · WhatsApp ' + esc(mascaraZap ? mascaraZap(P.whatsapp) : P.whatsapp) : ''}</span></div>
+      <div class="rc-num">${pago ? 'RECIBO' : 'COBRANÇA'}<b>${numOS(o.numero)}</b></div></div>
+    <div class="rc-valor">${brl(o.valor)}</div>
+    <p class="rc-txt">${pago ? `Recebi de <b>${esc(o.cliente)}</b> a importância de <b>${brl(o.valor)}</b> (${esc(porExtenso(Number(o.valor)))}), referente ao serviço de transporte/guincho descrito abaixo.`
+      : `Valor a pagar por <b>${esc(o.cliente)}</b>: <b>${brl(o.valor)}</b> (${esc(porExtenso(Number(o.valor)))}), referente ao serviço de transporte/guincho descrito abaixo${o.vencimento ? `, com vencimento em <b>${dataBR(o.vencimento)}</b>` : ''}.`}</p>
+    <dl class="rc-dl">
+      <div><dt>Data do serviço</dt><dd>${dataBR(o.data)}</dd></div>
+      ${o.origem || o.destino ? `<div><dt>Trajeto</dt><dd>${esc(o.origem || '–')} › ${esc(o.destino || '–')}</dd></div>` : ''}
+      ${o.veiculo || o.placa ? `<div><dt>Veículo</dt><dd>${esc(o.veiculo || '')}${o.placa ? ' · placa ' + esc(o.placa) : ''}</dd></div>` : ''}
+      ${o.km ? `<div><dt>Km rodados</dt><dd>${Number(o.km).toLocaleString('pt-BR')} km</dd></div>` : ''}
+      <div><dt>Forma de pagamento</dt><dd>${esc(OS_FORMA[o.forma] || '')}</dd></div>
+      ${pago && o.pago_em ? `<div><dt>Pago em</dt><dd>${dataBR(o.pago_em)}</dd></div>` : ''}
+      ${o.obs ? `<div><dt>Observação</dt><dd>${esc(o.obs)}</dd></div>` : ''}
+    </dl>
+    <div class="rc-ass"><i></i><span>${esc(P.nome || '')}${P.empresa ? ' · ' + esc(P.empresa) : ''}</span></div>
+    <p class="rc-pe">Emitido pelo GF · Guincho Fácil em ${new Date().toLocaleDateString('pt-BR')} · appdoguincheiro.com</p>
+    <div class="acoes nao-imprime"><button class="btn full grande" id="rcPdf">Salvar em PDF ou imprimir</button>
+      <a class="btn fant full" href="#os/${o.id}">Voltar à OS</a></div></div>`;
+  $('#rcPdf').onclick = () => window.print();
 }
