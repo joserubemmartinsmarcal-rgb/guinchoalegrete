@@ -17,7 +17,7 @@ function tagOS(o) {
   if (o.status === 'cancelada') return '<span class="tag vm">Cancelada</span>';
   return vencida(o) ? '<span class="tag vm">Vencida</span>' : '<span class="tag am">A receber</span>';
 }
-function nomeMes(m) { const [a, b] = m.split('-').map(Number); return new Date(a, b - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }); }
+function nomeMes(m) { const [a, b] = m.split('-').map(Number); const t = new Date(a, b - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }); return t.charAt(0).toUpperCase() + t.slice(1); }
 function somaMes(m, d) { const [a, b] = m.split('-').map(Number); const x = new Date(a, b - 1 + d, 1); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}`; }
 
 async function telaFinanceiro() {
